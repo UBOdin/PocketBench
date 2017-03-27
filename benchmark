@@ -1,0 +1,739 @@
+#!/usr/bin/python
+
+import argparse
+import subprocess
+
+parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLite and Berkeley Db.')
+args = parser.parse_args()
+
+def help_message():
+	print '\nCommand List:\n'
+	print '	[bdb a] Workload A on Berkeley Db	[sql a] Workload A on SQLite'
+	print '	[bdb100 a] Workload A on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb b] Workload B on Berkeley Db	[sql b] Workload B on SQLite'
+	print '	[bdb100 b] Workload B on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb c] Workload C on Berkeley Db	[sql c] Workload C on SQLite'
+	print '	[bdb100 c] Workload C on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb d] Workload D on Berkeley Db	[sql d] Workload D on SQLite'
+	print '	[bdb100 d] Workload D on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb e] Workload E on Berkeley Db	[sql e] Workload E on SQLite'
+	print '	[bdb100 e] Workload E on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb f] Workload F on Berkeley Db	[sql f] Workload F on SQLite'
+	print '	[bdb100 f] Workload F on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb ia] Workload IA on Berkeley Db	[sql ia] Workload IA on SQLite'
+	print '	[bdb100 ia] Workload IA on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb ib] Workload IB on Berkeley Db	[sql ib] Workload IB on SQLite'
+	print '	[bdb100 ib] Workload IB on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb ic] Workload IC on Berkeley Db	[sql ic] Workload IC on SQLite'
+	print '	[bdb100 ic] Workload IC on Berkeley Db with 100MB Cache'
+	print
+	print '	[bdb all] All workloads on Berkeley Db'
+	print
+	print '	[bdb100 all] All workloads on Berkeley Db with 100MB Cache'
+	print
+	print '	[sql all] All workloads on SQLite'
+	print
+	print '	[mutiple/multi/m] brings up prompt to run multiple workloads at a time'
+	print
+	print '	[quit/q/exit] exits the program'
+	print
+
+def setup_app(name):
+	subprocess.call(['sh','scripts/setup/' + name + '.sh'])
+
+def command(string_array):
+	if string_array[0] + ' ' + string_array[1] == 'bdb a':
+		print 'running bdb a'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_a')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_a.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb b':
+		print 'running bdb b'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_b')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_b.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb c':
+		print 'running bdb c'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_c')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_c.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb d':
+		print 'running bdb d'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_d')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_d.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb e':
+		print 'running bdb e'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_e')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_100.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_e.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb f':
+		print 'running bdb f'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_f')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_f.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb ia':
+		print 'running bdb ia'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_ia')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_ia.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb ib':
+		print 'running bdb ib'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_ib')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_ib.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb ic':
+		print 'running bdb ic'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb_ic')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb_ic.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql a':
+		print 'running sql a'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_a')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_a.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql b':
+		print 'running sql b'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_b')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_b.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql c':
+		print 'running sql c'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_c')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_c.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql d':
+		print 'running sql d'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_d')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_d.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql e':
+		print 'running sql e'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_e')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_100.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_e.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql f':
+		print 'running sql f'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_f')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_f.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql ia':
+		print 'running sql ia'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_ia')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_ia.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql ib':
+		print 'running sql ib'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_ib')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_ib.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'sql ic':
+		print 'running sql ic'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('sql_ic')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/sql_ic.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 a':
+		print 'running bdb100 a'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_a')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_a.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 b':
+		print 'running bdb100 b'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_b')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_b.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 c':
+		print 'running bdb100 c'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_c')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_c.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 d':
+		print 'running bdb100 d'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_d')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_d.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 e':
+		print 'running bdb100 e'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_e')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_100.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_e.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 f':
+		print 'running bdb100 f'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_f')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_f.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 ia':
+		print 'running bdb100 ia'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_ia')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_ia.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 ib':
+		print 'running bdb100 ib'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_ib')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_ib.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'bdb100 ic':
+		print 'running bdb100 ic'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('bdb100_ic')
+		print 'success'
+
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run/bdb100_ic.sh'])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'test break':
+		return -1
+	else:
+		return 1
+
+def device_connected():
+	temp_file = open("temp.txt",'w')
+	subprocess.call(['adb', 'devices'], stdout=temp_file, stderr=temp_file)
+	temp_file.close()
+	tester = 1
+	with open("temp.txt",'r') as log:
+		for line in log:
+			if 'device\n' in line:
+				tester = 0
+	subprocess.call(['rm', 'temp.txt'])
+	if tester == 1:
+		return False
+	else:
+		return True
+
+def multi_run():
+	print 'Please enter the desired workloads seperated by commas.'
+	input2 = raw_input('benchmark_mutli_run...$ ')
+	input2 = input2.split(',')
+	for string in input2:
+		stripped = string.strip()
+		try:
+			command(stripped.split())
+		except IndexError:
+			pass
+
+def run_all(input_array):
+	if input_array[0] == 'bdb':
+		array = ['bdb a','bdb b','bdb c','bdb d','bdb e','bdb f','bdb ia','bdb ib','bdb ic']
+		for string in array:
+			command(string.split())
+	elif input_array[0] == 'sql':
+		array = ['sql a','sql b','sql c','sql d','sql e','sql f','sql ia','sql ib','sql ic']
+		for string in array:
+			command(string.split())
+	elif input_array[0] == 'bdb100':
+		array = ['bdb100 a','bdb100 b','bdb100 c','bdb100 d','bdb100 e','bdb100 f','bdb100 ia','bdb100 ib','bdb100 ic']
+		for string in array:
+			command(string.split())
+	else:
+		print 'invalid command'
+
+while True:
+	input = raw_input('benchmark...$ ')
+	input = input.split()
+	if input[0].lower() == 'quit' or input[0].lower() == 'exit' or input[0].lower() == 'q':
+		break
+
+	if input[0].lower() == 'mutiple' or input[0].lower() == 'multi' or input[0].lower() == 'm':
+		multi_run()
+		continue
+
+	if 'all' in input:
+		run_all(input)
+		continue
+
+	if input[0].lower() == 'help' or input[0].lower() == 'menu':
+		help_message()
+		continue
+	code = 1
+	try:
+		code = command(input)
+	except IndexError:
+		pass
+	if code == 0:
+		continue
+	if code < 0:
+		print 'Program exited with error code: ' + str(code)
+		break
+	print 'invalid command'

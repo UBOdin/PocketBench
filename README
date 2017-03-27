@@ -1,0 +1,1 @@
+Please set the android sdk path (sdk.dir) in the 'local.properties' file in the 'config' directory, then run the 'config.sh' script before running the benchmark.
