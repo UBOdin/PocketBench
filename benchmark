@@ -697,15 +697,23 @@ def multi_run():
 		except IndexError:
 			pass
 
+def analytics(command):
+	temp_file = open("temp.txt",'w')
+	subprocess.call(['ls', 'logs/'], stdout=temp_file, stderr=temp_file)
+	temp_file.close()
+	#if command == 'sanity_check':
+
+	#return
+
 def analytics_menu():
 	print 'Please enter one of the following commands:'
 	print '(This will run on all logs present in the "logs" directory)'
 	print
-	print '	[sanity_check] Runs the sanity checking scripts to ensure the log is within the right thresholds'
+	print '	[sanity_check] Runs the sanity checking script (find time waiting for each IO)	[sanity_check-s] Summary of time waiting on IO'
 	print
-	print ' [latency] Runs the script for full latency info	[latency-s] Summary of latency info'
+	print ' [latency] Runs the script for full info for all IO events	[latency-s] Summary of latency info'
 	print
-	print '	[io] Runs the script for full io info	[io-s] Summary of io events'
+	print '	[time] Runs the script for full time info per each PID present during the workload	[time-s] Summary of times per PID'
 	print
 	print '	[quit/q/exit] exits the program'
 	print
@@ -715,6 +723,8 @@ def analytics_menu():
 		input3 = input3.split()
 		if input3[0].lower() == 'quit' or input3[0].lower() == 'exit' or input3[0].lower() == 'q':
 			break
+		else:
+			analytics(input3[0])
 		
 	
 
