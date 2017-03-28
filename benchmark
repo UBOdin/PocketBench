@@ -41,6 +41,8 @@ def help_message():
 	print
 	print '	[sql all] All workloads on SQLite'
 	print
+	print '	[all] All workloads, on all databases'
+	print
 	print '	[mutiple/multi/m] brings up prompt to run multiple workloads at a time'
 	print
 	print '	[quit/q/exit] exits the program'
@@ -704,6 +706,10 @@ def run_all(input_array):
 			command(string.split())
 	elif input_array[0] == 'bdb100':
 		array = ['bdb100 a','bdb100 b','bdb100 c','bdb100 d','bdb100 e','bdb100 f','bdb100 ia','bdb100 ib','bdb100 ic']
+		for string in array:
+			command(string.split())
+	elif input_array[0] == 'all':
+		array = ['bdb100 a','bdb100 b','bdb100 c','bdb100 d','bdb100 e','bdb100 f','bdb100 ia','bdb100 ib','bdb100 ic','sql a','sql b','sql c','sql d','sql e','sql f','sql ia','sql ib','sql ic','bdb a','bdb b','bdb c','bdb d','bdb e','bdb f','bdb ia','bdb ib','bdb ic']
 		for string in array:
 			command(string.split())
 	else:
