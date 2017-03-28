@@ -697,17 +697,81 @@ def multi_run():
 		except IndexError:
 			pass
 
+def run_analytics(command,dbtype,logname):
+	temp2_file = open("temp2.txt",'w')
+	subprocess.call(['zgrep', 'Workload', 'logs/'+logname], stdout=temp2_file, stderr=temp2_file)
+	temp2_file.close()
+	temp2_file = open("temp2.txt",'r')
+	info_file_name = ''
+	for line in temp2_file:
+		line = line.split('{"EVENT":"')[1].split('"}')
+		temp = line[0].split()
+		#print len(temp)
+		count = 0
+		for s in temp:
+			if count == len(temp) - 1:
+				info_file_name += s
+			else:
+				info_file_name += s + '_'
+			count += 1
+		break
+
+	#print info_file_name
+	temp2_file.close()
+	subprocess.call(['rm','temp2.txt'])
+	if command == 'sanity_check':
+		info_file_name += '.waiting_on_io_info'
+	elif command == 'sanity_check-s':
+		info_file_name += '.waiting_on_io_summary'
+	elif command == 'latency':
+		info_file_name += '.latency_info'
+	elif command == 'latency-s':
+		info_file_name += '.latency_summary'
+	elif command == 'time':
+		info_file_name += '.time_info'
+	elif command == 'time-s':
+		info_file_name += '.time_summary'
+	else:
+		print 'invalid command'
+		return
+	print info_file_name
+
+
 def analytics(command):
+	if (command != 'sanity_check' and command != 'sanity_check-s' and
+	 command != 'latency' and command != 'latency-s' and
+	 command != 'time' and command != 'time-s'):
+		print 'invalid command'
+		return
 	temp_file = open("temp.txt",'w')
 	subprocess.call(['ls', 'logs/'], stdout=temp_file, stderr=temp_file)
 	temp_file.close()
+	temp_file = open("temp.txt",'r')
+	for logname in temp_file:
+		dbtype = ''
+		if 'sql' in logname:
+			dbtype = 'SQL'
+			run_analytics(command,dbtype,logname.split('\n')[0])
+			break
+		elif 'bdb' in logname:
+			dbtype = 'BDB'
+			run_analytics(command,dbtype,logname.split('\n')[0])
+			break
+		elif 'info' in logname:
+			continue
+		else:
+			print 'invalid log file'
+			break
+		#print dbtype
+	temp_file.close()
+	subprocess.call(['rm','temp.txt'])
 	#if command == 'sanity_check':
 
 	#return
 
 def analytics_menu():
 	print 'Please enter one of the following commands:'
-	print '(This will run on all logs present in the "logs" directory)'
+	print 'WARNING: (This will run on all logs present in the "logs" directory)'
 	print
 	print '	[sanity_check] Runs the sanity checking script (find time waiting for each IO)	[sanity_check-s] Summary of time waiting on IO'
 	print
