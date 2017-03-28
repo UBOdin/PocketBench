@@ -43,7 +43,9 @@ def help_message():
 	print
 	print '	[all] All workloads, on all databases'
 	print
-	print '	[mutiple/multi/m] brings up prompt to run multiple workloads at a time'
+	print '	[mutiple/multi/m] Brings up prompt to run multiple workloads at a time'
+	print
+	print '	[a/analytics] Brings up the analytics menu'
 	print
 	print '	[quit/q/exit] exits the program'
 	print
@@ -695,6 +697,27 @@ def multi_run():
 		except IndexError:
 			pass
 
+def analytics_menu():
+	print 'Please enter one of the following commands:'
+	print '(This will run on all logs present in the "logs" directory)'
+	print
+	print '	[sanity_check] Runs the sanity checking scripts to ensure the log is within the right thresholds'
+	print
+	print ' [latency] Runs the script for full latency info	[latency-s] Summary of latency info'
+	print
+	print '	[io] Runs the script for full io info	[io-s] Summary of io events'
+	print
+	print '	[quit/q/exit] exits the program'
+	print
+
+	while True:
+		input3 = raw_input('benchmark_analytics...$ ')
+		input3 = input3.split()
+		if input3[0].lower() == 'quit' or input3[0].lower() == 'exit' or input3[0].lower() == 'q':
+			break
+		
+	
+
 def run_all(input_array):
 	if input_array[0] == 'bdb':
 		array = ['bdb a','bdb b','bdb c','bdb d','bdb e','bdb f','bdb ia','bdb ib','bdb ic']
@@ -717,21 +740,28 @@ def run_all(input_array):
 
 while True:
 	input = raw_input('benchmark...$ ')
-	input = input.split()
-	if input[0].lower() == 'quit' or input[0].lower() == 'exit' or input[0].lower() == 'q':
-		break
+	try:
+		input = input.split()
+		if input[0].lower() == 'quit' or input[0].lower() == 'exit' or input[0].lower() == 'q':
+			break
 
-	if input[0].lower() == 'mutiple' or input[0].lower() == 'multi' or input[0].lower() == 'm':
-		multi_run()
-		continue
+		if input[0].lower() == 'mutiple' or input[0].lower() == 'multi' or input[0].lower() == 'm':
+			multi_run()
+			continue
 
-	if 'all' in input:
-		run_all(input)
-		continue
+		if 'all' in input:
+			run_all(input)
+			continue
 
-	if input[0].lower() == 'help' or input[0].lower() == 'menu':
-		help_message()
-		continue
+		if input[0].lower() == 'a' or input[0].lower() == 'analytics':
+			analytics_menu()
+			continue
+
+		if input[0].lower() == 'help' or input[0].lower() == 'menu':
+			help_message()
+			continue
+	except IndexError:
+		pass
 	code = 1
 	try:
 		code = command(input)
