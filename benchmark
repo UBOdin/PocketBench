@@ -721,20 +721,50 @@ def run_analytics(command,dbtype,logname):
 	subprocess.call(['rm','temp2.txt'])
 	if command == 'sanity_check':
 		info_file_name += '.waiting_on_io_info'
+		save_file = open("logs/info/" + info_file_name,'w')
+		print 'running sanity checking script for ' + logname + '. please wait ...'
+		subprocess.call(['python', 'scripts/analytics/findtimeblockedonio.py', dbtype, 'logs/' +logname], stdout=save_file, stderr=save_file)
+		print 'complete'
+		save_file.close()
 	elif command == 'sanity_check-s':
 		info_file_name += '.waiting_on_io_summary'
+		save_file = open("logs/info/" + info_file_name,'w')
+		print 'running sanity checking summary script for ' + logname + '. please wait ...'
+		subprocess.call(['python', 'scripts/analytics/findtimeblockedonio.py', dbtype, 'logs/' +logname, '--summary'], stdout=save_file, stderr=save_file)
+		print 'complete'
+		save_file.close()
 	elif command == 'latency':
 		info_file_name += '.latency_info'
+		save_file = open("logs/info/" + info_file_name,'w')
+		print 'running latency script for ' + logname + '. please wait ...'
+		subprocess.call(['python', 'scripts/analytics/findlatency2.py', dbtype, 'logs/' +logname], stdout=save_file, stderr=save_file)
+		print 'complete'
+		save_file.close()
 	elif command == 'latency-s':
 		info_file_name += '.latency_summary'
+		save_file = open("logs/info/" + info_file_name,'w')
+		print 'running latency script for ' + logname + '. please wait ...'
+		subprocess.call(['python', 'scripts/analytics/findlatency2.py', dbtype, 'logs/' +logname, '--summary'], stdout=save_file, stderr=save_file)
+		print 'complete'
+		save_file.close()
 	elif command == 'time':
 		info_file_name += '.time_info'
+		save_file = open("logs/info/" + info_file_name,'w')
+		print 'running time script for ' + logname + '. please wait ...'
+		subprocess.call(['python', 'scripts/analytics/findtime.py', dbtype, 'logs/' +logname], stdout=save_file, stderr=save_file)
+		print 'complete'
+		save_file.close()
 	elif command == 'time-s':
 		info_file_name += '.time_summary'
+		save_file = open("logs/info/" + info_file_name,'w')
+		print 'running time summary script for ' + logname + '. please wait ...'
+		subprocess.call(['python', 'scripts/analytics/findtime.py', dbtype, 'logs/' +logname, '--summary'], stdout=save_file, stderr=save_file)
+		print 'complete'
+		save_file.close()
 	else:
 		print 'invalid command'
-		return
-	print info_file_name
+		#return
+	#print info_file_name
 
 
 def analytics(command):
