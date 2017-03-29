@@ -1,3 +1,16 @@
+apps/Benchmark_withJson/.gradle/2.10/taskArtifacts/cache.properties.lock
+apps/Benchmark_withJson/.gradle/2.10/taskArtifacts/fileHashes.bin
+apps/Benchmark_withJson/.gradle/2.10/taskArtifacts/fileSnapshots.bin
+apps/Benchmark_withJson/.gradle/2.10/taskArtifacts/outputFileStates.bin
+apps/Benchmark_withJson/.gradle/2.10/taskArtifacts/taskArtifacts.bin
+apps/Benchmark_withJson/.gradle/2.10/tasks/_app_compileDebugJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.bin
+apps/Benchmark_withJson/.gradle/2.10/tasks/_app_compileDebugJavaWithJavac/localClassSetAnalysis/localClassSetAnalysis.lock
+apps/Benchmark_withJson/.gradle/2.10/tasks/_app_compileDebugJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.bin
+apps/Benchmark_withJson/.gradle/2.10/tasks/_app_compileDebugJavaWithJavac/localJarClasspathSnapshot/localJarClasspathSnapshot.lock
+apps/Benchmark_withJson/build/intermediates/dex-cache/cache.xml
+apps/Benchmark_withJson/local.properties
+config/local.properties
+
 *.log
 *.log.gz
 *.info
