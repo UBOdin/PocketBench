@@ -1,10 +1,3 @@
-# find latency numbers
-# Usage: python findlatency.py (BDB|SQL) (Workload.log)
-
-# Detailed json = [starttime, endtime, runtime, insert op, complete op, addr]
-# Summary json = [IOcount, min runtime, max runtime, average runtime, IOcount of events that were 50% more or less then the average]
-
-
 import sys
 import json
 import argparse
@@ -16,18 +9,11 @@ parser.add_argument('input', type=str, help="Input data file.")
 parser.add_argument('--summary', action="store_true", help="Don't print detailed information.")
 args = parser.parse_args()
 
-#print args
-
 dbType = args.dbType
 workload = args.input
-#dbType = sys.argv[1]
-#workload = sys.argv[2]
 log = []
 block_insert = []
 block_complete1 = []
-
-#print dbType
-#print workload
 
 start_time = 0.0
 end_time = 0.0
@@ -47,27 +33,18 @@ with gzip.open(workload, 'r') as log:
 		if dbType + '_START' in line:
 			found = 1
 		if dbType + '_END' in line:
-			#count += 1
 			found = 2
 		if found == 0:
-			#count += 1
 			continue
 		if found == 2:
 			break
 		if 'block_rq_insert' in line:
 			timestamp = float(line.split()[3].split(':')[0])
 			insertaddr = line.split()[9] + ' + ' + line.split()[11]
-			
-			#addr = ad[9] 
-			#addr = addr + ' + ' + ad[11]
-			#print timestamp
 			if 'withjson' not in line:
 				continue
-			#print insertaddr
-			#print line
 			
 			with gzip.open(workload, 'r') as log2:
-				#count += 1
 				sameline = 0
 				for line2 in log2:
 					if line == line2:
@@ -80,24 +57,17 @@ with gzip.open(workload, 'r') as log:
 							count += 1
 							break
 
-#print count
-
 data = dict()
 for d in insert_complete:
-	#print insert_complete[d]
 	insert_string = insert_complete[d][0]
 	insertaddr = insert_string.split()[9] + ' + ' + insert_string.split()[11]
 	inserttimestamp = float(insert_string.split()[3].split(':')[0])
 	insertop = insert_string.split()[6]
-	#print insertaddr
 
 	complete_string = insert_complete[d][1]
 	completeaddr = complete_string.split()[8] + ' + ' + complete_string.split()[10]
 	completetimestamp = float(complete_string.split()[3].split(':')[0])
 	completeop = complete_string.split()[6]
-	#print completeaddr
-	#print insert_string
-	#data[d] = []
 	assert insertaddr == completeaddr
 	assert completetimestamp > inserttimestamp
 	start = (inserttimestamp - start_time) * 1000
@@ -107,10 +77,6 @@ for d in insert_complete:
 	assert (end - start) > 0
 	data[d] = [start, end, end - start, insertop, completeop, insertaddr]
 
-'''
-for i in data:
-	print data[i]
-'''
 if args.summary:
 	summary = dict()
 	r_min = 10000.0
