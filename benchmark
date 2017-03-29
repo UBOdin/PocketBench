@@ -706,7 +706,6 @@ def run_analytics(command,dbtype,logname):
 	for line in temp2_file:
 		line = line.split('{"EVENT":"')[1].split('"}')
 		temp = line[0].split()
-		#print len(temp)
 		count = 0
 		for s in temp:
 			if count == len(temp) - 1:
@@ -716,7 +715,6 @@ def run_analytics(command,dbtype,logname):
 			count += 1
 		break
 
-	#print info_file_name
 	temp2_file.close()
 	subprocess.call(['rm','temp2.txt'])
 	if command == 'sanity_check':
@@ -743,7 +741,7 @@ def run_analytics(command,dbtype,logname):
 	elif command == 'latency-s':
 		info_file_name += '.latency_summary'
 		save_file = open("logs/info/" + info_file_name,'w')
-		print 'running latency script for ' + logname + '. please wait ...'
+		print 'running latency summary script for ' + logname + '. please wait ...'
 		subprocess.call(['python', 'scripts/analytics/findlatency2.py', dbtype, 'logs/' +logname, '--summary'], stdout=save_file, stderr=save_file)
 		print 'complete'
 		save_file.close()
@@ -763,9 +761,6 @@ def run_analytics(command,dbtype,logname):
 		save_file.close()
 	else:
 		print 'invalid command'
-		#return
-	#print info_file_name
-
 
 def analytics(command):
 	if (command != 'sanity_check' and command != 'sanity_check-s' and
@@ -782,22 +777,16 @@ def analytics(command):
 		if 'sql' in logname:
 			dbtype = 'SQL'
 			run_analytics(command,dbtype,logname.split('\n')[0])
-			break
 		elif 'bdb' in logname:
 			dbtype = 'BDB'
 			run_analytics(command,dbtype,logname.split('\n')[0])
-			break
 		elif 'info' in logname:
 			continue
 		else:
 			print 'invalid log file'
 			break
-		#print dbtype
 	temp_file.close()
 	subprocess.call(['rm','temp.txt'])
-	#if command == 'sanity_check':
-
-	#return
 
 def analytics_menu():
 	print 'Please enter one of the following commands:'
