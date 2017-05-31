@@ -37,12 +37,12 @@ public class Queries {
         //int a[] = utils.restrictHeapTo50();
         //utils.restrictHeapTo25();
 
-        utils.putMarker("{\"EVENT\":\"Workload A BDB100\"}", "trace_marker");
+        utils.putMarker("{\"EVENT\":\"Workload A SQL\"}", "trace_marker");
 
         utils.putMarker("START: App started\n", "trace_marker");
 
 
-/*
+///*
         utils.putMarker("{\"EVENT\":\"SQL_START\"}", "trace_marker");
 
         int tester = sqlQueries();
@@ -51,8 +51,8 @@ public class Queries {
         }
 
         utils.putMarker("{\"EVENT\":\"SQL_END\"}", "trace_marker");
-*/
-///*
+//*/
+/*
         utils.putMarker("{\"EVENT\":\"BDB_START\"}", "trace_marker");
 
         int tester = bdbQueries();
@@ -62,7 +62,7 @@ public class Queries {
 
         utils.putMarker("{\"EVENT\":\"BDB_END\"}", "trace_marker");
 
-//*/
+*/
         utils.putMarker("END: app finished\n", "trace_marker");
 
         /*

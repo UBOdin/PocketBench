@@ -22,7 +22,7 @@ echo 1 > $trace_dir/events/block/block_rq_complete/enable
 echo 1 > $trace_dir/events/cpufreq_interactive/enable
 
 echo > $trace_dir/trace
-echo 1 > $trace_dir/tracing_enabled
+#echo 1 > $trace_dir/tracing_enabled
 echo 1 > $trace_dir/tracing_on
 
 

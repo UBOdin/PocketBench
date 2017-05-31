@@ -3,3 +3,5 @@
 *.info
 *_summary
 *_info
+graphs/
+old_logs
