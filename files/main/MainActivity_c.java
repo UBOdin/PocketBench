@@ -34,31 +34,8 @@ public class MainActivity extends AppCompatActivity {
 
         Utils utils = new Utils();
 
-        //long memNow = utils.memoryAvailable(this);
-
-        //utils.restrictHeapTo12_5();
-
-        //long memafter = utils.memoryAvailable(this);
-
         long start = System.currentTimeMillis();
         int tester;
-
-        /*
-        File file2 = new File(this.getFilesDir().getPath() + "/start_end");
-        //File file = new File("/data/BDBtime");
-        FileOutputStream fos2;
-        try {
-            fos2 = this.openFileOutput(file2.getName(), Context.MODE_APPEND);
-            fos2.write(("Start: " + start + "\n").getBytes());;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        utils.putMarker("{\"EVENT\":\"testing\"}", "trace_marker");
-
-        this.finishAffinity();
-        */
-
 
         if(!utils.doesDBExist(this,"BDBBenchmark")){
             //Create the databases from the JSON
@@ -70,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
             this.finishAffinity();
         }
         else {
-
-            //utils.restrictHeapTo25();
 
             String singleJsonString = utils.jsonToString(this, workload_c_timing_a);
             utils.jsonStringToObject(singleJsonString);
@@ -86,40 +61,21 @@ public class MainActivity extends AppCompatActivity {
 
             //Find what queries were not executed successfully in the SQL or BDB traces
             utils.findMissingQueries(this);
-            /*
-            int tester2 = utils.findMissingQueries(this);
-            if(tester2 != 0){
-                this.finishAffinity();
-            }
-            */
+
             //Calculate total time of the traces
             long end = System.currentTimeMillis();
 
             long delta = end - start;
             double elapsedSeconds = delta / 1000.0;
 
-            /*
-            ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
-            ActivityManager activityManager = (ActivityManager) this.getSystemService(Context.ACTIVITY_SERVICE);
-            activityManager.getMemoryInfo(mi);
-            long total = mi.totalMem;
-            */
-
-
             File file = new File(this.getFilesDir().getPath() + "/time");
-            //File file = new File("/data/BDBtime");
             FileOutputStream fos;
             try {
                 fos = this.openFileOutput(file.getName(), Context.MODE_APPEND);
                 fos.write((elapsedSeconds + "\n").getBytes());
-                //fos.write(("Mem total: " + total + "\n").getBytes());
-                //fos.write(("Mem at start: " + memNow + "\n").getBytes());
-                //fos.write(("Mem after heap allocation: " + memafter + "\n").getBytes());
-                //fos.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        //this.finishAffinity();
         }
     }
 }

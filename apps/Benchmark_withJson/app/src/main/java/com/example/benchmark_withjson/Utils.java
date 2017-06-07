@@ -180,8 +180,6 @@ public class Utils {
         ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         activityManager.getMemoryInfo(mi);
-        //double availableMegs = mi.availMem / 1048576L;
-        //return availableMegs;
         return mi.availMem;
     }
 
@@ -191,7 +189,6 @@ public class Utils {
         for(int i = 0; i < 25165824; i++){
             MainActivity.a[i] = i;
         }
-        //return a;
     }
 
     public void restrictHeapTo25(){
@@ -201,7 +198,6 @@ public class Utils {
         for(int i = 0; i < temp; i++){
             MainActivity.a[i] = i;
         }
-        //return a;
     }
 
     public void restrictHeapTo12_5(){
