@@ -26,6 +26,7 @@ end_time = 0.0
 with gzip.open(workload,'r') as log:
 	between = 0
 	iomode = False
+	saveline = ""
 	for line in log:
 		if dbType + '_START' in line:
 			start_time = float(line.split()[3].split(':')[0])
@@ -58,13 +59,14 @@ with gzip.open(workload,'r') as log:
 		# Thread queues I/O
 		if (('block_rq_insert' in line) and ('withjson' in line)):
 			iomode = True
+			saveline = line
 			continue
 		#end_if
 		# TODO:  trap for double inserting?  (can happen?)
 
 		# Thread blocks:
 		if ((iomode == True) and ('prev_pid='+mypid in line)):
-			timestampstart = float(line.split()[3].split(':')[0])
+			timestampstart = float(line[36:].split(':')[0])
 			sced_on_core = 999
 			core = int(line.split(']')[0].split('[')[1])
 
@@ -79,9 +81,9 @@ with gzip.open(workload,'r') as log:
 			core = int(line.split(']')[0].split('[')[1])
 			sced_on_core = core
 
-			timestampend = float(line.split()[3].split(':')[0])
+			timestampend = float(line[36:].split(':')[0])
 			total += (timestampend - timestampstart)*1000
-			data[dict_count] = [['IO Event', line],['Waiting time',(timestampend - timestampstart)*1000]]
+			data[dict_count] = [['IO Event', saveline],['Waiting time',(timestampend - timestampstart)*1000]]
 			dict_count += 1
 
 			continue
@@ -92,7 +94,7 @@ with gzip.open(workload,'r') as log:
 		# Thread dequeues I/O
 		if (('block_rq_complete' in line) and ('withjson' in line)):
 			iomode = False
-
+			saveline = ""
 			continue
 		#end_if
 		# TODO:  Need to filter for correct PID
