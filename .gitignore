@@ -5,3 +5,6 @@
 *_info
 graphs/
 old_logs
+apps/Benchmark_withJson/.gradle/
+apps/Benchmark_withJson/app/src/main/java/com/example/benchmark_withjson/MainActivity.java
+apps/Benchmark_withJson/app/src/main/java/com/example/benchmark_withjson/Queries.java
