@@ -6,6 +6,8 @@ import subprocess
 parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLite and Berkeley Db.')
 args = parser.parse_args()
 
+android_id = "02c566fa093765eb"
+
 def help_message():
 	print '\nCommand List:\n'
 	print '	[bdb a] Workload A on Berkeley Db	[sql a] Workload A on SQLite'
@@ -65,7 +67,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -73,7 +75,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_a.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_a.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -88,7 +90,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -96,7 +98,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_b.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_b.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -111,7 +113,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -119,7 +121,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_c.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_c.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -134,7 +136,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -142,7 +144,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_d.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_d.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -157,7 +159,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_100.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_100.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -165,7 +167,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_e.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_e.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -180,7 +182,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -188,7 +190,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_f.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_f.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -203,7 +205,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -211,7 +213,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_ia.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_ia.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -226,7 +228,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -234,7 +236,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_ib.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_ib.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -249,7 +251,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -257,7 +259,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb_ic.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb_ic.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -271,7 +273,7 @@ def command(string_array):
 		setup_app('sql_a')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -279,7 +281,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_a.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_a.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -293,7 +295,7 @@ def command(string_array):
 		setup_app('sql_b')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -301,7 +303,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_b.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_b.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -315,7 +317,7 @@ def command(string_array):
 		setup_app('sql_c')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -323,7 +325,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_c.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_c.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -337,7 +339,7 @@ def command(string_array):
 		setup_app('sql_d')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -345,7 +347,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_d.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_d.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -359,7 +361,7 @@ def command(string_array):
 		setup_app('sql_e')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_100.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_100.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -367,7 +369,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_e.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_e.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -381,7 +383,7 @@ def command(string_array):
 		setup_app('sql_f')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -389,7 +391,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_f.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_f.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -403,7 +405,7 @@ def command(string_array):
 		setup_app('sql_ia')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -411,7 +413,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_ia.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_ia.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -425,7 +427,7 @@ def command(string_array):
 		setup_app('sql_ib')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -433,7 +435,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_ib.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_ib.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -447,7 +449,7 @@ def command(string_array):
 		setup_app('sql_ic')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/default_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -455,7 +457,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/sql_ic.sh'])
+		subprocess.call(['sh', 'scripts/run/sql_ic.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -470,7 +472,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -478,7 +480,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_a.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_a.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -493,7 +495,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -501,7 +503,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_b.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_b.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -516,7 +518,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -524,7 +526,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_c.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_c.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -539,7 +541,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -547,7 +549,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_d.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_d.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -562,7 +564,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_100.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_100.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -570,7 +572,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_e.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_e.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -585,7 +587,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -593,7 +595,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_f.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_f.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -608,7 +610,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -616,7 +618,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_ia.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_ia.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -631,7 +633,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -639,7 +641,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_ib.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_ib.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
@@ -654,7 +656,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh'])
+		subprocess.call(['sh', 'scripts/phone_setup/100_default.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -662,7 +664,7 @@ def command(string_array):
 		print 'success'
 
 		print 'running...'
-		subprocess.call(['sh', 'scripts/run/bdb100_ic.sh'])
+		subprocess.call(['sh', 'scripts/run/bdb100_ic.sh', android_id])
 		print 'log is present in the logs directory.'
 
 		return 0
