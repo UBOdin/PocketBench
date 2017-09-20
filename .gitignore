@@ -1,10 +1,7 @@
-*.log
-*.log.gz
 *.info
 *_summary
 *_info
-graphs/
-old_logs
+logs/
 apps/Benchmark_withJson/build/intermediates/dex-cache/cache.xml
 apps/Benchmark_withJson/.gradle/
 apps/Benchmark_withJson/app/src/main/java/com/example/benchmark_withjson/MainActivity.java
