@@ -67,7 +67,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -90,7 +90,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -113,7 +113,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -136,7 +136,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -159,7 +159,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -182,7 +182,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -205,7 +205,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -228,7 +228,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -251,7 +251,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -273,7 +273,7 @@ def command(string_array):
 		setup_app('sql_a')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -295,7 +295,7 @@ def command(string_array):
 		setup_app('sql_b')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -317,7 +317,7 @@ def command(string_array):
 		setup_app('sql_c')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -339,7 +339,7 @@ def command(string_array):
 		setup_app('sql_d')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -361,7 +361,7 @@ def command(string_array):
 		setup_app('sql_e')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -383,7 +383,7 @@ def command(string_array):
 		setup_app('sql_f')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -405,7 +405,7 @@ def command(string_array):
 		setup_app('sql_ia')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -427,7 +427,7 @@ def command(string_array):
 		setup_app('sql_ib')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -449,7 +449,7 @@ def command(string_array):
 		setup_app('sql_ic')
 		print 'success'
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/default.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
 		print 'success'
 
 		print 'building and installing app...'
@@ -472,7 +472,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -495,7 +495,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -518,7 +518,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -541,7 +541,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -564,7 +564,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -587,7 +587,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -610,7 +610,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -633,7 +633,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
@@ -656,7 +656,7 @@ def command(string_array):
 		print 'success'
 
 		print 'setting up phone...'
-		subprocess.call(['sh', 'scripts/phone_setup/100.sh', android_id])
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id, "100"])
 		print 'success'
 
 		print 'building and installing app...'
