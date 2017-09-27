@@ -13,15 +13,12 @@ echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 echo "performance" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
 echo "performance" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
 echo "performance" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
-#echo "userspace" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-#echo "2265600" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
-#echo "2265600" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_setspeed
-#echo "2265600" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_setspeed 
-#echo "2265600" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_setspeed 
 
 #echo 0 > $trace_dir/events/phonelab_syscall_tracing/enable
 #echo 0 > $trace_dir/events/sched/plsc_exec/enable
 #echo 0 > $trace_dir/events/sched/plsc_fork/enable
+
+# SELinux is a pain:
 setenforce 0
 
 echo 150000 > $trace_dir/buffer_size_kb
@@ -35,13 +32,16 @@ echo > $trace_dir/trace
 #echo 1 > $trace_dir/tracing_enabled
 echo 1 > $trace_dir/tracing_on
 
+# Set up IPC pipe to retrieve end-of-run info from app:
+rm /data/results.pipe
+mknod /data/results.pipe p
+chmod 777 /data/results.pipe
 
 #am kill-all
 am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
-#sleep 4000
-#sleep 100
-sleep 50
-#sleep 10
+
+# Block until app completes run and outputs exit info:
+cat /data/results.pipe > /data/results.txt
 
 echo 0 > $trace_dir/tracing_on
 cat $trace_dir/trace > /data/trace.log
