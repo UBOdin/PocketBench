@@ -827,9 +827,17 @@ def run_all(input_array):
 		for string in array:
 			command(string.split())
 	elif input_array[0] == 'all':
-		array = ['bdb100 a','bdb100 b','bdb100 c','bdb100 d','bdb100 e','bdb100 f','bdb100 ia','bdb100 ib','bdb100 ic','sql a','sql b','sql c','sql d','sql e','sql f','sql ia','sql ib','sql ic','bdb a','bdb b','bdb c','bdb d','bdb e','bdb f','bdb ia','bdb ib','bdb ic']
+		array = ['bdb100 a','bdb100 b','bdb100 c','bdb100 d','bdb100 e','bdb100 f','bdb100 ib','bdb100 ic','sql a','sql b','sql c','sql d','sql e','sql f','sql ib','sql ic','bdb a','bdb b','bdb c','bdb d','bdb e','bdb f','bdb ib','bdb ic']
 		for string in array:
 			command(string.split())
+
+	elif (input_array[0] == "only"):
+		workload = input_array[1]
+		array = ["sql " + workload, "bdb " + workload, "bdb100 " + workload]
+		for string in array:
+			command(string.split())
+		#end_for
+	
 	else:
 		print 'invalid command'
 
@@ -847,6 +855,10 @@ while True:
 		if 'all' in input:
 			run_all(input)
 			continue
+
+		if ("only" in input):
+			run_all(input)
+		#end_if
 
 		if input[0].lower() == 'a' or input[0].lower() == 'analytics':
 			analytics_menu()
