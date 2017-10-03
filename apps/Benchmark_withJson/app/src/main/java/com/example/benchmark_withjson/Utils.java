@@ -22,6 +22,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class Utils {
 
     static JSONObject workloadJsonObject;
@@ -64,12 +68,15 @@ public class Utils {
     }
 
     public int sleepThread(int interval) {
+        putMarker("{\"EVENT\":\"DELAY_start\"}", "trace_marker");
         try {
             Thread.sleep(interval);
         } catch (Exception e) {
             e.printStackTrace();
+            putMarker("{\"EVENT\":\"DELAY_error\"}", "trace_marker");
             return 1;
         }
+        putMarker("{\"EVENT\":\"DELAY_end\"}", "trace_marker");
         return 0;
     }
 
@@ -103,6 +110,22 @@ public class Utils {
     }
 
     public int findMissingQueries(Context context){
+
+        // Signal calling script that benchmark run has finished:
+        try {
+            //String path = this.getFilesDir().getPath().toString();
+            //System.out.println("FOOBAR Path:  " + path);
+            //String file_name = "/results.txt";
+            //FileWriter file_writer = new FileWriter(path + file_name);
+            FileWriter file_writer = new FileWriter("/data/results.pipe");
+            BufferedWriter buffered_writer = new BufferedWriter(file_writer);
+            buffered_writer.write("This is a test.  This is only a test.  Testing 357 testing.\n");
+            buffered_writer.close();
+        } catch(IOException exception) {
+            System.out.println("FOOBAR Error on writing unblock signal");
+            exception.printStackTrace();
+        }
+
         try {
             BufferedReader br1;
             BufferedReader br2;
