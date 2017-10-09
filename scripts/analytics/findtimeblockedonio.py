@@ -57,7 +57,8 @@ with gzip.open(workload,'r') as log:
 			break
 
 		# Thread queues I/O
-		if (('block_rq_insert' in line) and ('withjson' in line)):
+		#if (('block_rq_insert' in line) and ('withjson' in line)):
+		if ("DELAY_start" in line):
 			iomode = True
 			saveline = line
 			continue
@@ -92,7 +93,8 @@ with gzip.open(workload,'r') as log:
 		# TODO:  need to track core #?
 
 		# Thread dequeues I/O
-		if (('block_rq_complete' in line) and ('withjson' in line)):
+		#if (('block_rq_complete' in line) and ('withjson' in line)):
+		if ("DELAY_end" in line):
 			iomode = False
 			saveline = ""
 			continue
@@ -102,50 +104,6 @@ with gzip.open(workload,'r') as log:
 	#end_for
 
 #end_with
-
-
-'''
-			with gzip.open(workload, 'r') as log2:
-				linecount = 0
-				desced = False
-				iocomplete = False
-
-				sameline = 0
-				for line2 in log2:
-					
-					if line == line2:
-						sameline = 1
-					if sameline == 0:
-						continue
-					linecount += 1
-					if 'prev_pid='+mypid in line2:
-						timestampstart = float(line2.split()[3].split(':')[0])
-						sced_on_core = 999
-						core = int(line2.split(']')[0].split('[')[1])
-						if linecount <= 10:
-							desced = True
-
-					if 'next_pid='+mypid in line2:
-						core = int(line2.split(']')[0].split('[')[1])
-						sced_on_core = core
-						if iocomplete != True:
-							break
-						else:
-							timestampend = float(line2.split()[3].split(':')[0])
-							total += (timestampend - timestampstart)*1000
-							holdline = line2
-							resetline = True
-							data[dict_count] = [['IO Event', line],['Waiting time',(timestampend - timestampstart)*1000]]
-							dict_count += 1
-							break
-					
-					if 'block_rq_complete' in line2:
-						if insertaddr in line2:
-							if desced == True:
-								iocomplete = True
-
-
-'''
 
 
 assert(mypid != 0)
@@ -160,8 +118,15 @@ if args.summary:
 	flushnum = 0
 	waitflushtime = 0.0
 
+	'''
 	for key in data:
-		op = data[key][0][1].split('179,0 ')[1].split()[0]
+		try:
+			op = data[key][0][1].split('179,0 ')[1].split()[0]
+		except:
+			sys.stderr.write("Foobar\n")
+			sys.stderr.write(str(data[key]) + "\n")
+			sys.exit()
+		#end_try
 		if 'R' in op:
 			readnum += 1
 			waitreadtime += float(data[key][1][1])
@@ -171,6 +136,7 @@ if args.summary:
 		if 'F' in op:
 			flushnum += 1
 			waitflushtime += float(data[key][1][1])
+	'''
 	wallclocktime = (end_time - start_time)*1000
 	summary['Summary'] = [['Time Waiting on IO',['Total',total],['Percentage',(total / wallclocktime)*100]],['Reads',['Number of Ops',readnum],['Time Waiting for Reads',waitreadtime]],['Writes',['Number of Ops',writenum],['Time Waiting for Writes',waitwritetime]],['Flushes',['Number of Ops',flushnum],['Time Waiting for Flushes',waitflushtime]]]
 	print json.dumps(summary, indent=2)
