@@ -68,15 +68,15 @@ public class Utils {
     }
 
     public int sleepThread(int interval) {
-        putMarker("{\"EVENT\":\"DELAY_start\"}", "trace_marker");
+        //putMarker("{\"EVENT\":\"DELAY_start\"}", "trace_marker");
         try {
             Thread.sleep(interval);
         } catch (Exception e) {
             e.printStackTrace();
-            putMarker("{\"EVENT\":\"DELAY_error\"}", "trace_marker");
+            //putMarker("{\"EVENT\":\"DELAY_error\"}", "trace_marker");
             return 1;
         }
-        putMarker("{\"EVENT\":\"DELAY_end\"}", "trace_marker");
+        //putMarker("{\"EVENT\":\"DELAY_end\"}", "trace_marker");
         return 0;
     }
 

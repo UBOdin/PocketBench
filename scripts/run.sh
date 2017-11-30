@@ -7,7 +7,7 @@ printf "Rebooting and running benchmark on device %s\n" $1
 
 adb -s $1 reboot
 adb -s $1 wait-for-device
-sleep 15
+sleep 40
 printf "Rebooted\n"
 adb root
 sub=""
@@ -17,7 +17,7 @@ while [ "$sub" != "uid=0(" ]; do
 	sub=${var%%root*}  # var:4:1
 	printf ".\n"
 done
-sleep 15
+sleep 40
 printf "Rooted\n"
 
 governor="performance"
