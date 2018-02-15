@@ -461,6 +461,206 @@ def command(string_array):
 		print 'log is present in the logs directory.'
 
 		return 0
+# START/
+	elif string_array[0] + ' ' + string_array[1] == 'wal a':
+		print 'running wal a'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_a')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "A"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal b':
+		print 'running wal b'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_b')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "B"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal c':
+		print 'running wal c'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_c')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "C"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal d':
+		print 'running wal d'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_d')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "D"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal e':
+		print 'running wal e'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_e')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "E"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal f':
+		print 'running wal f'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_f')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "F"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal ia':
+		print 'running wal ia'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_ia')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "IA"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal ib':
+		print 'running wal ib'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_ib')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "IB"])
+		print 'log is present in the logs directory.'
+
+		return 0
+	elif string_array[0] + ' ' + string_array[1] == 'wal ic':
+		print 'running wal ic'
+		check = device_connected()
+		if check == False:
+			print 'No Device Connected!'
+			return 0
+		print 'setting up app...'
+		setup_app('wal_ic')
+		print 'success'
+		print 'setting up phone...'
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print 'success'
+
+		print 'building and installing app...'
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print 'success'
+
+		print 'running...'
+		subprocess.call(['sh', 'scripts/run.sh', android_id, "wal", "IC"])
+		print 'log is present in the logs directory.'
+
+		return 0
+# END
 	elif string_array[0] + ' ' + string_array[1] == 'bdb100 a':
 		print 'running bdb100 a'
 		check = device_connected()
@@ -822,6 +1022,10 @@ def run_all(input_array):
 		array = ['sql a','sql b','sql c','sql d','sql e','sql f','sql ia','sql ib','sql ic']
 		for string in array:
 			command(string.split())
+	elif input_array[0] == 'wal':
+		array = ['wal a','wal b','wal c','wal d','wal e','wal f','wal ia','wal ib','wal ic']
+		for string in array:
+			command(string.split())
 	elif input_array[0] == 'bdb100':
 		array = ['bdb100 a','bdb100 b','bdb100 c','bdb100 d','bdb100 e','bdb100 f','bdb100 ia','bdb100 ib','bdb100 ic']
 		for string in array:
@@ -833,7 +1037,7 @@ def run_all(input_array):
 
 	elif (input_array[0] == "only"):
 		workload = input_array[1]
-		array = ["sql " + workload, "bdb " + workload, "bdb100 " + workload]
+		array = ["sql " + workload, "wal " + workload, "bdb " + workload, "bdb100 " + workload]
 		for string in array:
 			command(string.split())
 		#end_for
