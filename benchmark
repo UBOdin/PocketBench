@@ -2,6 +2,7 @@
 
 import argparse
 import subprocess
+import sys
 
 parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLite and Berkeley Db.')
 args = parser.parse_args()
@@ -911,6 +912,11 @@ def run_analytics(command,dbtype,logname):
 		count = 0
 		for s in temp:
 			if count == len(temp) - 1:
+				# N.b. for WAL tracefiles, SQL is actual DB used (and recorded in key lines).
+				# Adjust save filename:
+				if ((dbtype == "WAL") and (s == "SQL")):
+					s = "WAL"
+				#end_if
 				info_file_name += s
 			else:
 				info_file_name += s + '_'
@@ -918,6 +924,7 @@ def run_analytics(command,dbtype,logname):
 		break
 
 	temp2_file.close()
+
 	subprocess.call(['rm','temp2.txt'])
 	if command == 'sanity_check':
 		info_file_name += '.waiting_on_io_info'
@@ -978,6 +985,9 @@ def analytics(command):
 		dbtype = ''
 		if 'sql' in logname:
 			dbtype = 'SQL'
+			run_analytics(command,dbtype,logname.split('\n')[0])
+		elif 'wal' in logname:
+			dbtype = 'WAL'
 			run_analytics(command,dbtype,logname.split('\n')[0])
 		elif 'bdb' in logname:
 			dbtype = 'BDB'

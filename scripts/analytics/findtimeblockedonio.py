@@ -23,6 +23,11 @@ total = 0.0
 start_time = 0.0
 end_time = 0.0
 
+#WAL-type logfiles are actually SQL runs; loglines contain "SQL".  Adjust:
+if (dbType == "WAL"):
+	dbType = "SQL"
+#end_if
+
 with gzip.open(workload,'r') as log:
 	between = 0
 	iomode = False
