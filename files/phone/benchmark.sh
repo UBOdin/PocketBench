@@ -4,11 +4,25 @@ sync
 echo 3 > /proc/sys/vm/drop_caches
 
 governor=$1
-# Sanity check the governor choice ("performance" or "interactive")
-if [ "$governor" != "performance" ] && [ "$governor" != "interactive" ]; then
+
+# Sanity check the governor choice to supported values:
+if [ "$governor" = "performance" ]; then
+	:
+elif [ "$governor" = "interactive" ]; then
+	:
+elif [ "$governor" = "conservative" ]; then
+	:
+elif [ "$governor" = "ondemand" ]; then
+	:
+elif [ "$governor" = "userspace" ]; then
+	:
+elif [ "$governor" = "powersave" ]; then
+	:
+else
 	echo "Invalid governor" > /data/results.txt
 	exit 1
 fi
+
 # Stop mpdecision to permit setting the desired governor on all 4 cores:
 stop mpdecision
 echo "1" > /sys/devices/system/cpu/cpu2/online
@@ -19,8 +33,8 @@ echo "$governor" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 echo "$governor" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
 echo "$governor" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
 echo "$governor" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
-# Restart mpdecision if interactive (turned-off cores retain governor specified)
-if [ "$governor" = "interactive" ]; then
+# Restart mpdecision for all governors except performance (turned-off cores retain governor specified)
+if [ "$governor" != "performance" ]; then
 	start mpdecision
 fi
 
