@@ -33,10 +33,8 @@ echo "$governor" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 echo "$governor" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
 echo "$governor" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
 echo "$governor" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
-# Restart mpdecision for all governors except performance (turned-off cores retain governor specified)
-if [ "$governor" != "performance" ]; then
-	start mpdecision
-fi
+# Restart mpdecision for all governors (turned-off cores retain governor specified)
+start mpdecision
 
 #echo 0 > $trace_dir/events/phonelab_syscall_tracing/enable
 #echo 0 > $trace_dir/events/sched/plsc_exec/enable
@@ -76,11 +74,16 @@ echo 0 > $trace_dir/events/block/block_rq_insert/enable
 echo 0 > $trace_dir/events/block/block_rq_complete/enable
 echo 0 > $trace_dir/events/cpufreq_interactive/enable
 
-# Scale back CPU if needed to prevent burnout
-if [ "$governor" = "performance" ]; then
-	echo "ondemand" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-	echo "ondemand" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
-	echo "ondemand" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
-	echo "ondemand" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
-fi
+# Reset governor to default (ondemand) (need to reactivate all cores first):
+stop mpdecision
+echo "1" > /sys/devices/system/cpu/cpu2/online
+echo "1" > /sys/devices/system/cpu/cpu3/online
+echo "1" > /sys/devices/system/cpu/cpu0/online
+echo "1" > /sys/devices/system/cpu/cpu1/online
+echo "ondemand" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+echo "ondemand" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+echo "ondemand" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+echo "ondemand" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
+start mpdecision
+
 
