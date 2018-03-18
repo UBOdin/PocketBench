@@ -8,4 +8,11 @@ cp -r files/json/raw apps/Benchmark_withJson/app/src/main/res/
 
 cd apps/Benchmark_withJson/
 ./gradlew installDebug
+
+if [ $? -ne 0 ]; then
+	echo "ERROR"
+else
+	echo "CLEAN"
+fi
+
 cd ../..

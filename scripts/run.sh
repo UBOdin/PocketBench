@@ -22,6 +22,10 @@ printf "Rooted\n"
 
 governor="performance"
 #governor="interactive"
+#governor="conservative"
+#governor="ondemand"
+#governor="userspace"
+#governor="powersave"
 
 adb -s $1 shell sh /data/removeBenchmarkData.sh
 adb -s $1 shell sh /data/preBenchmark.sh #create database 
@@ -29,6 +33,14 @@ adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 5
 adb -s $1 shell pm enable com.example.benchmark_withjson
 adb -s $1 shell sh /data/benchmark.sh $governor #run queries
+
+# Get results (and trap for error):
+result="$(adb shell cat /data/results.txt)"
+if [ "$result" == "1" ]; then
+	echo "Error on phone:  $result"
+	exit 1
+fi
+#echo "Results from phone:  $result"
 
 # pull log
 adb -s $1 pull /data/trace.log
@@ -39,8 +51,7 @@ gzip logs/$filename
 sleep 1
 printf "FILENAME:  %s\n" "$filename"
 
-printf "RESULTS:"
-adb shell cat /data/results.txt
+echo "RESULTS: $result"
 
 printf "Completed benchmark for device %s\n" $1
 
