@@ -13,14 +13,21 @@ import android.app.ActivityManager.*;
 
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Runnable {
     static int a[];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
 
+        this.run();
+    }
+
+    @Override
+    public void run() {
+
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
         //final int workload_a_timing_a = R.raw.workload_a_timing_a;
         //final int workload_b_timing_a = R.raw.workload_b_timing_a;
         //final int workload_c_timing_a = R.raw.workload_c_timing_a;
