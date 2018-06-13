@@ -35,7 +35,7 @@ public class Queries {
 	String PDE = "PocketData";
 
 	Log.d(PDE, "Start startQueries()");
-	utils.putMarker("{\"EVENT\":\"Workload " + Utils.workload + " " + Utils.database + "\"}", "trace_marker");
+	utils.putMarker("{\"EVENT\":\"Parameters\", \"Workload\":\"" + Utils.workload + "\", \"Database\":\"" + Utils.database + "\"}", "trace_marker");
 	utils.putMarker("START: App started\n", "trace_marker");
 	utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\"}", "trace_marker");
 
