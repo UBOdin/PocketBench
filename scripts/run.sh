@@ -1,3 +1,4 @@
+#!/bin/bash
 # run benchmark
 adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 1
@@ -20,15 +21,15 @@ done
 sleep 40
 printf "Rooted\n"
 
-governor="performance"
+#governor="performance"
 #governor="interactive"
 #governor="conservative"
-#governor="ondemand"
+governor="ondemand"
 #governor="userspace"
 #governor="powersave"
 
 adb -s $1 shell sh /data/removeBenchmarkData.sh
-adb -s $1 shell sh /data/preBenchmark.sh #create database 
+adb -s $1 shell sh /data/preBenchmark.sh $2 $3 #create database 
 adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 5
 adb -s $1 shell pm enable com.example.benchmark_withjson
@@ -36,15 +37,15 @@ adb -s $1 shell sh /data/benchmark.sh $governor #run queries
 
 # Get results (and trap for error):
 result="$(adb shell cat /data/results.txt)"
-if [ "$result" == "1" ]; then
-	echo "Error on phone:  $result"
-	exit 1
-fi
-#echo "Results from phone:  $result"
+#error=${result:0:3}
+#if [ ${error} == "ERR" ]; then
+#	echo "Error on phone:  $result"
+#	exit 1
+#fi
 
 # pull log
 adb -s $1 pull /data/trace.log
-# $2 = workload (A, B, C etc.); $3 = DB (sql, bdb, bdb100)
+# $3 = workload (A, B, C etc.); $2 = DB (sql, bdb, bdb100)
 filename="YCSB_Workload${3}_TimingA${2}.log"
 mv trace.log logs/$filename
 gzip logs/$filename

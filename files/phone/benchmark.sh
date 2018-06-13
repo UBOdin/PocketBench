@@ -19,7 +19,7 @@ elif [ "$governor" = "userspace" ]; then
 elif [ "$governor" = "powersave" ]; then
 	:
 else
-	echo "Invalid governor" > /data/results.txt
+	echo "ERR Invalid governor" > /data/results.txt
 	exit 1
 fi
 
