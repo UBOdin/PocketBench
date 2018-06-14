@@ -7,7 +7,8 @@ import sys
 parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLite and Berkeley Db.')
 args = parser.parse_args()
 
-android_id = "02c566fa093765eb"
+#android_id = "02c566fa093765eb" # Grant's main test phone
+android_id = "ZX1G22TKW7" # Ed's old phone
 
 def help_message():
 	print '\nCommand List:\n'
@@ -60,13 +61,18 @@ def command(string_array):
 
 	databases = ["SQL", "WAL", "BDB", "BDB100"]
 	workloads = ["A", "B", "C", "D", "E", "F", "IB", "IC"]
+	governors = ["performance", "interactive", "conservative", "ondemand", "userspace", "powersave"]
+
 	database = ""
 	workload = ""
+	#governor = "ondemand" # Nexus 5 default
+	governor = "interactive" # Nexus >= 6 default
 
 	database = string_array[0].upper()
 	workload = string_array[1].upper()
 
-	if ((database not in databases) or (workload not in workloads)):
+	# Parameter validity check:
+	if ((database not in databases) or (workload not in workloads) or (governor not in governors)):
 		print("Invalid benchmark request")
 		return 1
 	#end_if
@@ -87,7 +93,7 @@ def command(string_array):
 	print("success")
 
 	print("running...")
-	subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload])
+	subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload, governor])
 	print("log is present in the logs directory.")
 
 	return 0

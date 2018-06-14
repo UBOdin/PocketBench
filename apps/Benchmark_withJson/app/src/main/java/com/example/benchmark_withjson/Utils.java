@@ -33,6 +33,7 @@ public class Utils {
     // Additional global config parameters:
     static String database;
     static String workload;
+    static String governor;
     static String delay;
 
     public String jsonToString(Context context, int workload){
@@ -73,15 +74,15 @@ public class Utils {
     }
 
     public int sleepThread(int interval) {
-//        putMarker("{\"EVENT\":\"DELAY_start\"}", "trace_marker");
+//        putMarker("{\"EVENT\":\"DELAY_start\"}");
         try {
             Thread.sleep(interval);
         } catch (Exception e) {
             e.printStackTrace();
-//            putMarker("{\"EVENT\":\"DELAY_error\"}", "trace_marker");
+//            putMarker("{\"EVENT\":\"DELAY_error\"}");
             return 1;
         }
-//        putMarker("{\"EVENT\":\"DELAY_end\"}", "trace_marker");
+//        putMarker("{\"EVENT\":\"DELAY_end\"}");
         return 0;
     }
 
@@ -179,10 +180,10 @@ public class Utils {
         return 0;
     }
 
-    public int putMarker(String mark,String filename) {
+    public int putMarker(String mark) {
         PrintWriter outStream = null;
         try{
-            FileOutputStream fos = new FileOutputStream("/sys/kernel/debug/tracing/" + filename);
+            FileOutputStream fos = new FileOutputStream("/sys/kernel/debug/tracing/trace_marker");
             outStream = new PrintWriter(new OutputStreamWriter(fos));
             outStream.println(mark);
             outStream.flush();

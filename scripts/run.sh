@@ -24,12 +24,13 @@ printf "Rooted\n"
 #governor="performance"
 #governor="interactive"
 #governor="conservative"
-governor="ondemand"
+#governor="ondemand"
 #governor="userspace"
 #governor="powersave"
+governor=$4
 
 adb -s $1 shell sh /data/removeBenchmarkData.sh
-adb -s $1 shell sh /data/preBenchmark.sh $2 $3 #create database 
+adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $governor #create database 
 adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 5
 adb -s $1 shell pm enable com.example.benchmark_withjson

@@ -35,9 +35,9 @@ public class Queries {
 	String PDE = "PocketData";
 
 	Log.d(PDE, "Start startQueries()");
-	utils.putMarker("{\"EVENT\":\"Parameters\", \"Workload\":\"" + Utils.workload + "\", \"Database\":\"" + Utils.database + "\"}", "trace_marker");
-	utils.putMarker("START: App started\n", "trace_marker");
-	utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\"}", "trace_marker");
+	utils.putMarker("{\"EVENT\":\"Parameters\", \"Workload\":\"" + Utils.workload + "\", \"Database\":\"" + Utils.database + "\", \"Governor\":\"" + Utils.governor + "\"}");
+	utils.putMarker("START: App started\n");
+	utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\"}");
 
 	if ((Utils.database.equals("SQL")) || (Utils.database.equals("WAL"))) {
 		Log.d(PDE, "Testing SQL");
@@ -55,8 +55,8 @@ public class Queries {
 	}
 
 	Log.d(PDE, "End startQueries()");
-	utils.putMarker("{\"EVENT\":\"" + Utils.database + "_END\"}", "trace_marker");
-	utils.putMarker("END: app finished\n", "trace_marker");
+	utils.putMarker("{\"EVENT\":\"" + Utils.database + "_END\"}");
+	utils.putMarker("END: app finished\n");
 
 	return 0;
 
