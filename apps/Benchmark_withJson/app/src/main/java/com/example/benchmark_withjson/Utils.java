@@ -74,6 +74,15 @@ public class Utils {
     }
 
     public int sleepThread(int interval) {
+
+	// Adjust delay time if necessary -- default is lognormal distribution, per parameter:
+	if (Utils.delay.equals("0ms")) {
+		interval = 0;
+	}
+	if (Utils.delay.equals("1ms")) {
+		interval = 1;
+	}
+
 //        putMarker("{\"EVENT\":\"DELAY_start\"}");
         try {
             Thread.sleep(interval);

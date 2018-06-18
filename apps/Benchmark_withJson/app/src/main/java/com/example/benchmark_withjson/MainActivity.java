@@ -16,6 +16,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+
 
 public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
     static int a[];
@@ -59,6 +62,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 		Utils.database = buffered_reader.readLine().toUpperCase();
 		Utils.workload = buffered_reader.readLine().toUpperCase();
 		Utils.governor = buffered_reader.readLine();
+		Utils.delay = buffered_reader.readLine();
 		file_reader.close();
 	} catch (IOException exception) {
 		exception.printStackTrace();
@@ -67,9 +71,9 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 
 	Log.d(PDE, "Parameter Database:  " + Utils.database);
 	Log.d(PDE, "Parameter Workload:  " + Utils.workload);
-	Log.d(PDE, "Parameter WL handle:  " + load_map.get(Utils.workload));  // sanity check on hashmap
-	//Log.d(PDE, "Other:  " + workload_array[0]);
+//	Log.d(PDE, "Parameter WL handle:  " + load_map.get(Utils.workload));  // sanity check on hashmap
 	Log.d(PDE, "Parameter Governor:  " + Utils.governor);
+	Log.d(PDE, "Parameter Delay:  " + Utils.delay);
 
         Utils utils = new Utils();
 

@@ -21,20 +21,12 @@ done
 sleep 40
 printf "Rooted\n"
 
-#governor="performance"
-#governor="interactive"
-#governor="conservative"
-#governor="ondemand"
-#governor="userspace"
-#governor="powersave"
-governor=$4
-
 adb -s $1 shell sh /data/removeBenchmarkData.sh
-adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $governor #create database 
+adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 #create database
 adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 5
 adb -s $1 shell pm enable com.example.benchmark_withjson
-adb -s $1 shell sh /data/benchmark.sh $governor #run queries
+adb -s $1 shell sh /data/benchmark.sh $4 #run queries -- specify governor ($4)
 
 # Get results (and trap for error):
 result="$(adb shell cat /data/results.txt)"
