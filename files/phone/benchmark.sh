@@ -56,14 +56,18 @@ echo 1 > $trace_dir/tracing_on
 
 # Set up IPC pipe to retrieve end-of-run info from app:
 rm /data/results.pipe
-mknod /data/results.pipe p
-chmod 777 /data/results.pipe
+#mknod /data/results.pipe p
+#chmod 777 /data/results.pipe
+/data/makepipe /data/results.pipe # mknod is MIA; chmod is weird and tries to read the pipe
 
 #am kill-all
 am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
 
 # Block until app completes run and outputs exit info:
+echo "Starting blocking on pipe"
 cat /data/results.pipe > /data/results.txt
+echo "Ending blocking on pipe"
+
 echo "Governor used:  $governor" >> /data/results.txt
 
 echo 0 > $trace_dir/tracing_on

@@ -7,8 +7,9 @@ import sys
 parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLite and Berkeley Db.')
 args = parser.parse_args()
 
-android_id = "02c566fa093765eb" # Grant's main test phone
+#android_id = "02c566fa093765eb" # Grant's main test phone
 #android_id = "ZX1G22TKW7" # Ed's old phone
+android_id = "199020104301402615" # Dragonboard 8074
 
 def help_message():
 	print '\nCommand List:\n'
