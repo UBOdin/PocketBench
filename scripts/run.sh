@@ -38,8 +38,8 @@ result="$(adb shell cat /data/results.txt)"
 
 # pull log
 adb -s $1 pull /data/trace.log
-# $3 = workload (A, B, C etc.); $2 = DB (sql, bdb, bdb100)
-filename="YCSB_Workload${3}_TimingA${2}.log"
+# $2 = DB (sql, bdb, bdb100); $3 = workload (A, B, C etc.); $5 = delay (lognormal etc.)
+filename="YCSB_${2}_${3}_${5}.log"
 mv trace.log logs/$filename
 gzip logs/$filename
 sleep 1
