@@ -38,11 +38,11 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 */
 
 	final int[] workload_array = {
-		R.raw.workload_a_timing_a, R.raw.workload_b_timing_a,
-		R.raw.workload_c_timing_a, R.raw.workload_d_timing_a,
-		R.raw.workload_e_timing_a, R.raw.workload_f_timing_a,
-		R.raw.workload_ia_timing_a, R.raw.workload_ib_timing_a,
-		R.raw.workload_ic_timing_a,
+		R.raw.workload_a_single_line, R.raw.workload_b_single_line,
+		R.raw.workload_c_single_line, R.raw.workload_d_single_line,
+		R.raw.workload_e_single_line, R.raw.workload_f_single_line,
+		R.raw.workload_ia_single_line, R.raw.workload_ib_single_line,
+		R.raw.workload_ic_single_line,
 	};
 
 	// Map workload handle to ASCII input:

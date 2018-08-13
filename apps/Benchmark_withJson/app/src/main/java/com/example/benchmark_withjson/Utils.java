@@ -36,6 +36,8 @@ public class Utils {
     static String governor;
     static String delay;
 
+    static String PDE = "PocketData";
+
     public String jsonToString(Context context, int workload){
 
         String line;
@@ -46,15 +48,7 @@ public class Utils {
             InputStream is = context.getResources().openRawResource(workload);
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
-            while((line = br.readLine()) != null){
-                if(!line.contains("sql")) {
-                    line = line.replaceAll("\\s+", "");
-                    finalString = finalString + line;
-                }
-                else {
-                    finalString = finalString + line;
-                }
-            }
+            finalString = br.readLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
