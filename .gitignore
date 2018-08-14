@@ -5,4 +5,3 @@ logs/
 apps/Benchmark_withJson/build/intermediates/dex-cache/cache.xml
 apps/Benchmark_withJson/.gradle/
 files/json/raw/
-apps/Benchmark_withJson/app/src/main/res/raw/
