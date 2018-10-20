@@ -26,6 +26,11 @@ adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 #create database
 adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 5
 adb -s $1 shell pm enable com.example.benchmark_withjson
+
+echo "BLOCKING NOW"
+#exit 0
+#sleep 100
+
 adb -s $1 shell sh /data/benchmark.sh $4 #run queries -- specify governor ($4)
 
 # Get results (and trap for error):
@@ -39,7 +44,7 @@ result="$(adb shell cat /data/results.txt)"
 # pull log
 adb -s $1 pull /data/trace.log
 # $2 = DB (sql, bdb, bdb100); $3 = workload (A, B, C etc.); $5 = delay (lognormal etc.)
-filename="YCSB_${2}_${3}_${5}.log"
+filename="YCSB_${2}_${3}_${5}_${4}"
 mv trace.log logs/$filename
 gzip logs/$filename
 sleep 1
