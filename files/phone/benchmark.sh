@@ -1,3 +1,7 @@
+
+#echo foo > /sys/power/wake_lock
+#sleep 30
+
 trace_dir=/sys/kernel/debug/tracing
 
 sync
@@ -6,6 +10,14 @@ echo 3 > /proc/sys/vm/drop_caches
 governor=$1
 default="interactive"
 cpus="0 1 2 3" # List of cpus on phone
+#frequencies="300000 422400 652800 729600 883200 960000 1036800 1190400 1267200 1497600 1574400 1728000 1958400 2265600 2457600 2496000 2572800 2649600"
+
+#governor="ondemand" #"userspace"
+frequency="300000"
+
+
+#frequency="2649600" #"2457600" #"1728000" #"1267200" #"1036800" #"729600"
+
 
 # Sanity check the governor choice to supported values:
 if [ "$governor" = "performance" ]; then
@@ -31,6 +43,11 @@ stop mpdecision
 for i in $cpus; do
 	echo "1" > /sys/devices/system/cpu/cpu$i/online
 	echo "$governor" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
+
+	if [ "$governor" = "userspace" ]; then
+		echo "$frequency" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_setspeed 
+	fi
+
 done
 # Restart mpdecision for all governors (turned-off cores retain governor specified)
 start mpdecision
@@ -47,7 +64,10 @@ echo 150000 > $trace_dir/buffer_size_kb
 echo 1 > $trace_dir/events/sched/sched_switch/enable
 echo 1 > $trace_dir/events/block/block_rq_insert/enable
 echo 1 > $trace_dir/events/block/block_rq_complete/enable
-echo 1 > $trace_dir/events/cpufreq_interactive/enable
+#echo 1 > $trace_dir/events/cpufreq_interactive/enable
+echo 1 > $trace_dir/events/power/cpu_frequency/enable
+echo 1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
+echo 1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
 
 echo > $trace_dir/trace
 #echo 1 > $trace_dir/tracing_enabled
@@ -75,7 +95,10 @@ echo 1500 > $trace_dir/buffer_size_kb
 echo 0 > $trace_dir/events/sched/sched_switch/enable
 echo 0 > $trace_dir/events/block/block_rq_insert/enable
 echo 0 > $trace_dir/events/block/block_rq_complete/enable
-echo 0 > $trace_dir/events/cpufreq_interactive/enable
+#echo 0 > $trace_dir/events/cpufreq_interactive/enable
+echo 0 > $trace_dir/events/power/cpu_frequency/enable
+echo 0 > $trace_dir/events/power/cpu_frequency_switch_start/enable
+echo 0 > $trace_dir/events/power/cpu_frequency_switch_end/enable
 
 # Reset governor to default (ondemand) (need to reactivate all cores first):
 stop mpdecision
@@ -86,4 +109,5 @@ for i in $cpus; do
 done
 start mpdecision
 
+#echo foo > /sys/power/wake_unlock
 
