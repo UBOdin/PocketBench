@@ -135,51 +135,6 @@ public class Utils {
             exception.printStackTrace();
         }
 
-        try {
-            BufferedReader br1;
-            BufferedReader br2;
-            String sCurrentLine;
-            List<String> list1 = new ArrayList<>();
-            List<String> list2 = new ArrayList<>();
-            br1 = new BufferedReader(new FileReader(context.getFilesDir().getPath() + "/testSQL"));
-            br2 = new BufferedReader(new FileReader(context.getFilesDir().getPath() + "/testBDB"));
-            while ((sCurrentLine = br1.readLine()) != null) {
-                list1.add(sCurrentLine);
-            }
-            while ((sCurrentLine = br2.readLine()) != null) {
-                list2.add(sCurrentLine);
-            }
-            List<String> tmpList = new ArrayList<>(list1);
-            tmpList.removeAll(list2);
-
-            tmpList = list2;
-            tmpList.removeAll(list1);
-
-            String dbMissingQueries;
-            if(list1.size() < list2.size()){
-                dbMissingQueries = "notInBDBQueries";
-            }
-            else if(list1.size() > list2.size()){
-                dbMissingQueries = "notInSQLQueries";
-            }
-            else {
-                dbMissingQueries = "bothRanSameQueries";
-            }
-
-            for (int i = 0; i < tmpList.size(); i++) {
-                File file = new File(context.getFilesDir().getPath() + "/" + dbMissingQueries);
-                FileOutputStream fos = context.openFileOutput(file.getName(), Context.MODE_APPEND);
-                String temp = tmpList.get(i) + "\n";
-                fos.write(temp.getBytes());
-                fos.close();
-            }
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return 1;
-        }
-
         return 0;
     }
 
