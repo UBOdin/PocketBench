@@ -28,14 +28,6 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-/*
-        this.run();
-    }
-
-    @Override
-    public void run() {
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-*/
 
 	final int[] workload_array = {
 		R.raw.workload_a_single_line, R.raw.workload_b_single_line,
@@ -101,26 +93,15 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
             //Run the queries specified in the JSON on the newly created databases
             Queries queries = new Queries(this);
             tester = queries.startQueries();
-            if (tester != 0){
+
+	    // Signal scripting app we are done (subroutine repurposed):
+	    utils.findMissingQueries(this);
+
+	    if (tester != 0){
                 this.finishAffinity();
             }
 
-            //Find what queries were not executed successfully in the SQL or BDB traces
-            utils.findMissingQueries(this);
-            //Calculate total time of the traces
-            long end = System.currentTimeMillis();
 
-            long delta = end - start;
-            double elapsedSeconds = delta / 1000.0;
-
-            File file = new File(this.getFilesDir().getPath() + "/time");
-            FileOutputStream fos;
-            try {
-                fos = this.openFileOutput(file.getName(), Context.MODE_APPEND);
-                fos.write((elapsedSeconds + "\n").getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+	}
     }
 }
