@@ -20,16 +20,15 @@ public class CreateDB {
 
     public int create(int workload){
 
-        Utils utils = new Utils();
-        String singleJsonString = utils.jsonToString(context, workload);
-        JSONObject jsonObject = utils.jsonStringToObject(singleJsonString);
+        String singleJsonString = Utils.jsonToString(context, workload);
+        JSONObject jsonObject = Utils.jsonStringToObject(singleJsonString);
 
         int tester = populateSqlDb(jsonObject);
         if(tester != 0){
             return 1;
         }
 
-        Connection con = utils.jdbcConnection("BDBBenchmark");
+        Connection con = Utils.jdbcConnection("BDBBenchmark");
         tester = populateBdb(jsonObject, con);
         if(tester != 0){
             return 1;

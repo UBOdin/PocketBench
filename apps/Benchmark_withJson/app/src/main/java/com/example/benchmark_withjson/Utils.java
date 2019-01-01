@@ -36,7 +36,7 @@ public class Utils {
     static String governor;
     static String delay;
 
-    public String jsonToString(Context context, int workload){
+    public static String jsonToString(Context context, int workload){
 
         String line;
         String finalString = "";
@@ -54,7 +54,7 @@ public class Utils {
         return finalString;
     }
 
-    public JSONObject jsonStringToObject(String jsonString){
+    public static JSONObject jsonStringToObject(String jsonString){
         JSONObject jsonObject = null;
         try {
             jsonObject = new JSONObject(jsonString);
@@ -65,7 +65,7 @@ public class Utils {
         return jsonObject;
     }
 
-    public int sleepThread(int interval) {
+    public static int sleepThread(int interval) {
 
 	// Adjust delay time if necessary -- default is lognormal distribution, per parameter:
 	if (Utils.delay.equals("0ms")) {
@@ -85,7 +85,7 @@ public class Utils {
     }
 
 
-    public Connection jdbcConnection(String dbName) {
+    public static Connection jdbcConnection(String dbName) {
         if(dbName == null){
             return null;
         }
@@ -113,7 +113,7 @@ public class Utils {
         return con;
     }
 
-    public int findMissingQueries(Context context){
+    public static int findMissingQueries(Context context){
 
         // Signal calling script that benchmark run has finished:
         try {
@@ -129,7 +129,7 @@ public class Utils {
         return 0;
     }
 
-    public int putMarker(String mark) {
+    public static int putMarker(String mark) {
         PrintWriter outStream = null;
         try{
             FileOutputStream fos = new FileOutputStream("/sys/kernel/debug/tracing/trace_marker");
@@ -149,7 +149,7 @@ public class Utils {
         return 0;
     }
 
-    public boolean doesDBExist(Context context, String dbPath){
+    public static boolean doesDBExist(Context context, String dbPath){
         File dbFile = context.getDatabasePath(dbPath);
         return dbFile.exists();
     }

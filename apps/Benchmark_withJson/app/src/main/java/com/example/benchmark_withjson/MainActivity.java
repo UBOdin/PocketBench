@@ -67,13 +67,11 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 	Log.d(PDE, "Parameter Governor:  " + Utils.governor);
 	Log.d(PDE, "Parameter Delay:  " + Utils.delay);
 
-        Utils utils = new Utils();
-
 
         long start = System.currentTimeMillis();
         int tester;
 
-        if(!utils.doesDBExist(this,"BDBBenchmark")){
+        if(!Utils.doesDBExist(this,"BDBBenchmark")){
             Log.d(PDE, "Creating DB");
             //Create the databases from the JSON
             CreateDB createDB = new CreateDB(this);
@@ -86,8 +84,8 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
         else {
             Log.d(PDE, "DB exists -- Running DB Benchmark");
 
-            String singleJsonString = utils.jsonToString(this, load_map.get(Utils.workload));
-            utils.jsonStringToObject(singleJsonString);
+            String singleJsonString = Utils.jsonToString(this, load_map.get(Utils.workload));
+            Utils.jsonStringToObject(singleJsonString);
 
 
             //Run the queries specified in the JSON on the newly created databases
@@ -95,7 +93,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
             tester = queries.startQueries();
 
 	    // Signal scripting app we are done (subroutine repurposed):
-	    utils.findMissingQueries(this);
+	    Utils.findMissingQueries(this);
 
 	    if (tester != 0){
                 this.finishAffinity();

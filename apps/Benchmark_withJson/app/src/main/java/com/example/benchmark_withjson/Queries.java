@@ -21,10 +21,8 @@ public class Queries {
 
     JSONObject workloadJsonObject;
     Context context;
-    Utils utils;
 
     public Queries(Context inContext){
-        utils = new Utils();
         workloadJsonObject = Utils.workloadJsonObject;
         context = inContext;
     }
@@ -35,9 +33,9 @@ public class Queries {
 	String PDE = "PocketData";
 
 	Log.d(PDE, "Start startQueries()");
-	utils.putMarker("{\"EVENT\":\"Parameters\", \"Database\":\"" + Utils.database + "\", \"Workload\":\"" + Utils.workload + "\", \"Governor\":\"" + Utils.governor + "\", \"Delay\":\"" + Utils.delay + "\"}");
-	utils.putMarker("START: App started\n");
-	utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\"}");
+	Utils.putMarker("{\"EVENT\":\"Parameters\", \"Database\":\"" + Utils.database + "\", \"Workload\":\"" + Utils.workload + "\", \"Governor\":\"" + Utils.governor + "\", \"Delay\":\"" + Utils.delay + "\"}");
+	Utils.putMarker("START: App started\n");
+	Utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\"}");
 
 	if ((Utils.database.equals("SQL")) || (Utils.database.equals("WAL"))) {
 		Log.d(PDE, "Testing SQL");
@@ -55,8 +53,8 @@ public class Queries {
 	}
 
 	Log.d(PDE, "End startQueries()");
-	utils.putMarker("{\"EVENT\":\"" + Utils.database + "_END\"}");
-	utils.putMarker("END: app finished\n");
+	Utils.putMarker("{\"EVENT\":\"" + Utils.database + "_END\"}");
+	Utils.putMarker("END: app finished\n");
 
 	return 0;
 
@@ -112,7 +110,7 @@ public class Queries {
                         if(sqlException == 0) {
                             Object breakObject = operationJson.get("delta");
                             int breakTime = Integer.parseInt(breakObject.toString());
-                            int tester = utils.sleepThread(breakTime);
+                            int tester = Utils.sleepThread(breakTime);
                             if(tester != 0){
                                 return 1;
                             }
@@ -140,7 +138,7 @@ public class Queries {
 
     private int bdbQueries(){
 
-        Connection con = utils.jdbcConnection("BDBBenchmark");
+        Connection con = Utils.jdbcConnection("BDBBenchmark");
         Statement stmt;
         int sqlException = 0;
 
@@ -194,7 +192,7 @@ public class Queries {
                         if(sqlException == 0) {
                             Object breakObject = operationJson.get("delta");
                             int breakTime = Integer.parseInt(breakObject.toString());
-                            int tester = utils.sleepThread(breakTime);
+                            int tester = Utils.sleepThread(breakTime);
                             if(tester != 0){
                                 return 1;
                             }
