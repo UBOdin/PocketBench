@@ -36,8 +36,6 @@ public class Utils {
     static String governor;
     static String delay;
 
-    static String PDE = "PocketData";
-
     public String jsonToString(Context context, int workload){
 
         String line;
@@ -77,15 +75,12 @@ public class Utils {
 		interval = 1;
 	}
 
-//        putMarker("{\"EVENT\":\"DELAY_start\"}");
         try {
             Thread.sleep(interval);
         } catch (Exception e) {
             e.printStackTrace();
-//            putMarker("{\"EVENT\":\"DELAY_error\"}");
             return 1;
         }
-//        putMarker("{\"EVENT\":\"DELAY_end\"}");
         return 0;
     }
 
@@ -122,10 +117,6 @@ public class Utils {
 
         // Signal calling script that benchmark run has finished:
         try {
-            //String path = this.getFilesDir().getPath().toString();
-            //System.out.println("FOOBAR Path:  " + path);
-            //String file_name = "/results.txt";
-            //FileWriter file_writer = new FileWriter(path + file_name);
             FileWriter file_writer = new FileWriter("/data/results.pipe");
             BufferedWriter buffered_writer = new BufferedWriter(file_writer);
             buffered_writer.write("This is a test.  This is only a test.  Testing 357 testing.\n");
@@ -161,57 +152,6 @@ public class Utils {
     public boolean doesDBExist(Context context, String dbPath){
         File dbFile = context.getDatabasePath(dbPath);
         return dbFile.exists();
-    }
-
-    public long memoryAvailable(Context context){
-        ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        activityManager.getMemoryInfo(mi);
-        return mi.availMem;
-    }
-
-    public void restrictHeapTo50(){
-        //noinspection MismatchedReadAndWriteOfArray
-        MainActivity.a = new int[25165824];
-        for(int i = 0; i < 25165824; i++){
-            MainActivity.a[i] = i;
-        }
-    }
-
-    public void restrictHeapTo25(){
-        int temp = 25165824 + 12582912;
-        //noinspection MismatchedReadAndWriteOfArray
-        MainActivity.a = new int[temp];
-        for(int i = 0; i < temp; i++){
-            MainActivity.a[i] = i;
-        }
-    }
-
-    public void restrictHeapTo12_5(){
-        int temp = 25165824 + 12582912 + 6291456;
-        //noinspection MismatchedReadAndWriteOfArray
-        MainActivity.a = new int[temp];
-        for(int i = 0; i < temp; i++){
-            MainActivity.a[i] = i;
-        }
-    }
-
-    public void getMaxHeapAppCanUse(Context context){
-        Runtime rt = Runtime.getRuntime();
-        long maxMemory = rt.maxMemory();
-        File file2 = new File(context.getFilesDir().getPath() + "/max_memory");
-        FileOutputStream fos2;
-        try {
-            fos2 = context.openFileOutput(file2.getName(), Context.MODE_APPEND);
-            fos2.write(("Max memomy app can use : " + maxMemory + "\n").getBytes());
-            fos2.write(("Max kb : " + maxMemory / 1024L + "\n").getBytes());
-            fos2.write(("Max mb : " + maxMemory / 1048576L + "\n").getBytes());
-            fos2.close();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
 }
