@@ -22,7 +22,7 @@ sleep 40
 printf "Rooted\n"
 
 adb -s $1 shell sh /data/removeBenchmarkData.sh
-adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 #create database
+adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 #create database
 adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 5
 adb -s $1 shell pm enable com.example.benchmark_withjson

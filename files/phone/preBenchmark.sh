@@ -11,6 +11,7 @@ echo $1 > $config_file
 echo $2 >> $config_file
 echo $3 >> $config_file
 echo $4 >> $config_file
+echo $5 >> $config_file
 chmod 777 $config_file
 
 am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity

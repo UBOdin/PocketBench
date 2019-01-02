@@ -18,6 +18,8 @@ import java.util.HashMap;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.util.concurrent.locks.*;
+import java.lang.InterruptedException;
 
 
 public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 		Utils.workload = buffered_reader.readLine().toUpperCase();
 		Utils.governor = buffered_reader.readLine();
 		Utils.delay = buffered_reader.readLine();
+		Worker.thread_count = Integer.parseInt(buffered_reader.readLine());
 		file_reader.close();
 	} catch (IOException exception) {
 		exception.printStackTrace();
@@ -80,26 +83,85 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
                 this.finishAffinity();
             }
             this.finishAffinity();
-        }
-        else {
-            Log.d(PDE, "DB exists -- Running DB Benchmark");
+	    return;
+	}
 
-            String singleJsonString = Utils.jsonToString(this, load_map.get(Utils.workload));
-            Utils.jsonStringToObject(singleJsonString);
+	Log.d(PDE, "DB exists -- Running DB Benchmark");
+
+        String singleJsonString = Utils.jsonToString(this, load_map.get(Utils.workload));
+        Utils.jsonStringToObject(singleJsonString);
 
 
-            //Run the queries specified in the JSON on the newly created databases
-            Queries queries = new Queries(this);
-            tester = queries.startQueries();
+	// Set up DB handle:
+	Queries.init_db_handle(this);
 
-	    // Signal scripting app we are done (subroutine repurposed):
-	    Utils.findMissingQueries(this);
+	// Init synch primitives:
+	Worker.lock = new ReentrantLock();
+	Worker.condition = Worker.lock.newCondition();
 
-	    if (tester != 0){
-                this.finishAffinity();
-            }
+	// Fork off worker threads:
+	for (int i = 0; i < Worker.thread_count; i++) {
+		Worker w = new Worker(i);
+		Thread t = new Thread(w);
+		t.start();
+	}
 
+	// Block until workers finish:
+	Worker.lock.lock();
+	while (Worker.thread_count > 0) {
+		try {
+			Worker.condition.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			this.finishAffinity();
+			return;
+		}
+	}
+	Worker.lock.unlock();
+
+	// Close DB handle:
+	Queries.close_db_handle();
+
+	// Signal scripting app we are done (subroutine repurposed):
+	Utils.findMissingQueries(this);
+
+	this.finishAffinity();
+	return;
+
+    }
+}
+
+
+class Worker implements Runnable {
+
+	static Lock lock;
+	static Condition condition;
+	static int thread_count;
+
+	int _thread_number;  // Our in-house TID
+
+	public Worker(int thread_number) {
+
+		this._thread_number = thread_number;
+		return;
 
 	}
-    }
+
+	public void run() {
+
+		Queries queries = new Queries();
+		queries.startQueries(this._thread_number);
+
+		// Signal main thread we are done:
+		Worker.lock.lock();
+		Worker.thread_count--;
+		if (Worker.thread_count == 0) {
+			Worker.condition.signal();
+		}
+		Worker.lock.unlock();
+
+		return;
+
+	}
+
 }

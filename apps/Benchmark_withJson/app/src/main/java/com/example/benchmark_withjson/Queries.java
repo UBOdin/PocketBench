@@ -19,15 +19,42 @@ import android.util.Log;
 
 public class Queries {
 
-    JSONObject workloadJsonObject;
-    Context context;
+    static Connection con = null;
+    static SQLiteDatabase db = null;
 
-    public Queries(Context inContext){
+    JSONObject workloadJsonObject;
+
+    public Queries(){
         workloadJsonObject = Utils.workloadJsonObject;
-        context = inContext;
     }
 
-    public int startQueries(){
+    public static void init_db_handle(Context context) {
+
+        if ((Utils.database.equals("SQL")) || (Utils.database.equals("WAL"))) {
+		db = context.openOrCreateDatabase("SQLBenchmark",0,null);
+	} else if ((Utils.database.equals("BDB")) || (Utils.database.equals("BDB100"))) {
+		con = Utils.jdbcConnection("BDBBenchmark");
+	}
+	return;
+
+    }
+
+    public static void close_db_handle() {
+
+	if (db != null) {
+			db.close();
+	}
+	if (con != null) {
+		try {
+			con.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return;
+		}
+	}
+    }
+
+    public int startQueries(int thread_number){
 
 	int tester;
 	String PDE = "PocketData";
@@ -35,7 +62,7 @@ public class Queries {
 	Log.d(PDE, "Start startQueries()");
 	Utils.putMarker("{\"EVENT\":\"Parameters\", \"Database\":\"" + Utils.database + "\", \"Workload\":\"" + Utils.workload + "\", \"Governor\":\"" + Utils.governor + "\", \"Delay\":\"" + Utils.delay + "\"}");
 	Utils.putMarker("START: App started\n");
-	Utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\"}");
+	Utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\", \"thread\":" + thread_number + "}");
 
 	if ((Utils.database.equals("SQL")) || (Utils.database.equals("WAL"))) {
 		Log.d(PDE, "Testing SQL");
@@ -53,7 +80,7 @@ public class Queries {
 	}
 
 	Log.d(PDE, "End startQueries()");
-	Utils.putMarker("{\"EVENT\":\"" + Utils.database + "_END\"}");
+	Utils.putMarker("{\"EVENT\":\"" + Utils.database + "_END\", \"thread\":" + thread_number + "}");
 	Utils.putMarker("END: app finished\n");
 
 	return 0;
@@ -62,7 +89,6 @@ public class Queries {
 
     private int sqlQueries(){
 
-        SQLiteDatabase db = context.openOrCreateDatabase("SQLBenchmark",0,null);
         int sqlException = 0;
 
         try {
@@ -132,13 +158,11 @@ public class Queries {
             db.close();
             return 1;
         }
-        db.close();
         return 0;
     }
 
     private int bdbQueries(){
 
-        Connection con = Utils.jdbcConnection("BDBBenchmark");
         Statement stmt;
         int sqlException = 0;
 
@@ -221,14 +245,6 @@ public class Queries {
             e.printStackTrace();
             return 1;
         }
-
-        try {
-            con.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return 1;
-        }
-
         return 0;
     }
 
