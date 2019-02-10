@@ -22,16 +22,29 @@ sleep 40
 printf "Rooted\n"
 
 adb -s $1 shell sh /data/removeBenchmarkData.sh
-adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 #create database
+adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
 adb -s $1 shell pm disable com.example.benchmark_withjson
 sleep 5
 adb -s $1 shell pm enable com.example.benchmark_withjson
 
-echo "BLOCKING NOW"
-#exit 0
-#sleep 100
+sleep 15 # Let phone settle before starting script:
+echo "Starting phone script"
+#adb -s $1 shell sh /data/benchmark.sh $4 $5 #run queries -- specify governor ($4) and speed ($5)
+adb shell "nohup > data/output.out sh /data/benchmark.sh $4 $5 &" &
 
-adb -s $1 shell sh /data/benchmark.sh $4 #run queries -- specify governor ($4)
+echo "WAITING -- START MONSOON"
+# Block to allow manual phone disconnect during run for energy measurement:
+sleep 30
+
+# Block until phone is manually reconnected after measurement:
+result="1"
+while [ "$result" = "1" ]; do
+	sleep 5
+	echo "Try... ${result}"
+	#result=$(adb shell id 2>&1)
+	adb shell id 2>&1
+	result="$?"
+done
 
 # Get results (and trap for error):
 result="$(adb shell cat /data/results.txt)"
@@ -43,8 +56,13 @@ result="$(adb shell cat /data/results.txt)"
 
 # pull log
 adb -s $1 pull /data/trace.log
-# $2 = DB (sql, bdb, bdb100); $3 = workload (A, B, C etc.); $5 = delay (lognormal etc.)
-filename="YCSB_${2}_${3}_${5}_${4}"
+# $2 = DB (sql, bdb, bdb100); $3 = workload (A, B, C etc.); $6 = delay (lognormal etc.)
+if [ "$6" = "lognormal" ]; then
+	delay="log"
+else
+	delay="$6"
+fi
+filename="YCSB_${2}_${3}_${delay}_${4}_${5}"
 #filename="YCSB_Workload${3}_TimingA${2}.log" # old style filename
 mv trace.log logs/$filename
 gzip logs/$filename

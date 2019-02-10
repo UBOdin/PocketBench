@@ -1,6 +1,6 @@
 
-#echo foo > /sys/power/wake_lock
-#sleep 30
+echo foo > /sys/power/wake_lock
+sleep 30
 
 trace_dir=/sys/kernel/debug/tracing
 
@@ -13,7 +13,7 @@ cpus="0 1 2 3" # List of cpus on phone
 #frequencies="300000 422400 652800 729600 883200 960000 1036800 1190400 1267200 1497600 1574400 1728000 1958400 2265600 2457600 2496000 2572800 2649600"
 
 #governor="ondemand" #"userspace"
-frequency="300000"
+frequency=$2 #"300000"
 
 
 #frequency="2649600" #"2457600" #"1728000" #"1267200" #"1036800" #"729600"
@@ -109,5 +109,5 @@ for i in $cpus; do
 done
 start mpdecision
 
-#echo foo > /sys/power/wake_unlock
+echo foo > /sys/power/wake_unlock
 

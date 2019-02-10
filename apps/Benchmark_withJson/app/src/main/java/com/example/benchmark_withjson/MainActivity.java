@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 		Utils.database = buffered_reader.readLine().toUpperCase();
 		Utils.workload = buffered_reader.readLine().toUpperCase();
 		Utils.governor = buffered_reader.readLine();
+		Utils.speed = buffered_reader.readLine();
 		Utils.delay = buffered_reader.readLine();
 		Worker.thread_count = Integer.parseInt(buffered_reader.readLine());
 		file_reader.close();
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 	Log.d(PDE, "Parameter Workload:  " + Utils.workload);
 //	Log.d(PDE, "Parameter WL handle:  " + load_map.get(Utils.workload));  // sanity check on hashmap
 	Log.d(PDE, "Parameter Governor:  " + Utils.governor);
+	Log.d(PDE, "Parameter Speed:  " + Utils.speed);
 	Log.d(PDE, "Parameter Delay:  " + Utils.delay);
 
 

@@ -34,6 +34,7 @@ public class Utils {
     static String database;
     static String workload;
     static String governor;
+    static String speed;
     static String delay;
 
     public static String jsonToString(Context context, int workload){

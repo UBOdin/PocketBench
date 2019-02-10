@@ -60,7 +60,7 @@ public class Queries {
 	String PDE = "PocketData";
 
 	Log.d(PDE, "Start startQueries()");
-	Utils.putMarker("{\"EVENT\":\"Parameters\", \"Database\":\"" + Utils.database + "\", \"Workload\":\"" + Utils.workload + "\", \"Governor\":\"" + Utils.governor + "\", \"Delay\":\"" + Utils.delay + "\"}");
+	Utils.putMarker("{\"EVENT\":\"Parameters\", \"Database\":\"" + Utils.database + "\", \"Workload\":\"" + Utils.workload + "\", \"Governor\":\"" + Utils.governor + "\", \"Speed\":\"" + Utils.speed + "\", \"Delay\":\"" + Utils.delay + "\"}");
 	Utils.putMarker("START: App started\n");
 	Utils.putMarker("{\"EVENT\":\"" + Utils.database + "_START\", \"thread\":" + thread_number + "}");
 
