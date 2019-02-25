@@ -61,13 +61,13 @@ setenforce 0
 
 echo 150000 > $trace_dir/buffer_size_kb
 #echo 300000 > $trace_dir/buffer_size_kb
-echo 1 > $trace_dir/events/sched/sched_switch/enable
-echo 1 > $trace_dir/events/block/block_rq_insert/enable
-echo 1 > $trace_dir/events/block/block_rq_complete/enable
-#echo 1 > $trace_dir/events/cpufreq_interactive/enable
-echo 1 > $trace_dir/events/power/cpu_frequency/enable
-echo 1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
-echo 1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
+#echo 1 > $trace_dir/events/sched/sched_switch/enable
+#echo 1 > $trace_dir/events/block/block_rq_insert/enable
+#echo 1 > $trace_dir/events/block/block_rq_complete/enable
+##echo 1 > $trace_dir/events/cpufreq_interactive/enable
+#echo 1 > $trace_dir/events/power/cpu_frequency/enable
+#echo 1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
+#echo 1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
 
 echo > $trace_dir/trace
 #echo 1 > $trace_dir/tracing_enabled

@@ -29,12 +29,12 @@ adb -s $1 shell pm enable com.example.benchmark_withjson
 
 sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
-#adb -s $1 shell sh /data/benchmark.sh $4 $5 #run queries -- specify governor ($4) and speed ($5)
-adb shell "nohup > data/output.out sh /data/benchmark.sh $4 $5 &" &
+adb -s $1 shell sh /data/benchmark.sh $4 $5 #run queries -- specify governor ($4) and speed ($5)
+#adb shell "nohup > data/output.out sh /data/benchmark.sh $4 $5 &" &
 
 echo "WAITING -- START MONSOON"
 # Block to allow manual phone disconnect during run for energy measurement:
-sleep 30
+#sleep 30
 
 # Block until phone is manually reconnected after measurement:
 result="1"
