@@ -15,9 +15,6 @@ def main():
 	starttime = 0.0
 	endtime = 0.0
 
-	read_count = 0
-	write_count = 0
-
 	if (len(sys.argv) != 2):
 		print("Missing input file name")
 		sys.exit()

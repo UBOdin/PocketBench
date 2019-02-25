@@ -8,9 +8,9 @@ parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLit
 args = parser.parse_args()
 
 #android_id = "02c566fa093765eb" # Grant's main test phone
-android_id = "ZX1G22TKW7" # Ed's old phone
+#android_id = "ZX1G22TKW7" # Ed's old phone
 #android_id = "199020104301402615" # Dragonboard 8074
-#android_id = "ZX1G22LXTH" # Nexus 6 wired for Monsoon
+android_id = "ZX1G22LXTH" # Nexus 6 wired for Monsoon
 
 def help_message():
 	print '\nCommand List:\n'
@@ -71,18 +71,13 @@ def command(string_array):
 	workload = ""
 	#governor = "ondemand" # Nexus 5 default
 	#governor = "interactive" # Nexus >= 6 default
-	governor = "interactive"
-	speed = "2649600" # Only valid if governor == "userspace"
-	delay = "0ms"
+	governor = "userspace"
+	speed = "300000" # Only valid if governor == "userspace"
+	delay = "lognormal"
         threads = "1"
 
 	database = string_array[0].upper()
 	workload = string_array[1].upper()
-
-        if (database == "BDB"):
-                print("Doing SQL")
-                sys.exit()
-        #end_if
 
 	# Parameter validity check:
 	if ((database not in databases) or (workload not in workloads) or (governor not in governors) or (speed not in speeds) or (delay not in delays)):

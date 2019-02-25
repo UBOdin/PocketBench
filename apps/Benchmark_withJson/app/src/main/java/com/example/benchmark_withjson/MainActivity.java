@@ -97,10 +97,6 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 	// Set up DB handle:
 	Queries.init_db_handle(this);
 
-	Queries queries = new Queries();
-	queries.startQueries(0);  // Single thread (0)
-
-/*
 	// Init synch primitives:
 	Worker.lock = new ReentrantLock();
 	Worker.condition = Worker.lock.newCondition();
@@ -124,7 +120,6 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 		}
 	}
 	Worker.lock.unlock();
-*/
 
 	// Close DB handle:
 	Queries.close_db_handle();
