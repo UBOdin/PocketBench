@@ -1,4 +1,10 @@
 
+logfile="/data/progress.txt"
+echo "Start phone script for $3 $4 $1 $2 $5 $6" > $logfile
+echo "Phone script pid:  $$" >> $logfile
+echo $$ > /data/pid.txt
+sync $logfile
+
 echo foo > /sys/power/wake_lock
 sleep 30
 
@@ -89,6 +95,8 @@ echo "Ending blocking on pipe"
 
 echo "Governor used:  $governor" >> /data/results.txt
 
+dumpsys battery | grep AC > /data/power.txt
+
 echo 0 > $trace_dir/tracing_on
 cat $trace_dir/trace > /data/trace.log
 echo 1500 > $trace_dir/buffer_size_kb
@@ -108,6 +116,15 @@ for i in $cpus; do
 	echo $default > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
 done
 start mpdecision
+
+svc wifi enable
+sleep 60 # NEED TO FIX THIS -- do Blocking in lieu
+echo "Wifi run client" >> $logfile
+sync $logfile
+/data/phone.exe 2016
+result=$?
+echo "Wifi result:  $result" >> $logfile
+svc wifi disable
 
 echo foo > /sys/power/wake_unlock
 
