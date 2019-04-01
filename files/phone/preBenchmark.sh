@@ -23,7 +23,7 @@ chmod 777 $config_file
 
 am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
 sleep 70
-adb -s $1 shell pm disable com.example.benchmark_withjson
+pm disable com.example.benchmark_withjson
 sleep 5
-adb -s $1 shell pm enable com.example.benchmark_withjson
+pm enable com.example.benchmark_withjson
 

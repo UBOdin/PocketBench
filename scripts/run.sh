@@ -116,9 +116,7 @@ fi
 #TODO:
 # (1) remove redundant pm di/enable at start
 # (2) do wait-for-device after root; verify rather than busywait
-# (4) combine pm dis/enable after preBenchmark with preBenchmark
 # (5) on on-phone script, fix error exit for governors:  do ping to desktop, drop wakelock etc.
-# (6) create after-pre-before-main benchmark script
 # (7) parameterize TCP wifi wait port
 # (8) in general -- add confirm message to pipes etc.
 # (9) add socket apps to repo and push in script
