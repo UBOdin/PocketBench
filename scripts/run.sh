@@ -21,11 +21,7 @@ done
 sleep 40
 printf "Rooted\n"
 
-adb -s $1 shell sh /data/removeBenchmarkData.sh
 adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
-adb -s $1 shell pm disable com.example.benchmark_withjson
-sleep 5
-adb -s $1 shell pm enable com.example.benchmark_withjson
 
 sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
@@ -120,7 +116,6 @@ fi
 #TODO:
 # (1) remove redundant pm di/enable at start
 # (2) do wait-for-device after root; verify rather than busywait
-# (3) combine removeBenchmark and preBenchmark
 # (4) combine pm dis/enable after preBenchmark with preBenchmark
 # (5) on on-phone script, fix error exit for governors:  do ping to desktop, drop wakelock etc.
 # (6) create after-pre-before-main benchmark script

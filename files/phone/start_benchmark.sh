@@ -11,6 +11,7 @@ nohup sh /data/benchmark.sh $1 $2 > /data/output.out &
 # Save main script pid for later sanity check:
 printf "Returned pid:\n$!\n" > /data/start.txt
 
+# Block until we receive signal that background script is running (with nohup)
 cat /data/start.pipe >> /data/start.txt
 
 exit 0
