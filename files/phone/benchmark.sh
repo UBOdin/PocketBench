@@ -1,11 +1,57 @@
 
-logfile="/data/progress.txt"
-echo "Start phone script for $3 $4" > $logfile #$1 $2 $5 $6" > $logfile
-echo "Phone script pid:  $$" >> $logfile
-sync $logfile
+toggle_events() {
+
+	echo $1 > $trace_dir/events/sched/sched_switch/enable
+	echo $1 > $trace_dir/events/block/block_rq_insert/enable
+	echo $1 > $trace_dir/events/block/block_rq_complete/enable
+	#echo $1 > $trace_dir/events/cpufreq_interactive/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
+
+}
+
+set_governor() {
+
+	# Stop mpdecision to permit setting the desired governor on all 4 cores:
+	stop mpdecision
+	# Turn on all CPUs and set governor as selected:
+	for i in $cpus; do
+
+		echo "1" > /sys/devices/system/cpu/cpu$i/online
+		echo "$1" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
+		# Speed is only valid for the userspace governor:
+		if [ "$1" = "userspace" ]; then
+			echo "$frequency" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_setspeed 
+		fi
+
+	done
+	# Restart mpdecision for all governors (turned-off cores retain governor specified)
+	start mpdecision
+
+}
+
+send_wakeup() {
+
+	svc wifi enable
+	sleep 60 # NEED TO FIX THIS -- do Blocking in lieu
+	echo "Phone sending wifi wakeup to server" >> $logfile
+	/data/phone.exe 2016
+	result=$?
+	echo "Wifi client socket result:  $result" >> $logfile
+	svc wifi disable
+
+}
+
+logfile="/data/results.txt"
+rm $logfile
+echo "Starting phone script with parameters:  $1, $2" > $logfile
 
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
 printf "Getpid:\n$$\n" >> /data/start.pipe
+
+# SELinux is a pain:
+setenforce 0
 
 echo foo > /sys/power/wake_lock
 sleep 30
@@ -41,42 +87,17 @@ elif [ "$governor" = "userspace" ]; then
 elif [ "$governor" = "powersave" ]; then
 	:
 else
-	echo "ERR Invalid governor" > /data/results.txt
+	echo "ERR Invalid governor" >> $logfile
+	send_wakeup
 	exit 1
 fi
 
-# Stop mpdecision to permit setting the desired governor on all 4 cores:
-stop mpdecision
-# Turn on all CPUs and set governor as selected:
-for i in $cpus; do
-	echo "1" > /sys/devices/system/cpu/cpu$i/online
-	echo "$governor" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
+# Set governor as selected:
+set_governor "$governor"
 
-	if [ "$governor" = "userspace" ]; then
-		echo "$frequency" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_setspeed 
-	fi
-
-done
-# Restart mpdecision for all governors (turned-off cores retain governor specified)
-start mpdecision
-
-#echo 0 > $trace_dir/events/phonelab_syscall_tracing/enable
-#echo 0 > $trace_dir/events/sched/plsc_exec/enable
-#echo 0 > $trace_dir/events/sched/plsc_fork/enable
-
-# SELinux is a pain:
-setenforce 0
-
+# Turn on tracing:
 echo 150000 > $trace_dir/buffer_size_kb
-#echo 300000 > $trace_dir/buffer_size_kb
-echo 1 > $trace_dir/events/sched/sched_switch/enable
-echo 1 > $trace_dir/events/block/block_rq_insert/enable
-echo 1 > $trace_dir/events/block/block_rq_complete/enable
-#echo 1 > $trace_dir/events/cpufreq_interactive/enable
-echo 1 > $trace_dir/events/power/cpu_frequency/enable
-echo 1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
-echo 1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-
+toggle_events 1
 echo > $trace_dir/trace
 #echo 1 > $trace_dir/tracing_enabled
 echo 1 > $trace_dir/tracing_on
@@ -85,48 +106,30 @@ echo 1 > $trace_dir/tracing_on
 rm /data/results.pipe
 mknod /data/results.pipe p
 chmod 777 /data/results.pipe
-#/data/makepipe /data/results.pipe # mknod is MIA; chmod is weird and tries to read the pipe
 
 #am kill-all
 am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
 
 # Block until app completes run and outputs exit info:
-echo "Starting blocking on pipe"
-cat /data/results.pipe > /data/results.txt
-echo "Ending blocking on pipe"
-
-echo "Governor used:  $governor" >> /data/results.txt
+echo "Start blocking on benchmark app signal" >> $logfile
+cat /data/results.pipe >> $logfile
+echo "Received benchmark app finished signal" >> $logfile
 
 dumpsys battery | grep AC > /data/power.txt
 
+# Turn off tracing:
 echo 0 > $trace_dir/tracing_on
 cat $trace_dir/trace > /data/trace.log
 echo 1500 > $trace_dir/buffer_size_kb
-echo 0 > $trace_dir/events/sched/sched_switch/enable
-echo 0 > $trace_dir/events/block/block_rq_insert/enable
-echo 0 > $trace_dir/events/block/block_rq_complete/enable
-#echo 0 > $trace_dir/events/cpufreq_interactive/enable
-echo 0 > $trace_dir/events/power/cpu_frequency/enable
-echo 0 > $trace_dir/events/power/cpu_frequency_switch_start/enable
-echo 0 > $trace_dir/events/power/cpu_frequency_switch_end/enable
+toggle_events 0
 
-# Reset governor to default (ondemand) (need to reactivate all cores first):
-stop mpdecision
-# Turn on all CPUs and reset governor to back to default:
-for i in $cpus; do
-	echo "1" > /sys/devices/system/cpu/cpu$i/online
-	echo $default > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
-done
-start mpdecision
+# Reset CPU governors:
+set_governor "$default"
 
-svc wifi enable
-sleep 60 # NEED TO FIX THIS -- do Blocking in lieu
-echo "Wifi run client" >> $logfile
-sync $logfile
-/data/phone.exe 2016
-result=$?
-echo "Wifi result:  $result" >> $logfile
-svc wifi disable
+send_wakeup
 
 echo foo > /sys/power/wake_unlock
+
+echo "Clean Exit" >> $logfile
+exit 0
 
