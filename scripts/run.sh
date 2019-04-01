@@ -21,7 +21,6 @@ done
 sleep 40
 printf "Rooted\n"
 
-adb shell rm /data/pid.txt
 adb -s $1 shell sh /data/removeBenchmarkData.sh
 adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
 adb -s $1 shell pm disable com.example.benchmark_withjson
@@ -32,15 +31,14 @@ sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
 #adb -s $1 shell sh /data/benchmark.sh $4 $5 #run queries -- specify governor ($4) and speed ($5)
 #adb shell "nohup > data/output.out sh /data/benchmark.sh $4 $5 &" &
-adb shell 'nohup > data/output.out sh /data/benchmark.sh $4 $5 $2 $3 $6 $7 & echo $!' &
+#adb shell 'nohup > data/output.out sh /data/benchmark.sh $4 $5 $2 $3 $6 $7 & echo $!' &
+adb shell sh /data/start_benchmark.sh $4 $5 &
 
 echo "WAITING -- START MONSOON"
 # Block to allow manual phone disconnect during run for energy measurement:
 #sleep 30
 
 sleep 5 # Make sure on-phone script is running and blocking:
-
-adb shell ls -l /data/pid.txt
 
 ykushcmd -d 1
 sleep 30
@@ -94,20 +92,28 @@ echo "RESULTS: $result"
 
 printf "Completed benchmark for device %s\n" $1
 
+# Sanity check:  Verify main phone script matches:
+adb pull /data/start.txt
+result1="$(cat start.txt)"
+echo "Script pid:  $result1"
+adb shell rm /data/start.txt
+if [ "$result1" != "  AC powered: false" ]; then
+	echo "Error on script pid"
+	#exit 1
+else
+	echo "OK on script pid"
+fi
 
-# N.b annoying issue with adb and cat -- appending CR
+# Sanity check:  Verify benchmark was run on-battery:
 adb pull /data/power.txt
 result2="$(cat power.txt)"
 echo "BATTERY:  $result2"
-echo $result2 > outside_results.txt
 adb shell rm /data/power.txt
-#rm power.txt
-
 if [ "$result2" != "  AC powered: false" ]; then
-	echo "Error on power"
+	echo "Error on battery power"
 	exit 2
 else
-	echo "OK on power"
+	echo "OK on battery power"
 fi
 
 
@@ -116,9 +122,15 @@ fi
 # (2) do wait-for-device after root; verify rather than busywait
 # (3) combine removeBenchmark and preBenchmark
 # (4) combine pm dis/enable after preBenchmark with preBenchmark
-# (5) on on-phone script, fix error exit for governors to do ping to desktop
+# (5) on on-phone script, fix error exit for governors:  do ping to desktop, drop wakelock etc.
 # (6) create after-pre-before-main benchmark script
 # (7) parameterize TCP wifi wait port
 # (8) in general -- add confirm message to pipes etc.
 # (9) add socket apps to repo and push in script
+# (10) adb:  when USB connection is cut, the foreground proc dies, even if run with sighup -- ?! (which signal?  kill?)
+# (11) adb:  proc on desktop blocks until all phone procs exit, even if already reparented to init -- ?!
+# (12) Fix ERR result from results.txt
+
+# re:  blocking syscalls and spurious wakeup -- why while () and not if ()?
+# syncing accept() and connect()
 

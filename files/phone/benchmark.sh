@@ -1,9 +1,11 @@
 
 logfile="/data/progress.txt"
-echo "Start phone script for $3 $4 $1 $2 $5 $6" > $logfile
+echo "Start phone script for $3 $4" > $logfile #$1 $2 $5 $6" > $logfile
 echo "Phone script pid:  $$" >> $logfile
-echo $$ > /data/pid.txt
 sync $logfile
+
+# Signal foreground script that we are running (and, importantly, that nohup has already run):
+printf "Getpid:\n$$\n" >> /data/start.pipe
 
 echo foo > /sys/power/wake_lock
 sleep 30
