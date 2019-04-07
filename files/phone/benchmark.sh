@@ -43,7 +43,18 @@ send_wakeup() {
 
 }
 
-logfile="/data/results.txt"
+error_exit() {
+
+	echo "$1" >> $logfile
+	echo "ERR" > $errfile
+	send_wakeup
+	echo foo > /sys/power/wake_unlock
+	exit 1
+
+}
+
+errfile="/data/results.txt"
+logfile="/data/phonelog.txt"
 rm $logfile
 echo "Starting phone script with parameters:  $1, $2" > $logfile
 
@@ -87,9 +98,7 @@ elif [ "$governor" = "userspace" ]; then
 elif [ "$governor" = "powersave" ]; then
 	:
 else
-	echo "ERR Invalid governor" >> $logfile
-	send_wakeup
-	exit 1
+	error_exit "ERR Invalid governor"
 fi
 
 # Set governor as selected:
@@ -112,7 +121,11 @@ am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainAc
 
 # Block until app completes run and outputs exit info:
 echo "Start blocking on benchmark app signal" >> $logfile
-cat /data/results.pipe >> $logfile
+result="$(cat /data/results.pipe)"
+echo "$result" >> $logfile
+if [ "$result" == "ERR" ]; then
+	error_exit "ERR on benchmark app"
+fi
 echo "Received benchmark app finished signal" >> $logfile
 
 dumpsys battery | grep AC > /data/power.txt
@@ -127,9 +140,8 @@ toggle_events 0
 set_governor "$default"
 
 send_wakeup
-
-echo foo > /sys/power/wake_unlock
-
+echo "OK" >> $errfile
 echo "Clean Exit" >> $logfile
+echo foo > /sys/power/wake_unlock
 exit 0
 

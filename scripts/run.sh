@@ -38,16 +38,15 @@ sleep 5 # Make sure on-phone script is running and blocking:
 
 ykushcmd -d 1
 sleep 30
-
 ./server.exe 2016
 result=$?
+ykushcmd -u 1
 if [ "$result" != "0" ]; then
 	echo "Error on wifi block"
 	exit 3
 else
 	echo "OK on wifi block"
 fi
-ykushcmd -u 1
 
 # Block until phone is manually reconnected after measurement:
 result="1"
@@ -60,12 +59,29 @@ while [ "$result" = "1" ]; do
 done
 
 # Get results (and trap for error):
-result="$(adb shell cat /data/results.txt)"
-#error=${result:0:3}
-#if [ ${error} == "ERR" ]; then
-#	echo "Error on phone:  $result"
-#	exit 1
-#fi
+adb pull /data/results.txt
+result="$(cat results.txt)"
+echo "Benchmark results:  $result"
+# Trap for error on phone script:
+if [ "$result" = "ERR" ]; then
+	echo "Error on phone script"
+	exit 1
+else
+	echo "OK on phone script" 
+fi
+
+# Sanity check:  Verify benchmark was run on-battery:
+adb pull /data/power.txt
+result2="$(cat power.txt)"
+echo "BATTERY:  $result2"
+adb shell rm /data/power.txt
+if [ "$result2" != "  AC powered: false" ]; then
+	echo "Error on battery power"
+	exit 2
+else
+	echo "OK on battery power"
+fi
+
 
 # pull log
 adb -s $1 pull /data/trace.log
@@ -100,29 +116,18 @@ else
 	echo "OK on script pid"
 fi
 
-# Sanity check:  Verify benchmark was run on-battery:
-adb pull /data/power.txt
-result2="$(cat power.txt)"
-echo "BATTERY:  $result2"
-adb shell rm /data/power.txt
-if [ "$result2" != "  AC powered: false" ]; then
-	echo "Error on battery power"
-	exit 2
-else
-	echo "OK on battery power"
-fi
-
 
 #TODO:
 # (1) remove redundant pm di/enable at start
 # (2) do wait-for-device after root; verify rather than busywait
-# (5) on on-phone script, fix error exit for governors:  do ping to desktop, drop wakelock etc.
 # (7) parameterize TCP wifi wait port
 # (8) in general -- add confirm message to pipes etc.
 # (9) add socket apps to repo and push in script
 # (10) adb:  when USB connection is cut, the foreground proc dies, even if run with sighup -- ?! (which signal?  kill?)
 # (11) adb:  proc on desktop blocks until all phone procs exit, even if already reparented to init -- ?!
 # (12) Fix ERR result from results.txt
+# (13) Remove inefficient DB populate code in java app
+# (14) Clean-up socket apps (e.g. printing "Exit Clean" to console => nohup)
 
 # re:  blocking syscalls and spurious wakeup -- why while () and not if ()?
 # syncing accept() and connect()
