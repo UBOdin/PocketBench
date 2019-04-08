@@ -1,43 +1,31 @@
 #!/bin/bash
 # run benchmark
-adb -s $1 shell pm disable com.example.benchmark_withjson
-sleep 1
-adb -s $1 shell pm enable com.example.benchmark_withjson
 
 printf "Rebooting and running benchmark on device %s\n" $1
 
 adb -s $1 reboot
 adb -s $1 wait-for-device
-sleep 40
+sleep 10
 printf "Rebooted\n"
-adb root
-sub=""
-while [ "$sub" != "uid=0(" ]; do
-	sleep 5
-	var=$(adb shell id)
-	sub=${var%%root*}  # var:4:1
-	printf ".\n"
-done
-sleep 40
+adb -s $1 root
+adb -s $1 wait-for-device
+sleep 10
 printf "Rooted\n"
 
 adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
 
 sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
-#adb -s $1 shell sh /data/benchmark.sh $4 $5 #run queries -- specify governor ($4) and speed ($5)
-#adb shell "nohup > data/output.out sh /data/benchmark.sh $4 $5 &" &
-#adb shell 'nohup > data/output.out sh /data/benchmark.sh $4 $5 $2 $3 $6 $7 & echo $!' &
-adb shell sh /data/start_benchmark.sh $4 $5 &
+adb -s $1 shell sh /data/start_benchmark.sh $4 $5 &
 
 echo "WAITING -- START MONSOON"
 # Block to allow manual phone disconnect during run for energy measurement:
 #sleep 30
 
-sleep 5 # Make sure on-phone script is running and blocking:
-
+sleep 5 # Make sure on-phone script is running before cutting power:
 ykushcmd -d 1
-sleep 30
+
+sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block before blocking on wifi wakeup ping:
 ./server.exe 2016
 result=$?
 ykushcmd -u 1
@@ -118,16 +106,16 @@ fi
 
 
 #TODO:
-# (1) remove redundant pm di/enable at start
-# (2) do wait-for-device after root; verify rather than busywait
 # (7) parameterize TCP wifi wait port
-# (8) in general -- add confirm message to pipes etc.
 # (9) add socket apps to repo and push in script
 # (10) adb:  when USB connection is cut, the foreground proc dies, even if run with sighup -- ?! (which signal?  kill?)
 # (11) adb:  proc on desktop blocks until all phone procs exit, even if already reparented to init -- ?!
 # (12) Fix ERR result from results.txt
 # (13) Remove inefficient DB populate code in java app
 # (14) Clean-up socket apps (e.g. printing "Exit Clean" to console => nohup)
+# (15) Consistincy-ize the -s $1 phone serial number stuff
+# (16) Battery stats => ftrace logfile
+# (17) logcat events -- re:  bimodal latency
 
 # re:  blocking syscalls and spurious wakeup -- why while () and not if ()?
 # syncing accept() and connect()

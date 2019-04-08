@@ -140,7 +140,7 @@ toggle_events 0
 set_governor "$default"
 
 send_wakeup
-echo "OK" >> $errfile
+echo "OK" > $errfile
 echo "Clean Exit" >> $logfile
 echo foo > /sys/power/wake_unlock
 exit 0
