@@ -36,7 +36,7 @@ send_wakeup() {
 	svc wifi enable
 	sleep 60 # NEED TO FIX THIS -- do Blocking in lieu
 	echo "Phone sending wifi wakeup to server" >> $logfile
-	/data/phone.exe 2016
+	/data/phone.exe $wakeport
 	result=$?
 	echo "Wifi client socket result:  $result" >> $logfile
 	svc wifi disable
@@ -56,7 +56,7 @@ error_exit() {
 errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
 rm $logfile
-echo "Starting phone script with parameters:  $1, $2" > $logfile
+echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
 
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
 printf "Getpid:\n$$\n" >> /data/start.pipe
@@ -83,6 +83,7 @@ frequency=$2 #"300000"
 
 #frequency="2649600" #"2457600" #"1728000" #"1267200" #"1036800" #"729600"
 
+wakeport=$3
 
 # Sanity check the governor choice to supported values:
 if [ "$governor" = "performance" ]; then

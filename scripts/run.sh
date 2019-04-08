@@ -1,6 +1,8 @@
 #!/bin/bash
 # run benchmark
 
+wakeport="2017"  # Phone-client wifi wakeup port
+
 printf "Rebooting and running benchmark on device %s\n" $1
 
 adb -s $1 reboot
@@ -16,7 +18,7 @@ adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
 
 sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
-adb -s $1 shell sh /data/start_benchmark.sh $4 $5 &
+adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
 
 echo "WAITING -- START MONSOON"
 # Block to allow manual phone disconnect during run for energy measurement:
@@ -26,7 +28,7 @@ sleep 5 # Make sure on-phone script is running before cutting power:
 ykushcmd -d 1
 
 sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block before blocking on wifi wakeup ping:
-./server.exe 2016
+./server.exe $wakeport
 result=$?
 ykushcmd -u 1
 if [ "$result" != "0" ]; then
@@ -106,7 +108,6 @@ fi
 
 
 #TODO:
-# (7) parameterize TCP wifi wait port
 # (9) add socket apps to repo and push in script
 # (10) adb:  when USB connection is cut, the foreground proc dies, even if run with sighup -- ?! (which signal?  kill?)
 # (11) adb:  proc on desktop blocks until all phone procs exit, even if already reparented to init -- ?!
