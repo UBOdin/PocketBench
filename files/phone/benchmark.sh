@@ -68,6 +68,7 @@ echo foo > /sys/power/wake_lock
 sleep 30
 
 trace_dir=/sys/kernel/debug/tracing
+trace_log=/sys/kernel/debug/tracing/trace_marker
 
 sync
 echo 3 > /proc/sys/vm/drop_caches
@@ -112,6 +113,9 @@ echo > $trace_dir/trace
 #echo 1 > $trace_dir/tracing_enabled
 echo 1 > $trace_dir/tracing_on
 
+echo "LOGMARKER Battery before:" >> $trace_log
+dumpsys battery >> $trace_log
+
 # Set up IPC pipe to retrieve end-of-run info from app:
 rm /data/results.pipe
 mknod /data/results.pipe p
@@ -124,21 +128,30 @@ am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainAc
 echo "Start blocking on benchmark app signal" >> $logfile
 result="$(cat /data/results.pipe)"
 echo "$result" >> $logfile
+
+echo "LOGMARKER Battery after:" >> $trace_log
+dumpsys battery >> $trace_log
+
+# Turn off tracing:
+echo 0 > $trace_dir/tracing_on
+toggle_events 0
+
+# Trap for on-app error:
 if [ "$result" == "ERR" ]; then
+	set_governor "$default"
 	error_exit "ERR on benchmark app"
 fi
 echo "Received benchmark app finished signal" >> $logfile
 
-dumpsys battery | grep AC > /data/power.txt
-
-# Turn off tracing:
-echo 0 > $trace_dir/tracing_on
+# Pull results:
 cat $trace_dir/trace > /data/trace.log
 echo 1500 > $trace_dir/buffer_size_kb
-toggle_events 0
 
 # Reset CPU governors:
 set_governor "$default"
+
+# Sanity check that we are still on battery:
+dumpsys battery | grep AC > /data/power.txt
 
 send_wakeup
 echo "OK" > $errfile
