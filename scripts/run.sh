@@ -24,13 +24,20 @@ echo "WAITING -- START MONSOON"
 # Block to allow manual phone disconnect during run for energy measurement:
 #sleep 30
 
-sleep 5 # Make sure on-phone script is running before cutting power:
-ykushcmd -d 1
+sleep 10 # Make sure on-phone script is running before cutting power:
+#ykushcmd -d 1
+echo "START MONSOON"
+./monsoon.py & #$2 $3 $6 $4 $5 &
+monsoonpid=$!
+echo "Monsoon pid:  $monsoonpid"
 
 sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block before blocking on wifi wakeup ping:
 ./server.exe $wakeport
 result=$?
-ykushcmd -u 1
+#ykushcmd -u 1
+kill -10 $monsoonpid
+echo "STOP MONSOON"
+
 if [ "$result" != "0" ]; then
 	echo "Error on wifi block"
 	exit 3
@@ -39,6 +46,7 @@ else
 fi
 
 # Block until phone is manually reconnected after measurement:
+# TODO Fix -- busywait => block
 result="1"
 while [ "$result" = "1" ]; do
 	sleep 5
@@ -87,24 +95,27 @@ filename="YCSB_${2}_${3}_${delay}_${4}_${5}"
 #filename="YCSB_Workload${3}_TimingA${2}.log" # old style filename
 mv trace.log logs/$filename
 gzip logs/$filename
-sleep 1
+
+# save out energy tracefile:
+energyfile="monsoon_${2}_${3}_${delay}_${4}_${5}"
+mv monsoonout.txt energy/$energyfile
+gzip energy/$energyfile
+
 printf "FILENAME:  %s\n" "$filename"
-
-echo "RESULTS: $result"
-
 printf "Completed benchmark for device %s\n" $1
 
 # Sanity check:  Verify main phone script matches:
-adb pull /data/start.txt
-result1="$(cat start.txt)"
-echo "Script pid:  $result1"
-adb shell rm /data/start.txt
-if [ "$result1" != "  AC powered: false" ]; then
-	echo "Error on script pid"
-	#exit 1
-else
-	echo "OK on script pid"
-fi
+#adb pull /data/start.txt
+#result1="$(cat start.txt)"
+#echo "Script pid:  $result1"
+#adb shell rm /data/start.txt
+## TODO Fix this:  actually check pids
+#if [ "$result1" != "  AC powered: false" ]; then
+#	echo "Error on script pid"
+#	#exit 1
+#else
+#	echo "OK on script pid"
+#fi
 
 
 #TODO:
@@ -117,6 +128,8 @@ fi
 # (15) Consistincy-ize the -s $1 phone serial number stuff
 # (16) Battery stats => ftrace logfile
 # (17) logcat events -- re:  bimodal latency
+# (18) Fix crude busywait in phone reconnect
+# (19) Add check for pid==pid
 
 # re:  blocking syscalls and spurious wakeup -- why while () and not if ()?
 # syncing accept() and connect()
