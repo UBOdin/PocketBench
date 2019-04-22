@@ -53,22 +53,24 @@ error_exit() {
 
 }
 
+
+echo foo > /sys/power/wake_lock
+
+trace_dir=/sys/kernel/debug/tracing
+trace_log=/sys/kernel/debug/tracing/trace_marker
 errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
+
 rm $logfile
 echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
-
-# Signal foreground script that we are running (and, importantly, that nohup has already run):
-printf "Getpid:\n$$\n" >> /data/start.pipe
 
 # SELinux is a pain:
 setenforce 0
 
-echo foo > /sys/power/wake_lock
-sleep 30
+# Signal foreground script that we are running (and, importantly, that nohup has already run):
+printf "Getpid:\n$$\n" >> /data/start.pipe
 
-trace_dir=/sys/kernel/debug/tracing
-trace_log=/sys/kernel/debug/tracing/trace_marker
+sleep 30
 
 sync
 echo 3 > /proc/sys/vm/drop_caches
