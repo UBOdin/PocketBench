@@ -68,6 +68,20 @@ else
 	echo "OK on phone script" 
 fi
 
+# Get result of Monsoon script (and trap for error):
+wait "$monsoonpid"
+result="$?"
+echo "Monsoon result:  $result"
+
+echo "Run ${2} ${3} ${6} ${4} ${5} -- ${result}" >> progressfile.txt
+
+if [ "$result" != "0" ]; then
+	echo "ERR ON MONS"
+	exit 4
+else
+	echo "OK ON MONS"
+fi
+
 # Sanity check:  Verify benchmark was run on-battery:
 adb pull /data/power.txt
 result2="$(cat power.txt)"
