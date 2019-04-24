@@ -13,14 +13,23 @@ import time
 
 def main():
 
-	print("Hello World")
+	output_file = "" # file handle
+	output_filename = "monsoonout.txt"
+	log_file = "" # file handle
+	log_filename = "monsoonlog.txt"
+	sample_count = 5000 * 60 * 30 # 5000 per second, i.e. set to 5000 for 1 second
+	Mon = "" # HVPM object
+	engine = "" # sampleEngine object
+	samples = [[]]
+	sample_metadata = ""
+
+	print("Monsoon:  Start sampling")
 
 	'''
 	print(os.getpid())
 	time.sleep(1)
 	print("Now")
 	'''
-	sample_count = 5000 * 60 * 30 # 5000 per second, i.e. set to 5000 for 1 second
 
 	Mon = HVPM.Monsoon()
 	Mon.setup_usb()
@@ -48,6 +57,8 @@ def main():
 	samples = engine.getSamples()
 	#'''
 
+	#Mon.setVout(0.0)
+
 	'''
 	for e in range(len(samples[sampleEngine.channels.timeStamp])):
 		timeStamp = samples[sampleEngine.channels.timeStamp][e]
@@ -56,26 +67,12 @@ def main():
 	#end_for
 	'''
 
-	if (len(samples[0]) != sample_count):
-		print("Incorrect sample count")
-		#sys.exit(1)
-	#end_if
-
-	#'''
 	# samples[x]:  0 = time; 1 = current; 4 = voltage
-	output_filename = "monsoonout.txt"
-	'''
-	print("Argcount:  " + str(len(sys.argv)))
-	for i in range(len(sys.argv)):
-		print(sys.argv[i])
-	#end_for
-	output_filename = "energy/monsoon_" + sys.argv[1] + "_" + sys.argv[2] + "_" + sys.argv[3] + "_" + sys.argv[4] + "_" + sys.argv[5]
-	print("Output file:  " + output_filename)
-	'''
 
-	output_file = "" # file handle
+	# Save out results:
 	output_file = open(output_filename, "w")
-	output_file.write("Dropped:  " + str(engine.dropped) + "\n")
+	sample_metadata = "{\"Dropped\":" + str(engine.dropped) + ", \"Events\":" + str(len(samples[0])) + "}"
+	output_file.write(sample_metadata + "\n")
 	for i in range(len(samples[0])):
 		output_file.write(repr(samples[0][i]))
 		output_file.write("\t")
@@ -87,15 +84,20 @@ def main():
 		output_file.write("\n")
 	#end_for
 	output_file.close()
-	#'''
 
-	#Mon.setVout(0.0)
+	# Record metadata to progress logfile:
+	log_file = open(log_filename, "w")
+	log_file.write(sample_metadata + "\n")
+	log_file.close()
 
-	print("Length:  " + str(len(samples[0])))
+	print("Monsoon:  Stopped sampling.  Metadata:  " + sample_metadata)
 
-	print("Dropped:  " + str(engine.dropped))
+	# Return error if we had dropped events:
+	if (engine.dropped != 0):
+		sys.exit(1)
+	#end_if
 
-	print("Goodbye world")
+	sys.exit(0)
 
 #end_def
 
