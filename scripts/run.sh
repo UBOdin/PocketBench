@@ -27,7 +27,7 @@ echo "WAITING -- START MONSOON"
 sleep 10 # Make sure on-phone script is running before cutting power:
 #ykushcmd -d 1
 echo "START MONSOON"
-./monsoon.py & #$2 $3 $6 $4 $5 &
+./monsoon.py $2 $3 $6 $4 $5 &
 monsoonpid=$!
 echo "Monsoon pid:  $monsoonpid"
 
@@ -35,7 +35,13 @@ sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block befor
 ./server.exe $wakeport
 result=$?
 #ykushcmd -u 1
-kill -10 $monsoonpid
+# For non-null workloads, signal monsoon logging process to stop:
+if [ "$3" != "N" ]; then
+	kill -10 $monsoonpid
+	echo "Sent Monsoon stop signal"
+else
+	echo "Waiting on Monsoon timeout"
+fi
 echo "STOP MONSOON"
 
 if [ "$result" != "0" ]; then

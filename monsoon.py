@@ -22,8 +22,16 @@ def main():
 	engine = "" # sampleEngine object
 	samples = [[]]
 	sample_metadata = ""
+	voltage = 3.8
+	timing_dict = {}
 
 	print("Monsoon:  Start sampling")
+
+	# Hardcode sampling to fixed time for null workloads:
+	timing_dict = {"userspace_300000":1000000, "userspace_1267200":700000, "userspace_2649600":700000, "interactive_none":750000, "ondemand_none":750000}
+	if (sys.argv[2] == "N"):
+		sample_count = timing_dict[sys.argv[4] + "_" + sys.argv[5]]
+	#end_if
 
 	'''
 	print(os.getpid())
@@ -40,7 +48,8 @@ def main():
 	sys.exit(0)
 	'''
 
-	Mon.setVout(4.0)
+	Mon.setVout(voltage)
+
 	engine = sampleEngine.SampleEngine(Mon)
 
 	'''
@@ -71,7 +80,7 @@ def main():
 
 	# Save out results:
 	output_file = open(output_filename, "w")
-	sample_metadata = "{\"Dropped\":" + str(engine.dropped) + ", \"Events\":" + str(len(samples[0])) + "}"
+	sample_metadata = "{\"Dropped\":" + str(engine.dropped) + ", \"Events\":" + str(len(samples[0])) + ", \"Voltage\":" + str(voltage) + "}"
 	output_file.write(sample_metadata + "\n")
 	for i in range(len(samples[0])):
 		output_file.write(repr(samples[0][i]))
@@ -86,7 +95,7 @@ def main():
 	output_file.close()
 
 	# Record metadata to progress logfile:
-	log_file = open(log_filename, "w")
+	log_file = open(log_filename, "a")
 	log_file.write(sample_metadata + "\n")
 	log_file.close()
 

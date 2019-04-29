@@ -61,23 +61,38 @@ def setup_app(name):
 
 def command(string_array):
 
-	databases = ["SQL", "WAL", "BDB", "BDB100"]
-	workloads = ["A", "B", "C", "D", "E", "F", "IB", "IC"]
+	databases = ["SQL", "WAL", "BDB", "BDB100", "NULL"]
+	workloads = ["A", "B", "C", "D", "E", "F", "IB", "IC", "N"]
 	governors = ["performance", "interactive", "conservative", "ondemand", "userspace", "powersave"]
-	speeds = ["300000", "422400", "652800", "729600", "883200", "960000", "1036800", "1190400", "1267200", "1497600", "1574400", "1728000", "1958400", "2265600", "2457600", "2496000", "2572800", "2649600"]
-	delays = ["0ms", "1ms", "lognormal"]
+	speeds = ["x", "300000", "422400", "652800", "729600", "883200", "960000", "1036800", "1190400", "1267200", "1497600", "1574400", "1728000", "1958400", "2265600", "2457600", "2496000", "2572800", "2649600"]
+	delays = ["0ms", "1ms", "lognormal", "null"]
 
 	database = ""
 	workload = ""
 	#governor = "ondemand" # Nexus 5 default
 	#governor = "interactive" # Nexus >= 6 default
 	governor = "userspace"
-	speed = "300000" # Only valid if governor == "userspace"
-	delay = "lognormal"
+	speed = "1267200" # Only valid if governor == "userspace"
+	delay = "0ms"
         threads = "1"
+
+	result = 0
 
 	database = string_array[0].upper()
 	workload = string_array[1].upper()
+	governor = string_array[2]
+	speed = string_array[3]
+	delay = string_array[4]
+
+	print("PARAMETERS:")
+	print(string_array)
+
+	'''
+        if (database == "BDB"):
+                print("Doing SQL")
+                sys.exit()
+        #end_if
+	'''
 
 	# Parameter validity check:
 	if ((database not in databases) or (workload not in workloads) or (governor not in governors) or (speed not in speeds) or (delay not in delays)):
@@ -96,19 +111,35 @@ def command(string_array):
 		return 0
 	#end_if
 
-	print("setting up phone...")
-	subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
-	print("success")
+	while (True):
 
-	print("building and installing app...")
-	subprocess.call(['sh', 'scripts/build.sh'])
-	print("success")
+		print("setting up phone...")
+		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+		print("success")
 
-	print("running...")
-	subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload, governor, speed, delay, threads])
-	print("log is present in the logs directory.")
+		print("building and installing app...")
+		subprocess.call(['sh', 'scripts/build.sh'])
+		print("success")
 
-	return 0
+		print("running...")
+		result = subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload, governor, speed, delay, threads])
+		print("log is present in the logs directory.")
+
+		print("SCRIPT RESULT:  " + str(result))
+
+		if (result != 4):
+			break
+		#end_if
+		print("Dropped loglines.  Re-running.")
+
+	#end_while
+
+	if (result != 0):
+		print("Error on script:  " + str(result))
+		sys.exit(1)
+	#end_if
+
+	return result
 
 #end_def
 	
@@ -282,54 +313,109 @@ def run_all(input_array):
 		array = ['bdb100 a','bdb100 b','bdb100 c','bdb100 d','bdb100 e','bdb100 f','bdb100 ib','bdb100 ic','sql a','sql b','sql c','sql d','sql e','sql f','sql ib','sql ic','bdb a','bdb b','bdb c','bdb d','bdb e','bdb f','bdb ib','bdb ic']
 		for string in array:
 			command(string.split())
-
-	elif (input_array[0] == "only"):
-		workload = input_array[1]
-		#array = ["sql " + workload, "wal " + workload, "bdb " + workload, "bdb100 " + workload]
-		array = ["sql " + workload, "bdb " + workload]
-                for string in array:
-			command(string.split())
-		#end_for
-	
 	else:
 		print 'invalid command'
+	#end_if
+#end_def
 
-while True:
-	input = raw_input('benchmark...$ ')
-	try:
-		input = input.split()
-		if input[0].lower() == 'quit' or input[0].lower() == 'exit' or input[0].lower() == 'q':
-			break
 
-		if input[0].lower() == 'mutiple' or input[0].lower() == 'multi' or input[0].lower() == 'm':
-			multi_run()
+def main():
+
+	while True:
+		input = raw_input('benchmark...$ ')
+		try:
+			input = input.split()
+			if input[0].lower() == 'quit' or input[0].lower() == 'exit' or input[0].lower() == 'q':
+				break
+
+			if input[0].lower() == 'mutiple' or input[0].lower() == 'multi' or input[0].lower() == 'm':
+				multi_run()
+				continue
+
+			if 'all' in input:
+				run_all(input)
+				continue
+
+			if (input[0].lower() == "only"):
+				workload = input_array[1]
+				#parameter_list = ["sql " + workload, "wal " + workload, "bdb " + workload, "bdb100 " + workload]
+				parameter_list = ["sql " + workload, "bdb " + workload]
+				for parameters in parameter_list:
+					command(parameters.split())
+				#end_for
+			#end_if
+
+			skip_count = 0
+
+			if (input[0].lower() == "what"):
+				#workload_list = ["sql a", "sql b", "sql c", "sql e", "bdb a", "bdb b", "bdb c", "bdb e"]
+				#workload_list = ["sql a", "sql b", "sql c", "sql e"]
+				workload_list = ["null n"]
+
+				governor_list = ["userspace 300000", "userspace 1267200", "userspace 2649600", "interactive x", "ondemand x"]
+
+				#delay_list = ["0ms", "lognormal"]
+				delay_list = ["null"]
+
+				subprocess.call(["rm", "monsoonlog.txt"])
+				subprocess.call(["rm", "progressfile.txt"])
+				for delay in delay_list:
+					for governor in governor_list:
+						for workload in workload_list:
+							parameters = workload + " " + governor + " " + delay
+							if (skip_count >= 0):
+
+								#print("Would do %s" % (parameters))
+								#sys.exit(1)
+
+								result = command(parameters.split())
+							else:
+								print("Skipping workload %d:  %s" % (skip_count, parameters))
+							#end_if
+							skip_count += 1
+						#end_for
+					#end_for
+				subprocess.call(["mv", "monsoonlog.txt", "energy"])
+				subprocess.call(["mv", "progressfile.txt", "energy"])
+				#end_for
+			#end_if
+
+			if (input[0].lower() == "that"):
+				for i in range(1):
+					parameters = "sql a userspace 1267200 0ms"
+					command(parameters.split())
+				#end_for
+			#end_if
+
+			if input[0].lower() == 'a' or input[0].lower() == 'analytics':
+				analytics_menu()
+				continue
+
+			if input[0].lower() == 'help' or input[0].lower() == 'menu':
+				help_message()
+				continue
+		except IndexError:
+			pass
+		#end_try
+		code = 1
+		try:
+			code = command(input)
+		except IndexError:
+			pass
+		#end_try
+		if code == 0:
 			continue
-
-		if 'all' in input:
-			run_all(input)
-			continue
-
-		if ("only" in input):
-			run_all(input)
 		#end_if
+		if code < 0:
+			print 'Program exited with error code: ' + str(code)
+			break
+		#end_if
+		print 'invalid command'
 
-		if input[0].lower() == 'a' or input[0].lower() == 'analytics':
-			analytics_menu()
-			continue
+	#end_while
+#end_def
 
-		if input[0].lower() == 'help' or input[0].lower() == 'menu':
-			help_message()
-			continue
-	except IndexError:
-		pass
-	code = 1
-	try:
-		code = command(input)
-	except IndexError:
-		pass
-	if code == 0:
-		continue
-	if code < 0:
-		print 'Program exited with error code: ' + str(code)
-		break
-	print 'invalid command'
+
+main()
+
+

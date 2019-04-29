@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 	for (int i = 0; i < workloads.length; i++) {
 		load_map.put(workloads[i], workload_array[i]);
 	}
+	load_map.put("N", workload_array[2]);  // Dummy map for null workload
 
 	// Pull in setup parameters from on-phone shell script:
 	FileReader file_reader;
@@ -93,12 +94,18 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
         String singleJsonString = Utils.jsonToString(this, load_map.get(Utils.workload));
         Utils.jsonStringToObject(singleJsonString);
 
+	if (Utils.workload.equals("N") == true) {
 
-	// Set up DB handle:
-	Queries.init_db_handle(this);
+		// Log null workload to tracefile and exit:
+		Utils.putMarker("{\"EVENT\":\"Parameters\", \"Database\":\"" + Utils.database + "\", \"Workload\":\"" + Utils.workload + "\", \"Governor\":\"" + Utils.governor + "\", \"Speed\":\"" + Utils.speed + "\", \"Delay\":\"" + Utils.delay + "\"}");
 
-	Queries queries = new Queries();
-	queries.startQueries(0);  // Single thread (0)
+	} else {
+
+		// Set up DB handle:
+		Queries.init_db_handle(this);
+
+		Queries queries = new Queries();
+		queries.startQueries(0);  // Single thread (0)
 
 /*
 	// Init synch primitives:
@@ -126,8 +133,10 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 	Worker.lock.unlock();
 */
 
-	// Close DB handle:
-	Queries.close_db_handle();
+		// Close DB handle:
+		Queries.close_db_handle();
+
+	}
 
 	// Signal scripting app we are done (subroutine repurposed):
 	Utils.findMissingQueries(this);
