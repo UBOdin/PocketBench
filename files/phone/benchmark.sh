@@ -18,11 +18,11 @@ set_governor() {
 	# Turn on all CPUs and set governor as selected:
 	for i in $cpus; do
 
-		echo "1" > /sys/devices/system/cpu/cpu$i/online
-		echo "$1" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
+		echo "1" > $cpu_dir/cpu$i/online
+		echo "$1" > $cpu_dir/cpu$i/cpufreq/scaling_governor
 		# Speed is only valid for the userspace governor:
 		if [ "$1" = "userspace" ]; then
-			echo "$frequency" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_setspeed 
+			echo "$frequency" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
 		fi
 
 	done
@@ -56,6 +56,7 @@ error_exit() {
 
 echo foo > /sys/power/wake_lock
 
+cpu_dir=/sys/devices/system/cpu
 trace_dir=/sys/kernel/debug/tracing
 trace_log=/sys/kernel/debug/tracing/trace_marker
 errfile="/data/results.txt"
@@ -87,6 +88,14 @@ frequency=$2 #"300000"
 #frequency="2649600" #"2457600" #"1728000" #"1267200" #"1036800" #"729600"
 
 wakeport=$3
+
+# Sanity check that all CPUs are on (at least for Nexus 6, they should be -- not necessarily for Nexus 5):
+for i in $cpus; do
+	result="$(cat $cpu_dir/cpu$i/online)"
+	if [ "$result" != "1" ]; then
+		error_exit "ERR CPUs not all on"
+	fi
+done
 
 # Sanity check the governor choice to supported values:
 if [ "$governor" = "performance" ]; then
