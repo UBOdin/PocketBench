@@ -108,14 +108,14 @@ def get_mean_error(end_line):
 	energy_error = 0.0
 	energy_mean_list = []
 
-	workload_list = ["userspace_300000", "userspace_1267200", "userspace_2649600", "interactive_none", "ondemand_none"]
-	directory_list = ["null_01", "null_02", "null_03"]
+	governor_list = ["userspace_300000", "userspace_1267200", "userspace_2649600", "interactive_none", "ondemand_none"]
+	directory_list = ["../null_01", "../null_02", "../null_03"]
 
-	for e in workload_list:
+	for governor in governor_list:
 
 		energy_list = []
-		for f in directory_list:
-			pathname = f + "/" + energy_prefix + e + ".gz"
+		for directory in directory_list:
+			pathname = directory + "/" + energy_prefix + governor + ".gz"
 			energy = get_energy(pathname, end_line)
 			print(pathname + " " + str(energy))
 			energy_list.append(energy)
