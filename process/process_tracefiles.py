@@ -157,65 +157,77 @@ def get_energy(input_filename, workload):
 
 	#'''
 
-	return amps_total
+	return amps_total - null_total
 
 #end_def
 
 
-def get_mean_error():
+def get_mean_error(db_workload_delay):
 
-	latency_prefix = "YCSB_SQL_A_0ms_"
+	latency_prefix = "YCSB_"
 	path = ""
 	pathname = ""
 	latency = 0.0
 	latency_list = []
 	latency_mean = 0.0
 	latency_error = 0.0
+	latency_mean_list = []
+	latency_error_list = []
 
-	energy_prefix = "monsoon_SQL_A_0ms_"
+	energy_prefix = "monsoon_"
 	energy = 0.0
 	energy_list = []
 	energy_mean = 0.0
 	energy_error = 0.0
+	energy_mean_list = []
+	energy_error_list = []
 
-	workload_list = ["userspace_300000", "userspace_1267200", "userspace_2649600", "interactive_none", "ondemand_none"]
+	governor_list = ["userspace_300000", "userspace_1267200", "userspace_2649600", "interactive_none", "ondemand_none"]
 
-	directory_list = ["monsoon_01", "monsoon_02", "monsoon_03"]
+	directory_list = ["../monsoon_01", "../monsoon_02", "../monsoon_03"]
 
-	for i in range(len(workload_list)):
+	for i in range(len(governor_list)):
 
-		'''
+		#'''
 		latency_list = []
-		for f in directory_list:
-			pathname = f + "/" + latency_prefix + workload_list[i] + ".gz"
+		for directory_prefix in directory_list:
+			pathname = directory_prefix + "/" + latency_prefix + db_workload_delay + "_" + governor_list[i] + ".gz"
 			latency = get_latency(pathname)
 			print(pathname + " " + str(latency))
 			latency_list.append(latency)
 		#end_for
-		print(latency_list)
+
 		latency_mean, latency_error = mean_margin(latency_list)
-		print(latency_mean, latency_error)
-		'''
+		latency_mean_list.append(latency_mean * 1000)
+		latency_error_list.append(latency_error * 1000)
+
+		print(latency_list)
+		print("latency mean:  " + str(latency_mean * 1000))
+		print("latency error:  " + str(latency_error * 1000))
+		print("latency pct:  " + str(latency_error / latency_mean))
+		#'''
 
 		#'''
 		energy_list = []
-		for f in directory_list:
-			pathname = f + "/" + energy_prefix + workload_list[i] + ".gz"
-
+		for directory_prefix in directory_list:
+			pathname = directory_prefix + "/" + energy_prefix + db_workload_delay + "_" + governor_list[i] + ".gz"
 			energy = get_energy(pathname, i)
-
 			print(pathname + " " + str(energy))
-
 			energy_list.append(energy)
-
 		#end_for
 
-		print(energy_list)
-
 		energy_mean, energy_error = mean_margin(energy_list)
+		energy_mean_list.append(energy_mean)
+		energy_error_list.append(energy_error)
+
+		print(energy_list)
+		print("energy mean:  " + str(energy_mean))
+		print("energy error:  " + str(energy_error))
 		#'''
 
 	#end_for
+
+	return latency_mean_list, latency_error_list, energy_mean_list, energy_error_list
 
 #end_def
 
@@ -224,7 +236,77 @@ def main():
 
 	print("Hello World")
 
-	get_mean_error()
+	db_workload_delay = ""
+	param_list = []
+	latency_mean_list = []
+	latency_error_list = []
+	energy_mean_list = []
+	energy_error_list = []
+	workload = "" # A, B, C, E
+	delay = ""
+	delay_dict = {"0ms":"Saturated", "log":"Unsaturated"}
+	marker_list = ['o', 's', 'd', '>', '<']
+	marker_label_list = ["Powersave", "Userspace", "Performance", "Interactive", "Ondemand"]
+	smallsize = 12 # 8
+	largesize = 12
+
+	db_workload_delay = sys.argv[1] # "SQL_C_0ms"
+	param_list = db_workload_delay.split("_")
+	workload = param_list[1]
+	delay = delay_dict[param_list[2]]
+
+	latency_mean_list, latency_error_list, energy_mean_list, energy_error_list = get_mean_error(db_workload_delay)
+
+	print(latency_mean_list)
+	print(latency_error_list)
+	print(energy_mean_list)
+	print(energy_error_list)
+
+	fig, ax = plt.subplots()
+
+	for i in range(0, 5):
+
+		plt.errorbar(latency_mean_list[i], energy_mean_list[i], xerr = latency_error_list[i], yerr = energy_error_list[i], marker = marker_list[i], color= "black" , markersize = smallsize, label = marker_label_list[i])
+		#plt.errorbar(plug_mean_list[i], energy_mean_list[i], xerr = plug_error_list[i], yerr = energy_error_list[i], marker = marker_list[i], color = "orange", markersize = smallsize)
+
+		'''
+		print(energy_mean_list[i])
+		print(energy_error_list[i])
+		print("energy")
+		print(marker_label_list[i])
+		print(100.0 * energy_error_list[i] / energy_mean_list[i])
+
+		print(latency_mean_list[i])
+		print(latency_error_list[i])
+		print("latency")
+		print(marker_label_list[i])
+		print(100.0 * latency_error_list[i] / latency_mean_list[i])
+		'''
+		energy_error = 100.0 * energy_error_list[i] / energy_mean_list[i]
+		latency_error = 100.0 * latency_error_list[i] / latency_mean_list[i]
+		print("%s & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f \\\\" % (marker_label_list[i], latency_mean_list[i], latency_error_list[i], latency_error, energy_mean_list[i], energy_error_list[i], energy_error))
+
+	#end_for
+
+	#plt.legend(numpoints=1)
+	plt.legend(loc = "upper left", numpoints = 1, handlelength = .8)
+
+	ax.set_title("Workload " + workload + " -- " + delay + " CPU",fontsize = 20, fontweight = "bold")
+	ax.set_xlabel("Workload Latency ($ms$)", fontsize = 20, fontweight = "bold")
+	ax.set_ylabel("Net Energy Cost ($\mu Ah$)", fontsize = 20, fontweight = "bold")
+
+	#ax.set_aspect(1/220.0)
+
+	fig15 = plt.gcf()
+	fig15.tight_layout()
+
+	#plt.legend(loc = "center right") #upper center")
+
+	print("DONT FORGET SAT / UNSAT delay setting for label")
+
+	plt.show()
+
+#
 
 #end_def
 
