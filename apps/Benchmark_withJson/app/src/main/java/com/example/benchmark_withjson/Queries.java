@@ -245,6 +245,11 @@ public class Queries {
 //	                        }
 //                                stmt.close();
 
+                                // Walk through results:
+                                while (test == true) {
+                                    ResultSet rs = stmt.getResultSet();                                    
+                                    test = stmt.getMoreResults();
+                                }
 
                             }
 
