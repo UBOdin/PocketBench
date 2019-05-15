@@ -4,30 +4,24 @@ import sys
 import gzip
 import json
 
+import os
 
-def main():
+
+def get_latency(file_name):
 
 	#print("Hello world %s, %d" % ("bye", 20))
 
-        input_file_name = ""
 	logline = ""
 	iteration = 0
 	starttime = 0.0
 	endtime = 0.0
 
-	if (len(sys.argv) != 2):
-		print("Missing input file name")
-		sys.exit()
-	#end_if
-	input_file_name = sys.argv[1]
-	#input_file = open(input_file_name, 'r')
-
-	input_file = gzip.open(sys.argv[1])
+	input_file = gzip.open(file_name, "r")
 
 	while (True):
 
 		# Keep reading until finished:
-		logline = input_file.readline()
+		logline = input_file.readline().decode("ascii")
 
 		if (logline == ""):
 			break
@@ -58,12 +52,57 @@ def main():
 
 	input_file.close()
 
+	return endtime - starttime
+
 #end_def
 
 
+def main():
+
+	#prefix = "repeat_batt/"
+	file_list = []
+	latency = 0.0
+	latency_list = []
+
+	prefix = sys.argv[1]
+	file_list = os.listdir(prefix)
+
+	'''
+	prefix = "threading/c/bdb_c_"
+	file_list = []
+	for i in range(1, 7):
+		file_list.append(str(i) + ".gz")
+	#end_for
+	'''
+
+	for filename in file_list:
+
+		if (filename[0:4] != "YCSB"):
+			continue
+		#end_if
+
+		print(filename)
+		print(prefix + filename)
+		latency = get_latency(prefix + filename)
+		latency_list.append(latency)
+
+	#end_for
+
+	print(latency_list)
+
+#end_def
 
 
-main()
+def quick():
+
+	filename = sys.argv[1]
+
+	get_latency(filename)
+
+#end_def
+
+
+quick() #main()
 
 
 
