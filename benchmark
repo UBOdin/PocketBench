@@ -8,9 +8,9 @@ parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLit
 args = parser.parse_args()
 
 #android_id = "02c566fa093765eb" # Grant's main test phone
-#android_id = "ZX1G22TKW7" # Ed's old phone
+android_id = "ZX1G22TKW7" # Ed's old phone
 #android_id = "199020104301402615" # Dragonboard 8074
-android_id = "ZX1G22LXTH" # Nexus 6 wired for Monsoon
+#android_id = "ZX1G22LXTH" # Nexus 6 wired for Monsoon
 
 def help_message():
 	print '\nCommand List:\n'
@@ -74,7 +74,7 @@ def command(string_array):
 	governor = "userspace"
 	speed = "1267200" # Only valid if governor == "userspace"
 	delay = "0ms"
-        threads = "1"
+        threads = "8"
 
 	result = 0
 
@@ -83,6 +83,7 @@ def command(string_array):
 	governor = string_array[2]
 	speed = string_array[3]
 	delay = string_array[4]
+	threads = string_array[5]
 
 	print("PARAMETERS:")
 	print(string_array)
@@ -350,29 +351,35 @@ def main():
 			if (input[0].lower() == "what"):
 				#workload_list = ["sql a", "sql b", "sql c", "sql e", "bdb a", "bdb b", "bdb c", "bdb e"]
 				#workload_list = ["sql a", "sql b", "sql c", "sql e"]
-				workload_list = ["null n"]
+				#workload_list = ["sql a", "bdb a"] #"sql b", "sql c", "bdb b", "bdb c"] #["null n"]
+				workload_list = ["bdb a"]
 
-				governor_list = ["userspace 300000", "userspace 1267200", "userspace 2649600", "interactive x", "ondemand x"]
+				#governor_list = ["userspace 300000", "userspace 1267200", "userspace 2649600", "interactive x", "ondemand x"]
+				governor_list = ["performance x"] #["interactive x"]
 
 				#delay_list = ["0ms", "lognormal"]
-				delay_list = ["null"]
+				delay_list = ["0ms"] #["null"]
+
+				threads_list = ["1", "2", "3", "4", "5", "6"]
 
 				subprocess.call(["rm", "monsoonlog.txt"])
 				subprocess.call(["rm", "progressfile.txt"])
 				for delay in delay_list:
 					for governor in governor_list:
 						for workload in workload_list:
-							parameters = workload + " " + governor + " " + delay
-							if (skip_count >= 0):
+							for threads in threads_list:
+								parameters = workload + " " + governor + " " + delay + " " + threads
+								if (skip_count >= 0):
 
-								#print("Would do %s" % (parameters))
-								#sys.exit(1)
+									#print("Would do %s" % (parameters))
+									#sys.exit(1)
 
-								result = command(parameters.split())
-							else:
-								print("Skipping workload %d:  %s" % (skip_count, parameters))
-							#end_if
-							skip_count += 1
+									result = command(parameters.split())
+								else:
+									print("Skipping workload %d:  %s" % (skip_count, parameters))
+								#end_if
+								skip_count += 1
+							#end_for
 						#end_for
 					#end_for
 				subprocess.call(["mv", "monsoonlog.txt", "energy"])
@@ -381,7 +388,7 @@ def main():
 			#end_if
 
 			if (input[0].lower() == "that"):
-				for i in range(1):
+				for i in range(10):
 					parameters = "sql a userspace 1267200 0ms"
 					command(parameters.split())
 				#end_for
