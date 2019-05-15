@@ -68,7 +68,6 @@ public class Utils {
 
     public static int sleepThread(int interval) {
 
-/*
 	// Adjust delay time if necessary -- default is lognormal distribution, per parameter:
 	if (Utils.delay.equals("0ms")) {
 		interval = 0;
@@ -83,7 +82,6 @@ public class Utils {
             e.printStackTrace();
             return 1;
         }
-*/
         return 0;
     }
 

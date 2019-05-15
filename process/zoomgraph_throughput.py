@@ -86,7 +86,7 @@ def get_latency(file_name):
 def get_latency_list(prefix):
 
 	filename = ""
-	threads = 7
+	threads = 8
 	raw_latency = 0.0
 	latency = 0.0
 	throughput = 0.0
@@ -111,19 +111,19 @@ def get_latency_list(prefix):
 		perrun_latency_list = []
 		for j in range(1, runs + 1):
 			pathname = "throughput_" + str(j) + "/" + filename
-			print(pathname)
+			#print(pathname)
 			raw_latency = get_latency(pathname)
 
 			#latency = raw_latency * 1000 / (1800 * (i + 1))
 			#throughput = (1800 * (i + 1)) / (raw_latency / (i + 1))
 
 			latency = (raw_latency * 1000 ) / 1800
-			throughput = 1800 / (raw_latency / (i))
+			throughput = 1800 / (raw_latency) # / (i + 1))
 
 			perrun_latency_list.append(latency)
 			perrun_throughput_list.append(throughput)
 
-			print(raw_latency, latency, throughput)
+			#print(latency, throughput)
 		#end_for
 
 		latency_mean, latency_error = mean_margin(perrun_latency_list)
@@ -138,7 +138,7 @@ def get_latency_list(prefix):
 
 	#end_for
 
-	print("\nMean latency of 6 runs, for each of threadcounts 1-7:")
+	print("\nMean latency of 6 runs, for each of threadcounts 1-8:")
 	print(perthread_latency_mean_list)
 	print()
 
@@ -151,12 +151,12 @@ def main():
 
 	#print("Hello World")
 
-	threadcount = 1
+	threadcount = 8
 
 	fig, ax = plt.subplots()
 
 
-	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("SQL_C")
+	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("SQL_A")
 
 	plt.plot(throughput_mean_list, latency_mean_list, color = "blue", marker = "o", markersize = 12, label = "SQLite (number of threads)")
 
@@ -167,8 +167,8 @@ def main():
 	#'''
 
 	print()
-	print("SQLite mean throughput (threads 1-7):  " + str(throughput_mean_list))
-	print("SQLite mean latency (threads 1-7):  " + str(latency_mean_list))
+	print("SQLite mean throughput (threads 1-8):  " + str(throughput_mean_list))
+	print("SQLite mean latency (threads 1-8):  " + str(latency_mean_list))
 	print()
 
 	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("BDB_A")
@@ -182,8 +182,8 @@ def main():
 	#'''
 
 	print()
-	print("BDB mean throughput (threads 1-7):  " + str(throughput_mean_list))
-	print("BDB mean latency (threads 1-7):  " + str(latency_mean_list))
+	print("BDB mean throughput (threads 1-8):  " + str(throughput_mean_list))
+	print("BDB mean latency (threads 1-8):  " + str(latency_mean_list))
 
 
 	#plt.annotate("-----Region of Interest", xy = (350, 1.5), fontsize = 16)
