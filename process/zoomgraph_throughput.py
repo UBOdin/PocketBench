@@ -69,11 +69,12 @@ def get_latency(file_name):
 
 	#end_while
 
+	'''
 	print("iterations:  %d" % (iteration))
-
 	print(starttime)
 	print(endtime)
 	print("Latency:  ", endtime - starttime)
+	'''
 
 	input_file.close()
 
@@ -85,15 +86,22 @@ def get_latency(file_name):
 def get_latency_list(prefix):
 
 	filename = ""
-	threads = 6
+	threads = 8
+	raw_latency = 0.0
 	latency = 0.0
-	perthread_latency_mean_list = []
-	perthread_latency_error_list = []
+	throughput = 0.0
 	runs = 6
 	pathname = ""
 	perrun_latency_list = []
+	perrun_throughput_list = []
 	latency_mean = 0.0
 	latency_error = 0.0
+	throughput_mean = 0.0
+	throughput_error = 0.0
+	perthread_latency_mean_list = []
+	perthread_latency_error_list = []
+	perthread_throughput_mean_list = []
+	perthread_throughput_error_list = []
 
 	# Can't just use os.walk or get filelist -- order matters
 	for i in range(1, threads + 1):
@@ -103,140 +111,97 @@ def get_latency_list(prefix):
 		perrun_latency_list = []
 		for j in range(1, runs + 1):
 			pathname = "throughput_" + str(j) + "/" + filename
-			print(pathname)
+			#print(pathname)
+			raw_latency = get_latency(pathname)
 
+			#latency = raw_latency * 1000 / (1800 * (i + 1))
+			#throughput = (1800 * (i + 1)) / (raw_latency / (i + 1))
 
-			latency = get_latency(pathname)
+			latency = (raw_latency * 1000 ) / 1800
+			throughput = 1800 / (raw_latency) # / (i + 1))
+
 			perrun_latency_list.append(latency)
+			perrun_throughput_list.append(throughput)
 
-			print(latency)
+			#print(latency, throughput)
 		#end_for
 
 		latency_mean, latency_error = mean_margin(perrun_latency_list)
 		perthread_latency_mean_list.append(latency_mean)
 		perthread_latency_error_list.append(latency_error)
 
-		print(perrun_latency_list)
+		throughput_mean, throughput_error = mean_margin(perrun_throughput_list)
+		perthread_throughput_mean_list.append(throughput_mean)
+		perthread_throughput_error_list.append(throughput_error)
+
+		print(prefix + " " + str(i) + " threads:  " + str(perrun_latency_list))
 
 	#end_for
 
+	print("\nMean latency of 6 runs, for each of threadcounts 1-8:")
 	print(perthread_latency_mean_list)
+	print()
 
-	return perthread_latency_mean_list
+	return perthread_latency_mean_list, perthread_latency_error_list, perthread_throughput_mean_list, perthread_throughput_error_list
 
 #end_def
 
 
 def main():
 
-	print("Hello World")
+	#print("Hello World")
 
-	threadcount = 6
-
-	'''
-	sql_b_list = get_latency_list("/b/sql_b_")
-	bdb_b_list = get_latency_list("/b/bdb_b_")
-	sql_c_list = get_latency_list("/c/sql_c_")
-	bdb_c_list = get_latency_list("/c/bdb_c_")
-	'''
-	sql_a_list = get_latency_list("SQL_A")
-	bdb_a_list = get_latency_list("BDB_A")
-	sql_b_list = [] #get_latency_list("SQL_B")
-	bdb_b_list = [] #get_latency_list("BDB_B")
-	sql_c_list = [] #get_latency_list("SQL_C")
-	bdb_c_list = [] #get_latency_list("BDB_C")
-
-	name_list = ["SQL A", "BDB A", "SQL B", "BDB_B", "SQL C", "BDB C"]
-	latency_list_list = [sql_a_list, bdb_a_list, sql_b_list, bdb_b_list, sql_c_list, bdb_c_list]
-
-	print(sql_b_list)
-	print(bdb_b_list)
-	print(sql_c_list)
-	print(bdb_c_list)
+	threadcount = 8
 
 	fig, ax = plt.subplots()
 
-	select = 1 # 0-5
-	selected_list = sql_a_list #latency_list_list[select]
 
-	latency_list = [0, 0, 0, 0, 0, 0]
-	throughput_list = [0, 0, 0, 0, 0, 0]
-	for i in range(0, threadcount):
-		latency_list[i] = selected_list[i] * 1000 / (1800 * (i + 1))
-		throughput_list[i] = (1800 * (i + 1)) / (selected_list[i] / (i + 1))
-	#end_for
+	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("SQL_A")
 
-	plt.plot(throughput_list, latency_list, color = "blue", marker = "o", markersize = 12, label = "SQLite (number of threads)")
+	plt.plot(throughput_mean_list, latency_mean_list, color = "blue", marker = "o", markersize = 12, label = "SQLite (number of threads)")
 
 	#'''
 	for i in range(0, threadcount):
-		plt.annotate(str(i + 1), xy = (throughput_list[i] + 10, latency_list[i] - 0.5), fontsize = 16)
-		#plt.annotate(str(i + 1), xy = (throughput_list[i] + 3, latency_list[i] + .1), fontsize = 16)
+		plt.annotate(str(i + 1), xy = (throughput_mean_list[i] + 10, latency_mean_list[i] - 0.5), fontsize = 16)
 	#end_for
 	#'''
 
+	print()
+	print("SQLite mean throughput (threads 1-8):  " + str(throughput_mean_list))
+	print("SQLite mean latency (threads 1-8):  " + str(latency_mean_list))
+	print()
 
-	selected_list = bdb_a_list
+	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("BDB_A")
 
-	latency_list = [0, 0, 0, 0, 0, 0]
-	throughput_list = [0, 0, 0, 0, 0, 0]
-	for i in range(0, threadcount):
-		latency_list[i] = selected_list[i] * 1000 / (1800 * (i + 1))
-		throughput_list[i] = (1800 * (i + 1)) / (selected_list[i] / (i + 1))
-	#end_for
-
-	plt.plot(throughput_list, latency_list, color = "red", marker = "o", markersize = 12, label = "BDB (number of threads)")
+	plt.plot(throughput_mean_list, latency_mean_list, color = "red", marker = "o", markersize = 12, label = "BDB (number of threads)")
 
 	#'''
 	for i in range(0, threadcount):
-		plt.annotate(str(i + 1), xy = (throughput_list[i] + 20, latency_list[i] - 0.4), fontsize = 16)
-		#plt.annotate(str(i + 1), xy = (throughput_list[i] + 3, latency_list[i] + .1), fontsize = 16)
+		plt.annotate(str(i + 1), xy = (throughput_mean_list[i] + 20, latency_mean_list[i] - 0.4), fontsize = 16)
 	#end_for
 	#'''
 
+	print()
+	print("BDB mean throughput (threads 1-8):  " + str(throughput_mean_list))
+	print("BDB mean latency (threads 1-8):  " + str(latency_mean_list))
 
-	plt.annotate("-----Region of Interest", xy = (350, 1.5), fontsize = 16)
+
+	#plt.annotate("-----Region of Interest", xy = (350, 1.5), fontsize = 16)
 
 	ax.set_title("YCSB Workload A", fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Throughput (queries/s)", fontsize = 20, fontweight = "bold")
 	ax.set_ylabel("Average Latency (ms)", fontsize = 20, fontweight = "bold")
-	
-	print(throughput_list)
-	print(latency_list)
-	#'''
-
-	'''
-	sql_list = [0, 0, 0, 0, 0, 0]
-	bdb_list = [0, 0, 0, 0, 0, 0]
-	thread_list = [0, 0, 0, 0, 0, 0]
-
-	for i in range(0, threadcount):
-		sql_list[i] = sql_c_list[i] * 1000 / (1800 * (i + 1))
-		bdb_list[i] = bdb_c_list[i] * 1000 / (1800 * (i + 1))
-		thread_list[i] = i + 1
-	#end_for
-
-	plt.plot(thread_list, sql_list, color = "blue", marker = "o", markersize = 8, label = "SQLite")
-	plt.plot(thread_list, bdb_list, color = "red", marker = "s", markersize = 8, label = "Berkely DB")
-
-
-	plt.legend(loc = "top left")
-
-	ax.set_title("YCSB Workload C", fontsize = 20, fontweight = "bold")
-	ax.set_xlabel("Database Threads", fontsize = 20, fontweight = "bold")
-	ax.set_ylabel("Average Latency ($ms$)", fontsize = 20, fontweight = "bold")
-	'''
 
 	#ax.set_aspect(1/220.0)
 
-	ax.axvspan(200, 400, alpha=.5, color="grey")
+	#ax.axvspan(200, 400, alpha=.5, color="grey")
 
 	fig15 = plt.gcf()
 	fig15.tight_layout()
 
-	plt.legend(loc = "lower right")
+	plt.legend(loc = "upper center")
 
-	plt.axis([200, 1700, 0, 6.5])
+	#plt.axis([200, 1700, 0, 6.5])
 	plt.show()
 
 #end_def
