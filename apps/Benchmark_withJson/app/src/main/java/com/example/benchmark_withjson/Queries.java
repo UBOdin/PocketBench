@@ -18,6 +18,7 @@ import java.sql.Statement;
 import android.util.Log;
 
 import java.util.concurrent.locks.*;
+import java.sql.ResultSet;
 
 public class Queries {
 
