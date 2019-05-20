@@ -88,35 +88,29 @@ def get_latency_nonio(filename):
 				#print(logline)
 			#end_if
 
-
 			line_list = logline.split("tracing_mark_write: ")
 			subline_list = line_list[1].split(" ")
 
-			if (subline_list[0] != "PocketData"):
-				pass
-				#continue
-			#end_if
-
-			if (subline_list[1] == "R"):
+			if (subline_list[0] == "R"):
 				if (read_first == 0):
-					read_first = int(subline_list[7])
+					read_first = int(subline_list[6])
 				#end_if
-				read_last = int(subline_list[7])
-				count = int(subline_list[9])
+				read_last = int(subline_list[6])
+				count = int(subline_list[8])
 			#end_if
 
-			if (subline_list[1] == "W"):
+			if (subline_list[0] == "W"):
 				if (write_first == 0):
-					write_first = int(subline_list[7])
+					write_first = int(subline_list[6])
 				#end_if
-				write_last = int(subline_list[7])
+				write_last = int(subline_list[6])
 			#end_if
 
-			if (subline_list[1] == "S"):
+			if (subline_list[0] == "S"):
 				if (sync_first == 0):
-					sync_first = int(subline_list[7])
+					sync_first = int(subline_list[6])
 				#end_if
-				sync_last = int(subline_list[7])
+				sync_last = int(subline_list[6])
 			#end_if
 
 		#end_if
@@ -151,7 +145,7 @@ def get_latency_nonio(filename):
 def main():
 
 	file_list = []
-	prefix = "variance_2/" #logs/"
+	prefix = "variance_2/"
 	latency = 0
 	latency_list = []
 	nonio = 0
@@ -161,7 +155,7 @@ def main():
 	file_list = os.listdir(prefix)
 
 	for filename in file_list:
-		if (filename[0:4] != "log_"): #YCSB"):
+		if (filename[0:4] != "log_"):
 			continue
 		#end_if
 		latency, nonio = get_latency_nonio(prefix + filename)
@@ -178,8 +172,8 @@ def main():
 
 	runs = len(latency_list)
 
-	plt.bar(range(1, runs + 1), latency_list, color = "blue", label = "I/O time (both on/off CPU)")
-	plt.bar(range(1, runs + 1), nonio_list, color = "red", label = "Non-I/O time (both on/off CPU)")
+	plt.bar(range(1, runs + 1), latency_list, color = "blue", label = "I/O time")
+	plt.bar(range(1, runs + 1), nonio_list, color = "red", label = "Non-I/O time")
 
 	plt.axis([0, 21, 0, 15000000])
 	plt.legend(loc = "upper center")
