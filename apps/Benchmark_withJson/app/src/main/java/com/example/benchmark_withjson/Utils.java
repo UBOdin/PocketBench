@@ -36,7 +36,6 @@ public class Utils {
     static String governor;
     static String speed;
     static String delay;
-    static int error;
 
     public static String jsonToString(Context context, int workload){
 
@@ -69,7 +68,6 @@ public class Utils {
 
     public static int sleepThread(int interval) {
 
-/*
 	// Adjust delay time if necessary -- default is lognormal distribution, per parameter:
 	if (Utils.delay.equals("0ms")) {
 		interval = 0;
@@ -84,7 +82,6 @@ public class Utils {
             e.printStackTrace();
             return 1;
         }
-*/
         return 0;
     }
 
@@ -123,9 +120,6 @@ public class Utils {
         try {
             FileWriter file_writer = new FileWriter("/data/results.pipe");
             BufferedWriter buffered_writer = new BufferedWriter(file_writer);
-            if (Utils.error == 1) {
-                buffered_writer.write("ERR on runtime\n");
-            }
             buffered_writer.write("This is a test.  This is only a test.  Testing 357 testing.\n");
             buffered_writer.close();
         } catch(IOException exception) {

@@ -42,11 +42,11 @@ def main():
 	Mon = HVPM.Monsoon()
 	Mon.setup_usb()
 
-	#'''
-	Mon.setVout(voltage)
+	'''
+	Mon.setVout(0)
 	print("done")
 	sys.exit(0)
-	#'''
+	'''
 
 	Mon.setVout(voltage)
 

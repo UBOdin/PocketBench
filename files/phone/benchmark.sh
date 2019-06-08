@@ -94,7 +94,6 @@ for i in $cpus; do
 	result="$(cat $cpu_dir/cpu$i/online)"
 	if [ "$result" != "1" ]; then
 		error_exit "ERR CPUs not all on"
-		#echo "CPUs not all on"
 	fi
 done
 
@@ -120,14 +119,13 @@ set_governor "$governor"
 
 # Turn on tracing:
 echo 150000 > $trace_dir/buffer_size_kb
-##toggle_events 1
+toggle_events 1
 echo > $trace_dir/trace
 #echo 1 > $trace_dir/tracing_enabled
 echo 1 > $trace_dir/tracing_on
 
 echo "LOGMARKER Battery before:" >> $trace_log
 dumpsys battery >> $trace_log
-cat $cpu_dir/cpu*/cpufreq/cpuinfo_cur_freq >> $trace_log
 
 # Set up IPC pipe to retrieve end-of-run info from app:
 rm /data/results.pipe
@@ -144,7 +142,6 @@ echo "$result" >> $logfile
 
 echo "LOGMARKER Battery after:" >> $trace_log
 dumpsys battery >> $trace_log
-cat $cpu_dir/cpu*/cpufreq/cpuinfo_cur_freq >> $trace_log
 
 # Turn off tracing:
 echo 0 > $trace_dir/tracing_on

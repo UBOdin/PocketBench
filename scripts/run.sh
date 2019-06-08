@@ -27,9 +27,9 @@ echo "WAITING -- START MONSOON"
 sleep 10 # Make sure on-phone script is running before cutting power:
 #ykushcmd -d 1
 echo "START MONSOON"
-##./monsoon.py $2 $3 $6 $4 $5 &
-##monsoonpid=$!
-##echo "Monsoon pid:  $monsoonpid"
+./monsoon.py $2 $3 $6 $4 $5 &
+monsoonpid=$!
+echo "Monsoon pid:  $monsoonpid"
 
 sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block before blocking on wifi wakeup ping:
 ./server.exe $wakeport
@@ -37,7 +37,7 @@ result=$?
 #ykushcmd -u 1
 # For non-null workloads, signal monsoon logging process to stop:
 if [ "$3" != "N" ]; then
-##	kill -10 $monsoonpid
+	kill -10 $monsoonpid
 	echo "Sent Monsoon stop signal"
 else
 	echo "Waiting on Monsoon timeout"
@@ -75,15 +75,15 @@ else
 fi
 
 # Get result of Monsoon script (and trap for error):
-##wait "$monsoonpid"
-##result="$?"
-##echo "Monsoon result:  $result"
+wait "$monsoonpid"
+result="$?"
+echo "Monsoon result:  $result"
 
 echo "Run ${2} ${3} ${6} ${4} ${5} -- ${result}" >> progressfile.txt
 
 if [ "$result" != "0" ]; then
 	echo "ERR ON MONS"
-##	exit 4
+	exit 4
 else
 	echo "OK ON MONS"
 fi
@@ -111,15 +111,13 @@ else
 fi
 timestamp="$(date +%Y%m%d%H%M%S)"
 #filename="YCSB_${2}_${3}_${delay}_${4}_${5}_$timestamp"
-#filename="YCSB_${2}_${3}_${delay}_${4}_${5}"
-filename="YCSB_${2}_${3}_${delay}_${4}_${5}_${7}"
+filename="YCSB_${2}_${3}_${delay}_${4}_${5}"
 #filename="YCSB_Workload${3}_TimingA${2}.log" # old style filename
 mv trace.log logs/$filename
 gzip logs/$filename
 
 # save out energy tracefile:
 energyfile="monsoon_${2}_${3}_${delay}_${4}_${5}"
-#energyfile="monsoon_${2}_${3}_${delay}_${4}_${5}_$timestamp"
 mv monsoonout.txt energy/$energyfile
 gzip energy/$energyfile
 
@@ -152,8 +150,6 @@ printf "Completed benchmark for device %s\n" $1
 # (17) logcat events -- re:  bimodal latency
 # (18) Fix crude busywait in phone reconnect
 # (19) Add check for pid==pid
-# (20) Parameterize voltage
-# (21) Nice -20
 
 # re:  blocking syscalls and spurious wakeup -- why while () and not if ()?
 # syncing accept() and connect()

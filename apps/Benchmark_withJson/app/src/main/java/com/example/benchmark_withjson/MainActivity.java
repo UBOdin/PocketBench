@@ -65,7 +65,6 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 		exception.printStackTrace();
 		return;
 	}
-	Utils.error = 0;
 
 	Log.d(PDE, "Parameter Database:  " + Utils.database);
 	Log.d(PDE, "Parameter Workload:  " + Utils.workload);
@@ -105,16 +104,13 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 		// Set up DB handle:
 		Queries.init_db_handle(this);
 
-//		Queries queries = new Queries();
-//		queries.startQueries(0);  // Single thread (0)
+		Queries queries = new Queries();
+		queries.startQueries(0);  // Single thread (0)
 
-
+/*
 	// Init synch primitives:
 	Worker.lock = new ReentrantLock();
 	Worker.condition = Worker.lock.newCondition();
-
-	Worker.operation_count = 0;
-	Worker.operation_lock = new ReentrantLock();
 
 	// Fork off worker threads:
 	for (int i = 0; i < Worker.thread_count; i++) {
@@ -135,7 +131,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 		}
 	}
 	Worker.lock.unlock();
-
+*/
 
 		// Close DB handle:
 		Queries.close_db_handle();
@@ -157,10 +153,6 @@ class Worker implements Runnable {
 	static Lock lock;
 	static Condition condition;
 	static int thread_count;
-
-	static int operation_count;
-	static int operation_total;
-	static Lock operation_lock;
 
 	int _thread_number;  // Our in-house TID
 

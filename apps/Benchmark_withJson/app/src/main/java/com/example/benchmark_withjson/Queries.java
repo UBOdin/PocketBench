@@ -17,24 +17,15 @@ import java.sql.Statement;
 
 import android.util.Log;
 
-import java.util.concurrent.locks.*;
-import java.sql.ResultSet;
-
 public class Queries {
 
     static Connection con = null;
     static SQLiteDatabase db = null;
 
-//    JSONObject workloadJsonObject;
-    static JSONArray benchmarkArray;
-    static int operation_total;
-
-    static Statement stmt;
+    JSONObject workloadJsonObject;
 
     public Queries(){
-
-//        workloadJsonObject = Utils.workloadJsonObject;
-
+        workloadJsonObject = Utils.workloadJsonObject;
     }
 
     public static void init_db_handle(Context context) {
@@ -42,23 +33,8 @@ public class Queries {
         if ((Utils.database.equals("SQL")) || (Utils.database.equals("WAL"))) {
 		db = context.openOrCreateDatabase("SQLBenchmark",0,null);
 	} else if ((Utils.database.equals("BDB")) || (Utils.database.equals("BDB100"))) {
-		try {
-			con = Utils.jdbcConnection("BDBBenchmark");
-			stmt = con.createStatement();
-		} catch (SQLException e) {
-			Utils.putMarker("PD BDB error 0");
-			Utils.error = 1;
-		}
+		con = Utils.jdbcConnection("BDBBenchmark");
 	}
-
-	try {
-		Queries.benchmarkArray = Utils.workloadJsonObject.getJSONArray("benchmark");
-		Queries.operation_total = Queries.benchmarkArray.length();
-        } catch (JSONException e) {
-		e.printStackTrace();
-		return;
-        }
- 
 	return;
 
     }
@@ -70,7 +46,6 @@ public class Queries {
 	}
 	if (con != null) {
 		try {
-			stmt.close();
 			con.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -117,20 +92,9 @@ public class Queries {
         int sqlException = 0;
 
         try {
-//            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
-//            for(int i = 0; i < benchmarkArray.length(); i ++){
-//                JSONObject operationJson = benchmarkArray.getJSONObject(i);
-
-            while (true) {
-                Worker.operation_lock.lock();
-                if (Worker.operation_count == Queries.operation_total) {
-                    Worker.operation_lock.unlock();
-                    break;
-                }
-                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(Worker.operation_count);
-                Worker.operation_count++;
-                Worker.operation_lock.unlock();
-
+            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
+            for(int i = 0; i < benchmarkArray.length(); i ++){
+                JSONObject operationJson = benchmarkArray.getJSONObject(i);
                 Object operationObject = operationJson.get("op");
                 String operation = operationObject.toString();
 
@@ -162,8 +126,6 @@ public class Queries {
 
                         }
                         catch (SQLiteException e){
-                            Utils.putMarker("PD SQL error 1");
-                            Utils.error = 1;
                             sqlException = 1;
                             continue;
                         }
@@ -192,8 +154,6 @@ public class Queries {
 
 
         } catch (JSONException e) {
-            Utils.putMarker("PD SQL error 2");
-            Utils.error = 1;
             e.printStackTrace();
             db.close();
             return 1;
@@ -203,24 +163,13 @@ public class Queries {
 
     private int bdbQueries(){
 
-//        Statement stmt;
+        Statement stmt;
         int sqlException = 0;
 
         try {
-//            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
-//            for(int i = 0; i < benchmarkArray.length(); i ++){
-//                JSONObject operationJson = benchmarkArray.getJSONObject(i);
-
-            while (true) {
-                Worker.operation_lock.lock();
-                if (Worker.operation_count >= Queries.operation_total) {
-                    Worker.operation_lock.unlock();
-                    break;
-                }
-                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(Worker.operation_count);
-                Worker.operation_count++;
-                Worker.operation_lock.unlock();
-
+            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
+            for(int i = 0; i < benchmarkArray.length(); i ++){
+                JSONObject operationJson = benchmarkArray.getJSONObject(i);
                 Object operationObject = operationJson.get("op");
                 String operation = operationObject.toString();
                 switch (operation) {
@@ -231,20 +180,20 @@ public class Queries {
 
                         try {
 
-//                            stmt = con.createStatement();
+                            stmt = con.createStatement();
 
                             if(query.contains("UPDATE")){
                                 int tester = stmt.executeUpdate(query);
-//                                if(tester == 0 || tester < 0){
-//                                    stmt.close();
-//                                }
+                                if(tester == 0 || tester < 0){
+                                    stmt.close();
+                                }
                             }
                             else {
                                 Boolean test = stmt.execute(query);
-//                                if (!test){
-//                                    stmt.close();
-//	                        }
-//                                stmt.close();
+                                if (!test){
+                                    stmt.close();
+                            }
+                            stmt.close();
 
                                 // Walk through results:
                                 while (test == true) {
@@ -256,14 +205,10 @@ public class Queries {
 
                         }
                         catch (SQLiteException e){
-                            Utils.putMarker("PD BDB error 1");
-                            Utils.error = 1;
                             sqlException = 1;
 
                             continue;
                         } catch (SQLException e) {
-                            Utils.putMarker("PD BDB error 2");
-                            Utils.error = 1;
                             sqlException = 1;
 
                             e.printStackTrace();
@@ -292,22 +237,16 @@ public class Queries {
 
             }
         } catch (JSONException e) {
-            Utils.putMarker("PD BDB error 3");
-            Utils.error = 1;
             e.printStackTrace();
 
             try {
                 con.close();
             } catch (SQLException e1) {
-                Utils.putMarker("PD BDB error 4");
-                Utils.error = 1;
                 e1.printStackTrace();
             }
 
             return 1;
         } catch (SQLException e) {
-            Utils.putMarker("PD BDB error 5");
-            Utils.error = 1;
             e.printStackTrace();
             return 1;
         }

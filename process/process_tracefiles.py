@@ -184,11 +184,8 @@ def get_mean_error(db_workload_delay):
 
 	governor_list = ["userspace_300000", "userspace_1267200", "userspace_2649600", "interactive_none", "ondemand_none"]
 
-	#directory_list = ["../monsoon_01", "../monsoon_02", "../monsoon_03"]
-	#directory_list = ["../monsoon_04", "../monsoon_05", "../monsoon_06"]
-	#directory_list = ["../monsoon_01", "../monsoon_02", "../monsoon_03", "../monsoon_04", "../monsoon_05", "../monsoon_06"]
-	directory_list = ["../monsoon_11", "../monsoon_12", "../monsoon_13"]
-	
+	directory_list = ["../monsoon_01", "../monsoon_02", "../monsoon_03"]
+
 	for i in range(len(governor_list)):
 
 		#'''
@@ -210,7 +207,7 @@ def get_mean_error(db_workload_delay):
 		print("latency pct:  " + str(latency_error / latency_mean))
 		#'''
 
-		'''
+		#'''
 		energy_list = []
 		for directory_prefix in directory_list:
 			pathname = directory_prefix + "/" + energy_prefix + db_workload_delay + "_" + governor_list[i] + ".gz"
@@ -226,7 +223,7 @@ def get_mean_error(db_workload_delay):
 		print(energy_list)
 		print("energy mean:  " + str(energy_mean))
 		print("energy error:  " + str(energy_error))
-		'''
+		#'''
 
 	#end_for
 
@@ -264,8 +261,6 @@ def main():
 	print(latency_error_list)
 	print(energy_mean_list)
 	print(energy_error_list)
-
-	sys.exit(4)
 
 	fig, ax = plt.subplots()
 
@@ -316,57 +311,6 @@ def main():
 #end_def
 
 
-def other():
-
-	file = ""
-	latency = 0.0
-	latency_list = []
-	latency_mean = 0.0
-	latency_error = 0.0
-
-	'''
-	file_list = ["YCSB_SQL_A_0ms_userspace_1267200_20190310193504.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190310194122.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190310194711.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190310195259.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190310200506.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190310202233.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190310202820.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190310203407.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190310203958.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190310204546.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190310205135.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190310205723.gz"]
-	'''
-
-	file_list = ["YCSB_SQL_A_0ms_userspace_1267200_20190505013253.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190505013744.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190505014255.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190505014754.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190505015307.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190505015816.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190505020329.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190505021838.gz", \
-		"YCSB_SQL_A_0ms_userspace_1267200_20190505025250.gz", "YCSB_SQL_A_0ms_userspace_1267200_20190505025750.gz"]
-
-	#file_list = range(1, 7)
-
-	for file in file_list:
-
-		#pathname = "../repeat_batt/" + file
-		pathname = "../logs/" + file
-		#pathname = "../variance/A_0ms_12672_plug_" + str(file) + ".gz"
-
-		latency = get_latency(pathname)
-		print(pathname + " " + str(latency))
-	
-		latency_list.append(latency)
-
-	#end_for
-
-	latency_mean, latency_error = mean_margin(latency_list)
-
-	print(latency_mean, latency_error)
-
-	print(latency_list)
-	print("latency mean:  " + str(latency_mean * 1000))
-	print("latency error:  " + str(latency_error * 1000))
-	print("latency pct:  " + str(latency_error / latency_mean))
-	
-#end_def
-
-
-other() #main()
+main()
 
 
