@@ -135,11 +135,17 @@ def main():
 	print("Hello World")
 
 	filename = ""
-	prefix = "tracefiles/nexus6_aosp601/no_delaytags/real_vs_clean/YCSB_SQL_C_"
+	pre_prefix = "tracefiles/nexus6_aosp601/no_delaytags/real_vs_clean/YCSB_SQL_"
+	workload = ""
+	prefix = ""
 	latency = 0.0
 	coretime = 0.0
 	time_list = ["0ms", "1ms", "log"]
 	width = 0.25
+
+	workload = sys.argv[1]
+
+	prefix = pre_prefix + workload + "_"
 
 	fig, ax = plt.subplots()
 
@@ -165,7 +171,14 @@ def main():
 		offset += .25
 	#end_for
 
-	ax.set_title("YCSB Workload C", fontsize = 20, fontweight = "bold")
+	if (workload == "IB"):
+		workload = "G"
+	#end_if
+	if (workload == "IC"):
+		workload = "H"
+	#end_if
+
+	ax.set_title("YCSB Workload " + workload, fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Query Delay Time and CPU State", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Total Latency ($ms$)", fontsize = 20, fontweight = "bold")
 
