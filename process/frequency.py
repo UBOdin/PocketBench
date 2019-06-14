@@ -23,7 +23,6 @@ def get_latency(file_name):
 	benchmark_core = [False, False, False, False]
 	timestamp_list = []
 	frequency_list = []
-	basetime = 0.0
 
 	prev_frequency = 0
 	prev_iteration = 0
@@ -216,6 +215,8 @@ def main():
 	ax.set_xlim([0, max_time])
 
 	plt.show()
+
+	fig.savefig("graphs/frequency_" + workload + "_" + delay + ".pdf", bbox_inches = "tight")
 
 #end_def
 
