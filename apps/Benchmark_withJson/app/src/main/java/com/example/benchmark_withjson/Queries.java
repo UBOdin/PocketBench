@@ -17,15 +17,21 @@ import java.sql.Statement;
 
 import android.util.Log;
 
+import java.util.concurrent.locks.*;
+
 public class Queries {
 
     static Connection con = null;
     static SQLiteDatabase db = null;
 
-    JSONObject workloadJsonObject;
+//    JSONObject workloadJsonObject;
+    static JSONArray benchmarkArray;
+    static int operation_total;
 
     public Queries(){
-        workloadJsonObject = Utils.workloadJsonObject;
+
+//        workloadJsonObject = Utils.workloadJsonObject;
+
     }
 
     public static void init_db_handle(Context context) {
@@ -35,6 +41,15 @@ public class Queries {
 	} else if ((Utils.database.equals("BDB")) || (Utils.database.equals("BDB100"))) {
 		con = Utils.jdbcConnection("BDBBenchmark");
 	}
+
+	try {
+		Queries.benchmarkArray = Utils.workloadJsonObject.getJSONArray("benchmark");
+		Queries.operation_total = Queries.benchmarkArray.length();
+        } catch (JSONException e) {
+		e.printStackTrace();
+		return;
+        }
+ 
 	return;
 
     }
@@ -92,9 +107,20 @@ public class Queries {
         int sqlException = 0;
 
         try {
-            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
-            for(int i = 0; i < benchmarkArray.length(); i ++){
-                JSONObject operationJson = benchmarkArray.getJSONObject(i);
+//            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
+//            for(int i = 0; i < benchmarkArray.length(); i ++){
+//                JSONObject operationJson = benchmarkArray.getJSONObject(i);
+
+            while (true) {
+                Worker.operation_lock.lock();
+                if (Worker.operation_count == Queries.operation_total) {
+                    Worker.operation_lock.unlock();
+                    break;
+                }
+                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(Worker.operation_count);
+                Worker.operation_count++;
+                Worker.operation_lock.unlock();
+
                 Object operationObject = operationJson.get("op");
                 String operation = operationObject.toString();
 
@@ -167,9 +193,20 @@ public class Queries {
         int sqlException = 0;
 
         try {
-            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
-            for(int i = 0; i < benchmarkArray.length(); i ++){
-                JSONObject operationJson = benchmarkArray.getJSONObject(i);
+//            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
+//            for(int i = 0; i < benchmarkArray.length(); i ++){
+//                JSONObject operationJson = benchmarkArray.getJSONObject(i);
+
+            while (true) {
+                Worker.operation_lock.lock();
+                if (Worker.operation_count >= Queries.operation_total) {
+                    Worker.operation_lock.unlock();
+                    break;
+                }
+                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(Worker.operation_count);
+                Worker.operation_count++;
+                Worker.operation_lock.unlock();
+
                 Object operationObject = operationJson.get("op");
                 String operation = operationObject.toString();
                 switch (operation) {
@@ -184,16 +221,16 @@ public class Queries {
 
                             if(query.contains("UPDATE")){
                                 int tester = stmt.executeUpdate(query);
-                                if(tester == 0 || tester < 0){
+//                                if(tester == 0 || tester < 0){
                                     stmt.close();
-                                }
+//                                }
                             }
                             else {
                                 Boolean test = stmt.execute(query);
-                                if (!test){
-                                    stmt.close();
-                            }
-                            stmt.close();
+//                                if (!test){
+//                                    stmt.close();
+//	                        }
+                                stmt.close();
 
 
                             }
