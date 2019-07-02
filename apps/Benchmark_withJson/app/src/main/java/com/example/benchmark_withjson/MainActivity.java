@@ -115,6 +115,8 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 	Worker.operation_count = 0;
 	Worker.operation_lock = new ReentrantLock();
 
+	Worker.threads_left = Worker.thread_count;
+
 	// Fork off worker threads:
 	for (int i = 0; i < Worker.thread_count; i++) {
 		Worker w = new Worker(i);
@@ -124,7 +126,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 
 	// Block until workers finish:
 	Worker.lock.lock();
-	while (Worker.thread_count > 0) {
+	while (Worker.threads_left > 0) {
 		try {
 			Worker.condition.await();
 		} catch (InterruptedException e) {
@@ -156,9 +158,9 @@ class Worker implements Runnable {
 	static Lock lock;
 	static Condition condition;
 	static int thread_count;
+	static int threads_left;  // number of threads still running
 
 	static int operation_count;
-	static int operation_total;
 	static Lock operation_lock;
 
 	int _thread_number;  // Our in-house TID
@@ -177,8 +179,8 @@ class Worker implements Runnable {
 
 		// Signal main thread we are done:
 		Worker.lock.lock();
-		Worker.thread_count--;
-		if (Worker.thread_count == 0) {
+		Worker.threads_left--;
+		if (Worker.threads_left == 0) {
 			Worker.condition.signal();
 		}
 		Worker.lock.unlock();
