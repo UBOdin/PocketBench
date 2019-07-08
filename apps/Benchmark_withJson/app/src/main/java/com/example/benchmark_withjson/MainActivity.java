@@ -112,9 +112,6 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 	Worker.lock = new ReentrantLock();
 	Worker.condition = Worker.lock.newCondition();
 
-	Worker.operation_count = 0;
-	Worker.operation_lock = new ReentrantLock();
-
 	Worker.threads_left = Worker.thread_count;
 
 	// Fork off worker threads:
@@ -160,9 +157,6 @@ class Worker implements Runnable {
 	static int thread_count;
 	static int threads_left;  // number of threads still running
 
-	static int operation_count;
-	static Lock operation_lock;
-
 	int _thread_number;  // Our in-house TID
 
 	public Worker(int thread_number) {
@@ -174,7 +168,7 @@ class Worker implements Runnable {
 
 	public void run() {
 
-		Queries queries = new Queries();
+		Queries queries = new Queries(this._thread_number);
 		queries.startQueries(this._thread_number);
 
 		// Signal main thread we are done:

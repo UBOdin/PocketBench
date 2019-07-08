@@ -19,18 +19,25 @@ import android.util.Log;
 
 import java.util.concurrent.locks.*;
 
+import java.lang.Math.*;
+
 public class Queries {
 
     static Connection con = null;
     static SQLiteDatabase db = null;
 
-//    JSONObject workloadJsonObject;
     static JSONArray benchmarkArray;
     static int operation_total;
 
-    public Queries(){
+    int _thread_number;
+    int _first_operation;
+    int _last_operation;
 
-//        workloadJsonObject = Utils.workloadJsonObject;
+    public Queries(int thread_number){
+
+        this._thread_number = thread_number;
+        this._first_operation = Math.round((float)thread_number * (float)Queries.operation_total / (float)Worker.thread_count);
+        this._last_operation = Math.round((float)(thread_number + 1) * (float)Queries.operation_total / (float)Worker.thread_count);
 
     }
 
@@ -107,19 +114,9 @@ public class Queries {
         int sqlException = 0;
 
         try {
-//            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
-//            for(int i = 0; i < benchmarkArray.length(); i ++){
-//                JSONObject operationJson = benchmarkArray.getJSONObject(i);
 
-            while (true) {
-                Worker.operation_lock.lock();
-                if (Worker.operation_count == Queries.operation_total) {
-                    Worker.operation_lock.unlock();
-                    break;
-                }
-                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(Worker.operation_count);
-                Worker.operation_count++;
-                Worker.operation_lock.unlock();
+            for (int i = this._first_operation; i < this._last_operation; i++) {
+                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(i);
 
                 Object operationObject = operationJson.get("op");
                 String operation = operationObject.toString();
@@ -193,19 +190,9 @@ public class Queries {
         int sqlException = 0;
 
         try {
-//            JSONArray benchmarkArray = workloadJsonObject.getJSONArray("benchmark");
-//            for(int i = 0; i < benchmarkArray.length(); i ++){
-//                JSONObject operationJson = benchmarkArray.getJSONObject(i);
 
-            while (true) {
-                Worker.operation_lock.lock();
-                if (Worker.operation_count >= Queries.operation_total) {
-                    Worker.operation_lock.unlock();
-                    break;
-                }
-                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(Worker.operation_count);
-                Worker.operation_count++;
-                Worker.operation_lock.unlock();
+            for (int i = this._first_operation; i < this._last_operation; i++) {
+                JSONObject operationJson = Queries.benchmarkArray.getJSONObject(i);
 
                 Object operationObject = operationJson.get("op");
                 String operation = operationObject.toString();
