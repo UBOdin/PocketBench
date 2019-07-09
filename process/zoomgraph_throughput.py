@@ -75,6 +75,8 @@ def get_latency(file_name):
 	print(endtime)
 	print("Latency:  ", endtime - starttime)
 	'''
+	print(file_name + "  " + str(endtime - starttime))
+
 
 	input_file.close()
 
@@ -83,14 +85,13 @@ def get_latency(file_name):
 #end_def
 
 
-def get_latency_list(prefix):
+def get_latency_list(prefix, threads):
 
 	filename = ""
-	threads = 8
 	raw_latency = 0.0
 	latency = 0.0
 	throughput = 0.0
-	runs = 6
+	runs = 5
 	pathname = ""
 	perrun_latency_list = []
 	perrun_throughput_list = []
@@ -110,15 +111,16 @@ def get_latency_list(prefix):
 
 		perrun_latency_list = []
 		for j in range(1, runs + 1):
-			pathname = "throughput_" + str(j) + "/" + filename
+			#pathname = "throughput_" + str(j) + "/" + filename
+			pathname = "logs/run_" + str(j) + "/" + filename
 			#print(pathname)
 			raw_latency = get_latency(pathname)
 
-			#latency = raw_latency * 1000 / (1800 * (i + 1))
-			#throughput = (1800 * (i + 1)) / (raw_latency / (i + 1))
+			#latency = raw_latency * 1000 / (1800 * (i))
+			#throughput = (1800 * (i)) / (raw_latency / (i))
 
 			latency = (raw_latency * 1000 ) / 1800
-			throughput = 1800 / (raw_latency) # / (i + 1))
+			throughput = 1800 / (raw_latency / (i))
 
 			perrun_latency_list.append(latency)
 			perrun_throughput_list.append(throughput)
@@ -151,18 +153,21 @@ def main():
 
 	#print("Hello World")
 
-	threadcount = 8
+	workload = ""
+	threadcount = 10
+
+	workload = sys.argv[1]  # "A"
 
 	fig, ax = plt.subplots()
 
 
-	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("SQL_A")
+	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("SQL_" + workload, threadcount)
 
 	plt.plot(throughput_mean_list, latency_mean_list, color = "blue", marker = "o", markersize = 12, label = "SQLite (number of threads)")
 
 	#'''
 	for i in range(0, threadcount):
-		plt.annotate(str(i + 1), xy = (throughput_mean_list[i] + 10, latency_mean_list[i] - 0.5), fontsize = 16)
+		plt.annotate(str(i + 1), xy = (throughput_mean_list[i] + 7, latency_mean_list[i] + 0.3), fontsize = 16)
 	#end_for
 	#'''
 
@@ -171,13 +176,13 @@ def main():
 	print("SQLite mean latency (threads 1-8):  " + str(latency_mean_list))
 	print()
 
-	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("BDB_A")
+	latency_mean_list, latency_error_list, throughput_mean_list, throughput_error_list = get_latency_list("BDB_" + workload, threadcount)
 
 	plt.plot(throughput_mean_list, latency_mean_list, color = "red", marker = "o", markersize = 12, label = "BDB (number of threads)")
 
 	#'''
 	for i in range(0, threadcount):
-		plt.annotate(str(i + 1), xy = (throughput_mean_list[i] + 20, latency_mean_list[i] - 0.4), fontsize = 16)
+		plt.annotate(str(i + 1), xy = (throughput_mean_list[i] + 5, latency_mean_list[i] + 0.5), fontsize = 16)
 	#end_for
 	#'''
 
@@ -188,7 +193,7 @@ def main():
 
 	#plt.annotate("-----Region of Interest", xy = (350, 1.5), fontsize = 16)
 
-	ax.set_title("YCSB Workload A", fontsize = 20, fontweight = "bold")
+	ax.set_title("YCSB Workload " + workload, fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Throughput (queries/s)", fontsize = 20, fontweight = "bold")
 	ax.set_ylabel("Average Latency (ms)", fontsize = 20, fontweight = "bold")
 
@@ -199,7 +204,8 @@ def main():
 	fig15 = plt.gcf()
 	fig15.tight_layout()
 
-	plt.legend(loc = "upper center")
+	plt.legend(loc = "top right")
+
 
 	#plt.axis([200, 1700, 0, 6.5])
 	plt.show()
