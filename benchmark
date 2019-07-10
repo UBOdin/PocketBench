@@ -119,7 +119,11 @@ def command(string_array):
 		print("success")
 
 		print("building and installing app...")
-		subprocess.call(['sh', 'scripts/build.sh'])
+		result = subprocess.call(['sh', 'scripts/build.sh'])
+		if (result != 0):
+			print("Error on build");
+			sys.exit(1)
+		#end_if
 		print("success")
 
 		print("running...")
@@ -349,18 +353,19 @@ def main():
 			skip_count = 0
 
 			if (input[0].lower() == "what"):
-				#workload_list = ["sql a", "sql b", "sql c", "sql e", "bdb a", "bdb b", "bdb c", "bdb e"]
+				workload_list = ["sql a", "sql b", "sql c", "sql e", "bdb a", "bdb b", "bdb c", "bdb e"]
 				#workload_list = ["sql a", "sql b", "sql c", "sql e"]
 				#workload_list = ["sql a", "bdb a"] #"sql b", "sql c", "bdb b", "bdb c"] #["null n"]
-				workload_list = ["bdb a"]
+				#workload_list = ["bdb e"]
 
 				#governor_list = ["userspace 300000", "userspace 1267200", "userspace 2649600", "interactive x", "ondemand x"]
-				governor_list = ["performance x"] #["interactive x"]
+				governor_list = ["interactive x"]
 
 				#delay_list = ["0ms", "lognormal"]
-				delay_list = ["0ms"] #["null"]
+				delay_list = ["0ms"]
 
-				threads_list = ["1", "2", "3", "4", "5", "6"]
+				#threads_list = ["1", "2", "3", "4", "5", "6" , "7", "8", "9", "10"]
+				threads_list = ["8", "9", "10"]
 
 				subprocess.call(["rm", "monsoonlog.txt"])
 				subprocess.call(["rm", "progressfile.txt"])
@@ -388,8 +393,10 @@ def main():
 			#end_if
 
 			if (input[0].lower() == "that"):
-				for i in range(10):
-					parameters = "sql a userspace 1267200 0ms"
+				for i in range(6):
+					#parameters = "sql a userspace 1267200 0ms"
+					parameters = "bdb a interactive x 0ms 3"
+
 					command(parameters.split())
 				#end_for
 			#end_if
