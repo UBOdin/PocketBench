@@ -17,9 +17,9 @@ import java.sql.Statement;
 
 import android.util.Log;
 
-import java.util.concurrent.locks.*;
-
 import java.lang.Math.*;
+
+import static android.database.sqlite.SQLiteCursor.*;
 
 public class Queries {
 
@@ -28,6 +28,8 @@ public class Queries {
 
     static JSONArray benchmarkArray;
     static int operation_total;
+
+    static String PDE = "PocketData";
 
     int _thread_number;
     int _first_operation;
@@ -79,7 +81,6 @@ public class Queries {
     public int startQueries(int thread_number){
 
 	int tester;
-	String PDE = "PocketData";
 
 	Log.d(PDE, "Start startQueries()");
 	Utils.putMarker("{\"EVENT\":\"Parameters\", \"Database\":\"" + Utils.database + "\", \"Workload\":\"" + Utils.workload + "\", \"Governor\":\"" + Utils.governor + "\", \"Speed\":\"" + Utils.speed + "\", \"Delay\":\"" + Utils.delay + "\"}");
@@ -113,6 +114,9 @@ public class Queries {
 
         int sqlException = 0;
 
+	int type;
+	int sum = 0;
+
         try {
 
             for (int i = this._first_operation; i < this._last_operation; i++) {
@@ -136,6 +140,32 @@ public class Queries {
                                     do {
                                         int j=0;
                                         while (j< numColumns) {
+
+						type = cursor.getType(j);
+						switch (type) {
+							case FIELD_TYPE_BLOB:
+								byte[] result_blob = cursor.getBlob(j);
+								sum += result_blob.length;
+								break;
+							case FIELD_TYPE_FLOAT:
+								float result_float = cursor.getFloat(j);
+								sum += result_float; 
+								break;
+							case FIELD_TYPE_INTEGER:
+								int result_integer = cursor.getInt(j);
+								sum += result_integer;
+								break;
+							case FIELD_TYPE_STRING:
+								String result_string = cursor.getString(j);
+								sum += result_string.length();
+								break;
+							default:
+								// Includes FIELD_TYPE_NULL
+								break;
+						}
+
+
+
                                             j++;
                                         }
                                     } while(cursor.moveToNext());
@@ -181,6 +211,7 @@ public class Queries {
             db.close();
             return 1;
         }
+	Log.d(PDE, "sum:  " + sum);
         return 0;
     }
 
