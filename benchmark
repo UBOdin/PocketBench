@@ -62,20 +62,20 @@ def setup_app(name):
 
 def command(string_array):
 
-	databases = ["SQL", "WAL", "BDB", "BDB100", "NULL"]
-	workloads = ["A", "B", "C", "D", "E", "F", "IB", "IC", "N"]
-	governors = ["performance", "interactive", "conservative", "ondemand", "userspace", "powersave"]
-	speeds = ["x", "300000", "422400", "652800", "729600", "883200", "960000", "1036800", "1190400", "1267200", "1497600", "1574400", "1728000", "1958400", "2265600", "2457600", "2496000", "2572800", "2649600"]
+	databases = ["SQL", "WAL", "NULL"]
+	workloads = ["A", "B", "C", "D", "E", "F"]
+	governors = ["userspace", "powersave", "performance", "schedutil"]
+	# 300000 364800 441600 518400 595200 672000 748800 825600 883200 960000 1036800 1094400 1171200 1248000 1324800 1401600 1478400 1555200 1670400 1747200 1824000 1900800
+	# 300000 345600 422400 499200 576000 652800 729600 806400 902400 979200 1056000 1132800 1190400 1267200 1344000 1420800 1497600 1574400 1651200 1728000 1804800 1881600 1958400 2035200 2112000 2208000 2265600 2323200 2342400 2361600 2457600 
+	speeds = []  # Skip this sanity for now
 	delays = ["0ms", "1ms", "lognormal", "null"]
 
 	database = ""
 	workload = ""
-	#governor = "ondemand" # Nexus 5 default
-	#governor = "interactive" # Nexus >= 6 default
-	governor = "userspace"
-	speed = "1267200" # Only valid if governor == "userspace"
-	delay = "0ms"
-        threads = "8"
+	governor = ""
+	speed = "" # Only valid if governor == "userspace"
+	delay = ""
+	threads = ""
 
 	result = 0
 
@@ -84,20 +84,13 @@ def command(string_array):
 	governor = string_array[2]
 	speed = string_array[3]
 	delay = string_array[4]
-	threads = string_array[5]
+	threads = "1"  # string_array[5]
 
 	print("PARAMETERS:")
 	print(string_array)
 
-	'''
-        if (database == "BDB"):
-                print("Doing SQL")
-                sys.exit()
-        #end_if
-	'''
-
 	# Parameter validity check:
-	if ((database not in databases) or (workload not in workloads) or (governor not in governors) or (speed not in speeds) or (delay not in delays)):
+	if ((database not in databases) or (workload not in workloads) or (governor not in governors) or (delay not in delays)):
 		print("Invalid benchmark request")
 		return 1
 	#end_if
@@ -354,30 +347,27 @@ def main():
 			skip_count = 0
 
 			if (input[0].lower() == "what"):
-				#workload_list = ["sql a", "sql b", "sql c", "sql e", "bdb a", "bdb b", "bdb c", "bdb e"]
+				#workload_list = ["sql a", "sql b", "sql c", "sql d", "sql e", "sql f"]
 				workload_list = ["sql a", "sql b", "sql c", "sql e"]
 
-				#governor_list = ["userspace 300000", "userspace 1267200", "userspace 2649600", "interactive x", "ondemand x"]
-				governor_list = ["interactive x"]
+				#governor_list = ["userspace x", "powersave x", "performance x", "schedutil x"]
+				#governor_list = ["schedutil x"]
+				governor_list = ["userspace x", "powersave x", "performance x"]
 
-				#delay_list = ["0ms", "lognormal"]
+				#delay_list = ["0ms", "1ms", "lognormal"]
+				#delay_list = ["lognormal"]
 				delay_list = ["0ms"]
 
-				#threads_list = ["1", "2", "3", "4", "5", "6" , "7", "8", "9", "10"]
-				threads_list = ["1", "2", "3", "4", "5"]
+				threads_list = ["1"]
 
-				subprocess.call(["rm", "monsoonlog.txt"])
-				subprocess.call(["rm", "progressfile.txt"])
+				#subprocess.call(["rm", "monsoonlog.txt"])
+				#subprocess.call(["rm", "progressfile.txt"])
 				for delay in delay_list:
 					for governor in governor_list:
 						for workload in workload_list:
 							for threads in threads_list:
 								parameters = workload + " " + governor + " " + delay + " " + threads
 								if (skip_count >= 0):
-
-									#print("Would do %s" % (parameters))
-									#sys.exit(1)
-
 									result = command(parameters.split())
 								else:
 									print("Skipping workload %d:  %s" % (skip_count, parameters))
@@ -386,9 +376,9 @@ def main():
 							#end_for
 						#end_for
 					#end_for
-				subprocess.call(["mv", "monsoonlog.txt", "energy"])
-				subprocess.call(["mv", "progressfile.txt", "energy"])
 				#end_for
+				#subprocess.call(["mv", "monsoonlog.txt", "energy"])
+				#subprocess.call(["mv", "progressfile.txt", "energy"])
 			#end_if
 
 			if (input[0].lower() == "that"):
