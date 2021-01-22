@@ -18,7 +18,8 @@ adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
 
 sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
-adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
+##adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
+adb -s $1 shell sh /data/benchmark.sh $4 $5 $wakeport
 
 echo "WAITING -- START MONSOON"
 # Block to allow manual phone disconnect during run for energy measurement:
@@ -31,8 +32,8 @@ echo "START MONSOON"
 ##monsoonpid=$!
 ##echo "Monsoon pid:  $monsoonpid"
 
-sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block before blocking on wifi wakeup ping:
-./server.exe $wakeport
+##sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block before blocking on wifi wakeup ping:
+##./server.exe $wakeport
 result=$?
 #ykushcmd -u 1
 # For non-null workloads, signal monsoon logging process to stop:
@@ -112,8 +113,8 @@ fi
 timestamp="$(date +%Y%m%d%H%M%S)"
 #filename="YCSB_${2}_${3}_${delay}_${4}_${5}_$timestamp"
 #filename="YCSB_${2}_${3}_${delay}_${4}_${5}"
+#filename="YCSB_${2}_${3}_${delay}_${4}_${5}_${7}_$timestamp"
 filename="YCSB_${2}_${3}_${delay}_${4}_${5}_${7}"
-#filename="YCSB_Workload${3}_TimingA${2}.log" # old style filename
 mv trace.log logs/$filename
 gzip logs/$filename
 

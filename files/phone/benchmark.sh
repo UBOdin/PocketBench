@@ -69,7 +69,7 @@ echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
 setenforce 0
 
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
-printf "Getpid:\n$$\n" >> /data/start.pipe
+##printf "Getpid:\n$$\n" >> /data/start.pipe
 
 sleep 30
 
@@ -118,8 +118,8 @@ fi
 set_governor "$governor"
 
 # Turn on tracing:
-echo 150000 > $trace_dir/buffer_size_kb
-toggle_events 1
+##echo 150000 > $trace_dir/buffer_size_kb
+##toggle_events 1
 echo > $trace_dir/trace
 #echo 1 > $trace_dir/tracing_enabled
 echo 1 > $trace_dir/tracing_on
@@ -156,7 +156,7 @@ echo "Received benchmark app finished signal" >> $logfile
 
 # Pull results:
 cat $trace_dir/trace > /data/trace.log
-echo 1500 > $trace_dir/buffer_size_kb
+##echo 1500 > $trace_dir/buffer_size_kb
 
 # Reset CPU governors:
 set_governor "$default"
@@ -164,7 +164,7 @@ set_governor "$default"
 # Sanity check that we are still on battery:
 dumpsys battery | grep AC > /data/power.txt
 
-send_wakeup
+##send_wakeup
 echo "OK" > $errfile
 echo "Clean Exit" >> $logfile
 echo foo > /sys/power/wake_unlock
