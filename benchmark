@@ -8,9 +8,10 @@ parser = argparse.ArgumentParser(description='The PocketData Benchmark for SQLit
 args = parser.parse_args()
 
 #android_id = "02c566fa093765eb" # Grant's main test phone
-android_id = "ZX1G22TKW7" # Ed's old phone
+#android_id = "ZX1G22TKW7" # Ed's old phone
 #android_id = "199020104301402615" # Dragonboard 8074
 #android_id = "ZX1G22LXTH" # Nexus 6 wired for Monsoon
+android_id = "FA7A21A02869" # Pixel 2
 
 def help_message():
 	print '\nCommand List:\n'
@@ -353,10 +354,8 @@ def main():
 			skip_count = 0
 
 			if (input[0].lower() == "what"):
-				workload_list = ["sql a", "sql b", "sql c", "sql e", "bdb a", "bdb b", "bdb c", "bdb e"]
-				#workload_list = ["sql a", "sql b", "sql c", "sql e"]
-				#workload_list = ["sql a", "bdb a"] #"sql b", "sql c", "bdb b", "bdb c"] #["null n"]
-				#workload_list = ["bdb e"]
+				#workload_list = ["sql a", "sql b", "sql c", "sql e", "bdb a", "bdb b", "bdb c", "bdb e"]
+				workload_list = ["sql a", "sql b", "sql c", "sql e"]
 
 				#governor_list = ["userspace 300000", "userspace 1267200", "userspace 2649600", "interactive x", "ondemand x"]
 				governor_list = ["interactive x"]
@@ -365,7 +364,7 @@ def main():
 				delay_list = ["0ms"]
 
 				#threads_list = ["1", "2", "3", "4", "5", "6" , "7", "8", "9", "10"]
-				threads_list = ["8", "9", "10"]
+				threads_list = ["1", "2", "3", "4", "5"]
 
 				subprocess.call(["rm", "monsoonlog.txt"])
 				subprocess.call(["rm", "progressfile.txt"])
