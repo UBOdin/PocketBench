@@ -13,8 +13,6 @@ toggle_events() {
 
 set_governor() {
 
-	# Stop mpdecision to permit setting the desired governor on all 4 cores:
-	stop mpdecision
 	# Turn on all CPUs and set governor as selected:
 	for i in $cpus; do
 
@@ -22,12 +20,17 @@ set_governor() {
 		echo "$1" > $cpu_dir/cpu$i/cpufreq/scaling_governor
 		# Speed is only valid for the userspace governor:
 		if [ "$1" = "userspace" ]; then
-			echo "$frequency" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
+			# kludge -- hardcode speeds for now in lieu of "$frequency":
+			if [ "$i" = "0" ]; then
+				echo "960000" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
+			fi
+			if [ "$i" = "4" ]; then
+				echo "1267200" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
+			fi
 		fi
+		cat $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
 
 	done
-	# Restart mpdecision for all governors (turned-off cores retain governor specified)
-	start mpdecision
 
 }
 
@@ -77,15 +80,12 @@ sync
 echo 3 > /proc/sys/vm/drop_caches
 
 governor=$1
-default="interactive"
-cpus="0 1 2 3" # List of cpus on phone
+default="schedutil"
+cpus="0 4" # List of cpu core groups (0-3 and 4-7 for Pixel 2)
 #frequencies="300000 422400 652800 729600 883200 960000 1036800 1190400 1267200 1497600 1574400 1728000 1958400 2265600 2457600 2496000 2572800 2649600"
 
 #governor="ondemand" #"userspace"
-frequency=$2 #"300000"
-
-
-#frequency="2649600" #"2457600" #"1728000" #"1267200" #"1036800" #"729600"
+frequency=$2
 
 wakeport=$3
 
@@ -98,17 +98,15 @@ for i in $cpus; do
 done
 
 # Sanity check the governor choice to supported values:
-if [ "$governor" = "performance" ]; then
-	:
-elif [ "$governor" = "interactive" ]; then
-	:
-elif [ "$governor" = "conservative" ]; then
-	:
-elif [ "$governor" = "ondemand" ]; then
-	:
-elif [ "$governor" = "userspace" ]; then
+if [ "$governor" = "userspace" ]; then
 	:
 elif [ "$governor" = "powersave" ]; then
+	:
+elif [ "$governor" = "performance" ]; then
+	:
+elif [ "$governor" = "schedutil" ]; then
+	:
+elif [ "$governor" = "ioblock" ]; then
 	:
 else
 	error_exit "ERR Invalid governor"
@@ -144,8 +142,8 @@ echo "LOGMARKER Battery after:" >> $trace_log
 dumpsys battery >> $trace_log
 
 # Turn off tracing:
-echo 0 > $trace_dir/tracing_on
-toggle_events 0
+##echo 0 > $trace_dir/tracing_on
+##toggle_events 0
 
 # Trap for on-app error:
 if [ "$result" == "ERR" ]; then
