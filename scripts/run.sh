@@ -2,7 +2,6 @@
 # run benchmark
 
 wakeport="2017"  # Phone-client wifi wakeup port
-rm scripts/plugflag.txt # Reset IPC flag
 
 printf "Rebooting and running benchmark on device %s\n" $1
 
@@ -53,22 +52,9 @@ else
 	echo "OK on wifi block"
 fi
 
-echo "setflag" > scripts/plugflag.txt
-cat scripts/plug.pipe
-echo "RECEIVED SIGNAL"
-adb wait-for-device
-
 # Block until phone is manually reconnected after measurement:
-# TODO Fix -- busywait => block
-result="0"
-###result="1"
-while [ "$result" = "1" ]; do
-	sleep 5
-	echo "Try... ${result}"
-	result=$(adb shell id 2>&1)
-	adb shell id 2>&1
-	result="$?"
-done
+echo "Waiting for phone reconnect..."
+adb wait-for-device
 
 # Get results (and trap for error):
 adb pull /data/results.txt
@@ -161,7 +147,7 @@ printf "Completed benchmark for device %s\n" $1
 # (15) Consistincy-ize the -s $1 phone serial number stuff
 # (16) Battery stats => ftrace logfile
 # (17) logcat events -- re:  bimodal latency
-# (18) Fix crude busywait in phone reconnect
+#
 # (19) Add check for pid==pid
 # (20) Parameterize voltage
 # (21) Nice -20
