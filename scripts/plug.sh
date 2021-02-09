@@ -17,3 +17,6 @@ else
 	echo "NULL" >> $path/log.txt
 fi
 
+# Add the following udev trigger line to a file:  e.g. /etc/udev/rules.d/100-foobar.rules:
+# SUBSYSTEMS=="usb", ATTRS{idVendor}=="18d1", ATTRS{idProduct}=="4ee7", ACTION=="add", RUN{program}="/home/carlnues/old_hd/home/carlnues/platform/pocketdata/PocketBench/scripts/plug.sh"
+
