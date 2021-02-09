@@ -2,6 +2,7 @@
 # run benchmark
 
 wakeport="2017"  # Phone-client wifi wakeup port
+rm scripts/plugflag.txt # Reset IPC flag
 
 printf "Rebooting and running benchmark on device %s\n" $1
 
@@ -18,8 +19,8 @@ adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
 
 sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
-##adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
-adb -s $1 shell sh /data/benchmark.sh $4 $5 $wakeport
+adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
+#adb -s $1 shell sh /data/benchmark.sh $4 $5 $wakeport
 
 echo "WAITING -- START MONSOON"
 # Block to allow manual phone disconnect during run for energy measurement:
@@ -52,13 +53,19 @@ else
 	echo "OK on wifi block"
 fi
 
+echo "setflag" > scripts/plugflag.txt
+cat scripts/plug.pipe
+echo "RECEIVED SIGNAL"
+adb wait-for-device
+
 # Block until phone is manually reconnected after measurement:
 # TODO Fix -- busywait => block
-result="1"
+result="0"
+###result="1"
 while [ "$result" = "1" ]; do
 	sleep 5
 	echo "Try... ${result}"
-	#result=$(adb shell id 2>&1)
+	result=$(adb shell id 2>&1)
 	adb shell id 2>&1
 	result="$?"
 done
@@ -74,6 +81,9 @@ if [ "$result" = "ERR" ]; then
 else
 	echo "OK on phone script" 
 fi
+
+adb pull /data/phonelog.txt
+cat phonelog.txt
 
 # Get result of Monsoon script (and trap for error):
 ##wait "$monsoonpid"
