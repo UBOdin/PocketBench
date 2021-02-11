@@ -10,6 +10,56 @@ import numpy as np
 import matplotlib.patches as mpatches
 
 
+def get_latency(file_name):
+
+	# file_name = ""
+
+	logline = ""
+	iteration = 0
+	starttime = 0.0
+	endtime = 0.0
+
+	input_file = gzip.open(file_name, "r")
+
+	while (True):
+
+		# Keep reading until finished:
+		logline = input_file.readline()
+
+		if (logline == ""):
+			break
+		#end_if
+
+		iteration += 1
+		if (iteration % 1000 == 0):
+			#break
+			#print("Iteration:  ", iteration)
+			pass
+		#end_if
+
+		if ("_START" in logline):
+			starttime += float(logline[33:46])
+		#end_if
+
+		if ("_END" in logline):
+			endtime += float(logline[33:46])
+		#end_if
+
+	#end_while
+
+	#print("iterations:  %d" % (iteration))
+
+	#print(starttime)
+	#print(endtime)
+	#print("Latency:  ", endtime - starttime)
+
+	input_file.close()
+
+	return endtime - starttime
+
+#end_def
+
+
 def get_energy(file_name, start, stop):
 
 	# file_name = ""
@@ -97,7 +147,82 @@ def get_energy(file_name, start, stop):
 #end_def
 
 
-def plot_graph(energy_list_list):
+def plot_latency_bargraph(latency_list_list):
+
+	# latency_list_list = []
+
+	latency_list = []
+	latency = 0.0
+	clusterlen = 0
+	width = 0
+	color_list = ["b", "r", "g", "y", "orange"]
+	color = ""
+	#label_list = ["schedutil", "midspeed", "performance", "powersave"]
+	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	label = ""
+	ticklabel_list = []
+
+	clusterlen = len(latency_list_list[0])
+	width = 1
+	offset_list = np.arange(0, clusterlen)
+
+	fig, ax = plt.subplots()
+
+	ticklabel_list.append("")
+	for latency_list in latency_list_list:
+
+		for latency, offset, color, label in zip(latency_list, offset_list, color_list, label_list):
+
+			ax.bar(offset, latency, width = width, color = color)
+
+			offset_list += width
+
+			ticklabel_list.append(label)
+
+		#end_for
+
+		ticklabel_list.append("")
+		ticklabel_list.append("")
+
+		offset_list += 2
+
+	#end_for
+
+	print("offset:  %f" % (offset_list[0]))
+
+	ticklabel_list[0] = "\n\n\n\n\n                          Workload A"
+	ticklabel_list[7] = "\n\n\n\n\n                          Workload B"
+	ticklabel_list[14] = "\n\n\n\n\n                          Workload C"
+	ticklabel_list[21] = "\n\n\n\n\n                          Workload D"
+	ticklabel_list[28] = "\n\n\n\n\n                          Workload E"
+	ticklabel_list[35] = "\n\n\n\n\n                          Workload F"
+
+	print(ticklabel_list)
+
+	ax.set_xticks(np.arange(0, offset_list[0]) - 1, False)
+	ax.set_xticklabels(ticklabel_list)
+	tick_list = ax.get_xticklabels()
+	for i in range(len(tick_list)):
+		if (i % 7 != 0):
+			tick_list[i].set_rotation(-45)
+			tick_list[i].set_ha("left")
+		#end_if
+	#end_for
+
+
+	ax.set_title("Latency Per Governor and Workload:\nSaturated CPU", fontsize = 20, fontweight = "bold")
+	ax.set_xlabel("Governor and Workload", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total latency (s)", fontsize = 16, fontweight = "bold")
+
+	plt.tight_layout()
+	plt.show()
+
+	return
+
+#end_def
+
+
+def plot_energy_bargraph(energy_list_list):
 
 	# energy_list_list = []
 
@@ -174,14 +299,54 @@ def plot_graph(energy_list_list):
 def main():
 
 	filename = ""
-	workloads = ["a", "b", "c", "d", "e", "f"]
-	governors = ["schedutil", "fix50", "fix80", "performance", "powersave"]
-	prefix = "../logs/energy_csv/sql_"
+	workloads = []
+	governors = []
+	prefix = ""
 	workload = ""
 	governor = ""
+	latency = 0.0
+	latency_list = []
+	latency_list_list = []
 	energy = 0.0
 	energy_list = []
 	energy_list_list = []
+
+
+	# Get latency data:
+
+	workloads = ["A", "B", "C", "D", "E", "F"]
+	#workloads = ["A", "B", "C", "E"]
+	governors = ["schedutil_none", "userspace_50", "userspace_80", "performance_none", "powersave_none"]
+	#prefix = "../logs/save0ms/YCSB_SQL_"
+	prefix = "../logs/save_latency/YCSB_SQL_"
+
+	for workload in workloads:
+
+		latency_list = []
+		for governor in governors:
+
+			filename = prefix + workload + "_0ms_" + governor + "_1.gz"
+			#filename = prefix + workload + "_log_" + governor + "_1.gz"
+
+			latency = get_latency(filename)
+			print(filename + " : " + str(latency))
+
+			latency_list.append(latency)
+
+		#end_for
+
+		latency_list_list.append(latency_list)
+
+	#end_for
+
+	plot_latency_bargraph(latency_list_list)
+
+
+	# Get energy data:
+
+	workloads = ["a", "b", "c", "d", "e", "f"]
+	governors = ["schedutil", "fix50", "fix80", "performance", "powersave"]
+	prefix = "../logs/energy_csv/sql_"
 
 	# Really awful kludge:  manually observed start/stop times, to nearest second:
 	# 0ms
@@ -225,11 +390,7 @@ def main():
 
 	#end_for
 
-	#sys.exit(0)
-
-	#print(energy_list_list)
-
-	plot_graph(energy_list_list)
+	plot_energy_bargraph(energy_list_list)
 
 	return
 
