@@ -68,9 +68,10 @@ def plot_graph(latency_list_list):
 	latency = 0.0
 	clusterlen = 0
 	width = 0
-	color_list = ["b", "r", "y", "g"]
+	color_list = ["b", "r", "g", "y", "orange"]
 	color = ""
-	label_list = ["schedutil", "midspeed", "performance", "powersave"]
+	#label_list = ["schedutil", "midspeed", "performance", "powersave"]
+	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
 	label = ""
 	ticklabel_list = []
 
@@ -103,29 +104,30 @@ def plot_graph(latency_list_list):
 	print("offset:  %f" % (offset_list[0]))
 
 	ticklabel_list[0] = "\n\n\n\n\n                          Workload A"
-	ticklabel_list[6] = "\n\n\n\n\n                          Workload B"
-	ticklabel_list[12] = "\n\n\n\n\n                          Workload C"
-	ticklabel_list[18] = "\n\n\n\n\n                          Workload D"
+	ticklabel_list[7] = "\n\n\n\n\n                          Workload B"
+	ticklabel_list[14] = "\n\n\n\n\n                          Workload C"
+	ticklabel_list[21] = "\n\n\n\n\n                          Workload D"
+	ticklabel_list[28] = "\n\n\n\n\n                          Workload E"
+	ticklabel_list[35] = "\n\n\n\n\n                          Workload F"
+
 	print(ticklabel_list)
 
 	ax.set_xticks(np.arange(0, offset_list[0]) - 1, False)
 	ax.set_xticklabels(ticklabel_list)
 	tick_list = ax.get_xticklabels()
 	for i in range(len(tick_list)):
-		if (i % 6 != 0):
+		if (i % 7 != 0):
 			tick_list[i].set_rotation(-45)
 			tick_list[i].set_ha("left")
 		#end_if
 	#end_for
 
 
-
-	ax.set_title("Latency Per Governor and Workload", fontsize = 20, fontweight = "bold")
+	ax.set_title("Latency Per Governor and Workload:\nSaturated CPU", fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor and Workload", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Total latency (s)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
-
 	plt.show()
 
 	return
@@ -136,10 +138,11 @@ def plot_graph(latency_list_list):
 def main():
 
 	filename = ""
-	#workloads = ["A", "B", "C", "D", "E", "F"]
-	workloads = ["A", "B", "C", "E"]
-	governors = ["schedutil_none", "userspace_x", "performance_none", "powersave_none"]
-	prefix = "../logs/YCSB_SQL_"
+	workloads = ["A", "B", "C", "D", "E", "F"]
+	#workloads = ["A", "B", "C", "E"]
+	governors = ["schedutil_none", "userspace_50", "userspace_80", "performance_none", "powersave_none"]
+	#prefix = "../logs/save0ms/YCSB_SQL_"
+	prefix = "../logs/save_latency/YCSB_SQL_"
 	workload = ""
 	governor = ""
 	latency = 0.0
@@ -151,7 +154,8 @@ def main():
 		latency_list = []
 		for governor in governors:
 
-			filename = prefix + workload + "_log_" + governor + "_1.gz"
+			filename = prefix + workload + "_0ms_" + governor + "_1.gz"
+			#filename = prefix + workload + "_log_" + governor + "_1.gz"
 
 			latency = get_latency(filename)
 			print(filename + " : " + str(latency))
@@ -178,7 +182,10 @@ def quick():
 	filename = ""
 	latency = 0.0
 
-	filename = "logs/YCSB_SQL_A_log_schedutil_none_1.gz"
+	#filename = "../logs/YCSB_SQL_A_0ms_userspace_x_1.gz"
+	#filename = "../logs/save/YCSB_SQL_A_0ms_schedutil_none_1.gz"
+	filename = "../logs/save/YCSB_SQL_A_0ms_userspace_x_1.gz"
+
 
 	latency = get_latency(filename)
 
@@ -190,5 +197,6 @@ def quick():
 
 
 main()
+#quick()
 
 
