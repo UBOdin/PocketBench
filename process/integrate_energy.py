@@ -212,7 +212,7 @@ def plot_latency_bargraph(latency_list_list):
 
 	ax.set_title("Latency Per Governor and Workload:\nSaturated CPU", fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor and Workload", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Total latency (s)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total latency ($s$)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
 	plt.show()
@@ -284,9 +284,9 @@ def plot_energy_bargraph(energy_list_list):
 	#end_for
 
 
-	ax.set_title("Latency Per Governor and Workload:\nSaturated CPU", fontsize = 20, fontweight = "bold")
+	ax.set_title("Net Energy Per Governor and Workload:\nSaturated CPU", fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor and Workload", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Total energy (s)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Net energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
 	plt.show()
