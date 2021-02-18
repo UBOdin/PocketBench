@@ -55,7 +55,7 @@ def get_latency(file_name):
 
 	input_file.close()
 
-	return endtime - starttime
+	return (endtime - starttime) * 1000.0
 
 #end_def
 
@@ -147,10 +147,10 @@ def get_energy(file_name, start, stop):
 #end_def
 
 
-def plot_latency_bargraph(latency_list_list):
+def bargraph_latency(latency_list_list, saturation):
 
 	# latency_list_list = []
-
+	# saturation = ""
 	latency_list = []
 	latency = 0.0
 	clusterlen = 0
@@ -161,6 +161,7 @@ def plot_latency_bargraph(latency_list_list):
 	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
 	label = ""
 	ticklabel_list = []
+	
 
 	clusterlen = len(latency_list_list[0])
 	width = 1
@@ -210,9 +211,9 @@ def plot_latency_bargraph(latency_list_list):
 	#end_for
 
 
-	ax.set_title("Latency Per Governor and Workload:\nSaturated CPU", fontsize = 20, fontweight = "bold")
+	ax.set_title("Latency Per Governor and Workload:\n" + saturation + " CPU", fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor and Workload", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Total latency ($s$)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total latency ($ms$)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
 	plt.show()
@@ -222,10 +223,10 @@ def plot_latency_bargraph(latency_list_list):
 #end_def
 
 
-def plot_energy_bargraph(energy_list_list):
+def bargraph_energy(energy_list_list, saturation):
 
 	# energy_list_list = []
-
+	# saturation = ""
 	energy_list = []
 	energy = 0.0
 	clusterlen = 0
@@ -284,9 +285,55 @@ def plot_energy_bargraph(energy_list_list):
 	#end_for
 
 
-	ax.set_title("Net Energy Per Governor and Workload:\nSaturated CPU", fontsize = 20, fontweight = "bold")
+	ax.set_title("Net Energy Per Governor and Workload:\n" + saturation + " CPU", fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor and Workload", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Net energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
+
+	plt.tight_layout()
+	plt.show()
+
+	return
+
+#end_def
+
+
+def scatterplot_latency_energy(latency_list_list, energy_list_list, saturation):
+
+	# latency_list_list = []
+	# energy_list_list = []
+	# saturation = ""
+	latency_list = []
+	latency = 0.0
+	latency_max = 0.0
+	energy_list = []
+	energy = 0.0
+	energy_max = 0.0
+
+	latency_list = latency_list_list[0]
+	energy_list = energy_list_list[0]
+
+	marker_list = ['o', 's', 'd', '>', '<']
+	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	
+	latency_max = max(latency_list)
+	energy_max = max(energy_list)
+
+	fig, ax = plt.subplots()
+
+	print(latency_list)
+	print(energy_list)
+
+	for latency, energy, marker, label in zip(latency_list, energy_list, marker_list, label_list):
+		ax.plot(latency, energy, marker = marker, markersize = 12, label = label)
+	#end_for
+
+	ax.axis([0, latency_max * 1.1, 0, energy_max * 1.1])
+
+	plt.legend(loc = "lower right", handlelength = .8)
+
+	ax.set_title("Workload A -- " + saturation + " CPU", fontsize = 20, fontweight = "bold")
+	ax.set_xlabel("Workload Latency ($ms$)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Net Energy Cost ($\mu Ah$)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
 	plt.show()
@@ -310,7 +357,19 @@ def main():
 	energy = 0.0
 	energy_list = []
 	energy_list_list = []
+	delay = ""
+	saturation = ""
 
+	#delay = "0ms"  # Kludge -- 0ms or lognormal delay
+	delay = "log"
+	if (delay == "0ms"):
+		saturation = "Saturated"
+	elif (delay == "log"):
+		saturation = "Unsaturated"
+	else:
+		print("Error:  Unexpected delay")
+		sys.exit(1)
+	#end_if
 
 	# Get latency data:
 
@@ -325,8 +384,7 @@ def main():
 		latency_list = []
 		for governor in governors:
 
-			filename = prefix + workload + "_0ms_" + governor + "_1.gz"
-			#filename = prefix + workload + "_log_" + governor + "_1.gz"
+			filename = prefix + workload + "_" + delay + "_" + governor + "_1.gz"
 
 			latency = get_latency(filename)
 			print(filename + " : " + str(latency))
@@ -339,7 +397,7 @@ def main():
 
 	#end_for
 
-	plot_latency_bargraph(latency_list_list)
+	bargraph_latency(latency_list_list, saturation)
 
 
 	# Get energy data:
@@ -349,12 +407,14 @@ def main():
 	prefix = "../logs/energy_csv/sql_"
 
 	# Really awful kludge:  manually observed start/stop times, to nearest second:
-	# 0ms
-	start_list_list = [[24, 24, 24, 23, 24], [24, 24, 24, 24, 25], [24, 18, 24, 21, 24], [24, 22, 25, 24, 24], [25, 24, 25, 23, 23], [25, 24, 24, 24, 25]]
-	stop_list_list =  [[32, 32, 30, 29, 43], [31, 31, 31, 29, 44], [33, 25, 31, 26, 43], [31, 30, 31, 29, 43], [38, 39, 38, 32, 61], [32, 32, 31, 30, 43]]
-	# log
-	#start_list_list = [[24, 22, 23, 18, 25], [24, 23, 26, 24, 24], [25, 26, 25, 24, 15], [23, 25, 21, 24, 22], [23, 24, 24, 18, 19], [24, 25, 24, 23, 24]]
-	#stop_list_list =  [[103, 85, 84, 89, 108], [91, 83, 77, 56, 93], [90, 81, 74, 71, 85], [87, 81, 71, 68, 90], [119, 94, 95, 62, 127], [102, 88, 83, 72, 108]]
+	if (delay == "0ms"):
+		start_list_list = [[24, 24, 24, 23, 24], [24, 24, 24, 24, 25], [24, 18, 24, 21, 24], [24, 22, 25, 24, 24], [25, 24, 25, 23, 23], [25, 24, 24, 24, 25]]
+		stop_list_list =  [[32, 32, 30, 29, 43], [31, 31, 31, 29, 44], [33, 25, 31, 26, 43], [31, 30, 31, 29, 43], [38, 39, 38, 32, 61], [32, 32, 31, 30, 43]]
+	#end_if
+	if (delay == "log"):
+		start_list_list = [[24, 22, 23, 18, 25], [24, 23, 26, 24, 24], [25, 26, 25, 24, 15], [23, 25, 21, 24, 22], [23, 24, 24, 18, 19], [24, 25, 24, 23, 24]]
+		stop_list_list =  [[103, 85, 84, 89, 108], [91, 83, 77, 56, 93], [90, 81, 74, 71, 85], [87, 81, 71, 68, 90], [119, 94, 95, 62, 127], [102, 88, 83, 72, 108]]
+	#end_if
 
 	start_list = []
 	stop_list = []
@@ -370,8 +430,7 @@ def main():
 		energy_list = []
 		for governor, start, stop, null_start in zip(governors, start_list, stop_list, null_list):
 
-			filename = prefix + workload + "_0ms_" + governor + ".csv"
-			#filename = prefix + workload + "_log_" + governor + ".csv"
+			filename = prefix + workload + "_" + delay + "_" + governor + ".csv"
 			energy = get_energy(filename, start, stop)
 			print(filename + " : " + str(energy))
 
@@ -390,7 +449,10 @@ def main():
 
 	#end_for
 
-	plot_energy_bargraph(energy_list_list)
+	bargraph_energy(energy_list_list, saturation)
+
+
+	scatterplot_latency_energy(latency_list_list, energy_list_list, saturation)
 
 	return
 
