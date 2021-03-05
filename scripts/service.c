@@ -107,27 +107,40 @@ int main(int argc, char** argv) {
 	snprintf(buffer, BUFFER_SIZE, "Accepted incoming connection.  Assigned new fd #%i\n", result);
 	writelog(buffer);
 
-	// Read in chunk of data:
-	result = recv(sock, buffer, BUFFER_SIZE, 0);
-	errtrap("recv");
-	// Nullterm the string:
-	buffer[result] = (char)0;
 
-writelog("Received data:\n");
-writelog(buffer);
-writelog("\n");
-snprintf(buffer, BUFFER_SIZE, "%d bytes received\n", result);
-writelog(buffer);
+	fd_set fds;
 
-printf("Type something:  ");
-fflush(stdout);
-result = read(1, buffer, BUFFER_SIZE);
-errtrap("read");
-printf("Bytes read:  %d\n", result);
-buffer[result] = 0;
-printf("%s\n", buffer);
+	while (1) {
 
-result = send(sock, buffer, result, 0);
+		FD_ZERO(&fds);
+		FD_SET(0, &fds);
+		FD_SET(sock, &fds);
+
+		result = select(sock + 1, &fds, NULL, NULL, NULL);
+		errtrap("select");
+
+		if (FD_ISSET(0, &fds)) {
+
+			result = read(1, buffer, BUFFER_SIZE);
+			errtrap("read");
+			printf("Bytes read:  %d\n", result);
+			printf("Type again\n");
+			buffer[result - 1] = 0;
+			result = send(sock, buffer, result - 1, 0);
+			errtrap("send");
+
+		}
+
+		if (FD_ISSET(sock, &fds)) {
+
+			result = recv(sock, buffer, BUFFER_SIZE, 0);
+			errtrap("recv");
+			buffer[result] = 0;
+			printf("Received data:  %s\n", buffer);
+
+		}
+
+	}
 
 	result = close(sock);
 	errtrap("close");
