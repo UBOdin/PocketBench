@@ -21,14 +21,27 @@ set_governor() {
 		# Speed is only valid for the userspace governor:
 		if [ "$1" = "userspace" ]; then
 			# kludge -- hardcode speeds for now in lieu of "$frequency":
+			speed="X"
 			if [ "$i" = "0" ]; then
-				echo "960000" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
+				if [ "$frequency" = "50" ]; then
+					speed="960000"
+				fi
+				if [ "$frequency" = "80" ]; then
+					speed="1478400"
+				fi
 			fi
 			if [ "$i" = "4" ]; then
-				echo "1267200" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
+				if [ "$frequency" = "50" ]; then
+					speed="1267200"
+				fi
+				if [ "$frequency" = "80" ]; then
+					speed="1958400"
+				fi
 			fi
+
+			echo "$speed" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed
 		fi
-		cat $cpu_dir/cpu$i/cpufreq/scaling_setspeed 
+		cat $cpu_dir/cpu$i/cpufreq/scaling_setspeed >> $logfile
 
 	done
 
