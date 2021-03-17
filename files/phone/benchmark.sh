@@ -49,13 +49,13 @@ set_governor() {
 
 send_wakeup() {
 
-	svc wifi enable
-	sleep 60 # NEED TO FIX THIS -- do Blocking in lieu
+	##svc wifi enable
+	sleep 10 # NEED TO FIX THIS -- do Blocking in lieu
 	echo "Phone sending wifi wakeup to server" >> $logfile
 	/data/phone.exe $wakeport
 	result=$?
 	echo "Wifi client socket result:  $result" >> $logfile
-	svc wifi disable
+	##svc wifi disable
 
 }
 
@@ -85,7 +85,7 @@ echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
 setenforce 0
 
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
-##printf "Getpid:\n$$\n" >> /data/start.pipe
+printf "Getpid:\n$$\n" >> /data/start.pipe
 
 sleep 30
 
@@ -173,9 +173,9 @@ cat $trace_dir/trace > /data/trace.log
 set_governor "$default"
 
 # Sanity check that we are still on battery:
-dumpsys battery | grep AC > /data/power.txt
+dumpsys battery > /data/power.txt
 
-##send_wakeup
+send_wakeup
 echo "OK" > $errfile
 echo "Clean Exit" >> $logfile
 echo foo > /sys/power/wake_unlock
