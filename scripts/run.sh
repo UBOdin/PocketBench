@@ -2,6 +2,16 @@
 # run benchmark
 
 wakeport="2017"  # Phone-client wifi wakeup port
+# $2 = DB (sql, bdb, bdb100); $3 = workload (A, B, C etc.); $6 = delay (lognormal etc.)
+if [ "$6" = "lognormal" ]; then
+	delay="log"
+else
+	delay="$6"
+fi
+timestamp="$(date +%Y%m%d%H%M%S)"
+#filesuffix="${2}_${3}_${delay}_${4}_${5}_${7}_$timestamp"
+filesuffix="${2}_${3}_${delay}_${4}_${5}_${7}"
+filename="YCSB_${filesuffix}"
 
 printf "Rebooting and running benchmark on device %s\n" $1
 
@@ -21,35 +31,35 @@ echo "Starting phone script"
 adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
 #adb -s $1 shell sh /data/benchmark.sh $4 $5 $wakeport
 
-echo "WAITING -- START MONSOON"
-# Block to allow manual phone disconnect during run for energy measurement:
-#sleep 30
-
-sleep 10 # Make sure on-phone script is running before cutting power:
-#ykushcmd -d 1
-echo "START MONSOON"
-##./monsoon.py $2 $3 $6 $4 $5 &
-##monsoonpid=$!
-##echo "Monsoon pid:  $monsoonpid"
-
-##sleep 30 # Make sure (1) power is cut and (2) phone has finished :30 block before blocking on wifi wakeup ping:
-##./server.exe $wakeport
+sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
+echo "START" | nc -U -w0 relay.sock
 result=$?
-#ykushcmd -u 1
-# For non-null workloads, signal monsoon logging process to stop:
-if [ "$3" != "N" ]; then
-##	kill -10 $monsoonpid
-	echo "Sent Monsoon stop signal"
+if [ "$result" != "0" ]; then
+	echo "Error on meter start"
+	exit 1
 else
-	echo "Waiting on Monsoon timeout"
+	echo "OK on meter start"
 fi
-echo "STOP MONSOON"
 
+# Block on wakeup wifi ping from phone:
+./server.exe $wakeport
+result=$?
 if [ "$result" != "0" ]; then
 	echo "Error on wifi block"
-	exit 3
+	exit 1
 else
 	echo "OK on wifi block"
+fi
+
+sleep 10
+#echo "STOP" | nc -U -w0 relay.sock
+echo "SAVEmonsoon_${filesuffix}" | nc -U -w0 relay.sock
+result=$?
+if [ "$result" != "0" ]; then
+	echo "Error on meter stop"
+	exit 1
+else
+	echo "OK on meter stop"
 fi
 
 # Block until phone is manually reconnected after measurement:
@@ -71,28 +81,15 @@ fi
 adb pull /data/phonelog.txt
 cat phonelog.txt
 
-# Get result of Monsoon script (and trap for error):
-##wait "$monsoonpid"
-##result="$?"
-##echo "Monsoon result:  $result"
-
 echo "Run ${2} ${3} ${6} ${4} ${5} -- ${result}" >> progressfile.txt
-
-if [ "$result" != "0" ]; then
-	echo "ERR ON MONS"
-##	exit 4
-else
-	echo "OK ON MONS"
-fi
 
 # Sanity check:  Verify benchmark was run on-battery:
 adb pull /data/power.txt
-result2="$(cat power.txt)"
+result="$(cat power.txt | grep "USB")"
 echo "BATTERY:  $result2"
-adb shell rm /data/power.txt
-if [ "$result2" != "  AC powered: false" ]; then
+if [ "$result" != "  USB powered: false" ]; then
 	echo "Error on battery power"
-	exit 2
+	exit 1 
 else
 	echo "OK on battery power"
 fi
@@ -100,45 +97,20 @@ fi
 
 # pull log
 adb -s $1 pull /data/trace.log
-# $2 = DB (sql, bdb, bdb100); $3 = workload (A, B, C etc.); $6 = delay (lognormal etc.)
-if [ "$6" = "lognormal" ]; then
-	delay="log"
-else
-	delay="$6"
-fi
-timestamp="$(date +%Y%m%d%H%M%S)"
-#filename="YCSB_${2}_${3}_${delay}_${4}_${5}_$timestamp"
-#filename="YCSB_${2}_${3}_${delay}_${4}_${5}"
-#filename="YCSB_${2}_${3}_${delay}_${4}_${5}_${7}_$timestamp"
-filename="YCSB_${2}_${3}_${delay}_${4}_${5}_${7}"
 mv trace.log logs/$filename
 gzip logs/$filename
-
-# save out energy tracefile:
-energyfile="monsoon_${2}_${3}_${delay}_${4}_${5}"
-#energyfile="monsoon_${2}_${3}_${delay}_${4}_${5}_$timestamp"
-mv monsoonout.txt energy/$energyfile
-gzip energy/$energyfile
 
 printf "FILENAME:  %s\n" "$filename"
 printf "Completed benchmark for device %s\n" $1
 
 # Sanity check:  Verify main phone script matches:
 #adb pull /data/start.txt
-#result1="$(cat start.txt)"
-#echo "Script pid:  $result1"
-#adb shell rm /data/start.txt
+#result="$(cat start.txt)"
+#echo "Script pid:  $result"
 ## TODO Fix this:  actually check pids
-#if [ "$result1" != "  AC powered: false" ]; then
-#	echo "Error on script pid"
-#	#exit 1
-#else
-#	echo "OK on script pid"
-#fi
 
 
 #TODO:
-# (9) add socket apps to repo and push in script
 # (10) adb:  when USB connection is cut, the foreground proc dies, even if run with sighup -- ?! (which signal?  kill?)
 # (11) adb:  proc on desktop blocks until all phone procs exit, even if already reparented to init -- ?!
 # (12) Fix ERR result from results.txt
@@ -146,12 +118,6 @@ printf "Completed benchmark for device %s\n" $1
 # (14) Clean-up socket apps (e.g. printing "Exit Clean" to console => nohup)
 # (15) Consistincy-ize the -s $1 phone serial number stuff
 # (16) Battery stats => ftrace logfile
-# (17) logcat events -- re:  bimodal latency
-#
 # (19) Add check for pid==pid
-# (20) Parameterize voltage
-# (21) Nice -20
 
-# re:  blocking syscalls and spurious wakeup -- why while () and not if ()?
-# syncing accept() and connect()
 
