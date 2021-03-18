@@ -161,7 +161,7 @@ def bargraph_latency(latency_list_list, saturation):
 	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
 	label = ""
 	ticklabel_list = []
-	
+
 
 	clusterlen = len(latency_list_list[0])
 	width = 1
@@ -309,33 +309,45 @@ def scatterplot_latency_energy(latency_list_list, energy_list_list, saturation):
 	energy = 0.0
 	energy_max = 0.0
 
-	latency_list = latency_list_list[0]
-	energy_list = energy_list_list[0]
+	#latency_list = latency_list_list[0]
+	#energy_list = energy_list_list[0]
 
 	marker_list = ['o', 's', 'd', '>', '<']
 	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
-	
-	latency_max = max(latency_list)
-	energy_max = max(energy_list)
 
-	fig, ax = plt.subplots()
+	workload_list = ["A", "B", "C", "D", "E", "F"]
 
-	print(latency_list)
-	print(energy_list)
+	fig, ax_list_list = plt.subplots(2, 3)
+	ax = "" # pyplot object
 
-	for latency, energy, marker, label in zip(latency_list, energy_list, marker_list, label_list):
-		ax.plot(latency, energy, marker = marker, markersize = 12, label = label)
+	for latency_list, energy_list, workload, i in zip(latency_list_list, energy_list_list, workload_list, range(len(workload_list))):
+
+		latency_max = max(latency_list)
+		energy_max = max(energy_list)
+
+		ax = ax_list_list[(i / 3), (i % 3)]
+		#ax = ax_list_list[i]
+
+		print(i)
+		print(latency_list)
+		print(energy_list)
+
+		for latency, energy, marker, label in zip(latency_list, energy_list, marker_list, label_list):
+			ax.plot(latency, energy, marker = marker, markersize = 12, label = label)
+		#end_for
+
+		ax.axis([0, latency_max * 1.1, 0, energy_max * 1.1])
+
+		ax.legend(loc = "lower right", handlelength = .8)
+
+		ax.set_title("Workload " + workload + " -- " + saturation + " CPU", fontsize = 16, fontweight = "bold")
+		ax.set_xlabel("Total workload runtime ($ms$)\n", fontsize = 16, fontweight = "bold")
+		ax.set_ylabel("Net energy cost ($\mu Ah$)", fontsize = 16, fontweight = "bold")
+
 	#end_for
 
-	ax.axis([0, latency_max * 1.1, 0, energy_max * 1.1])
-
-	plt.legend(loc = "lower right", handlelength = .8)
-
-	ax.set_title("Workload A -- " + saturation + " CPU", fontsize = 20, fontweight = "bold")
-	ax.set_xlabel("Workload Latency ($ms$)", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Net Energy Cost ($\mu Ah$)", fontsize = 16, fontweight = "bold")
-
-	plt.tight_layout()
+	#plt.tight_layout()
+	plt.subplots_adjust(hspace = .3)
 	plt.show()
 
 	return
@@ -410,10 +422,12 @@ def main():
 	if (delay == "0ms"):
 		start_list_list = [[24, 24, 24, 23, 24], [24, 24, 24, 24, 25], [24, 18, 24, 21, 24], [24, 22, 25, 24, 24], [25, 24, 25, 23, 23], [25, 24, 24, 24, 25]]
 		stop_list_list =  [[32, 32, 30, 29, 43], [31, 31, 31, 29, 44], [33, 25, 31, 26, 43], [31, 30, 31, 29, 43], [38, 39, 38, 32, 61], [32, 32, 31, 30, 43]]
-	#end_if
-	if (delay == "log"):
+	elif (delay == "log"):
 		start_list_list = [[24, 22, 23, 18, 25], [24, 23, 26, 24, 24], [25, 26, 25, 24, 15], [23, 25, 21, 24, 22], [23, 24, 24, 18, 19], [24, 25, 24, 23, 24]]
 		stop_list_list =  [[103, 85, 84, 89, 108], [91, 83, 77, 56, 93], [90, 81, 74, 71, 85], [87, 81, 71, 68, 90], [119, 94, 95, 62, 127], [102, 88, 83, 72, 108]]
+	else:
+		print("Error:  Invalid delay")
+		sys.exit(1)
 	#end_if
 
 	start_list = []
