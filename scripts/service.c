@@ -63,6 +63,8 @@ int main(int argc, char** argv) {
 	int sock_inet;
 	int sock_unix;
 	char relay_file[] = "relay.sock";
+	fd_set fds;
+	int fds_max;
 
 	if (argc != 2) {
 		printf("Missing port number\n");
@@ -113,8 +115,6 @@ int main(int argc, char** argv) {
 	snprintf(buffer, BUFFER_SIZE, "Accepted incoming connection.  Assigned new fd #%i\n", result);
 	writelog(buffer);
 
-//
-
 	// Remove any previous relay file:
 	result = unlink(relay_file);
 	// Ignore nonexistent file error:
@@ -140,10 +140,6 @@ int main(int argc, char** argv) {
 	// Turn on listening:
 	result = listen(listen_unix, LISTEN_BACKLOG);
 	errtrap("listen");
-
-//
-	fd_set fds;
-	int fds_max;
 
 	sock_unix = 0;
 
@@ -189,6 +185,14 @@ int main(int argc, char** argv) {
 			}
 			buffer[result] = 0;
 			printf("Received inet data:  %s\n", buffer);
+			if (sock_unix > 0) {
+				result = send(sock_unix, buffer, result, 0);
+				errtrap("send");
+printf("SENDING...\n");
+				result = close(sock_unix);
+				errtrap("close");
+				sock_unix = 0;
+			}
 
 		}
 
@@ -202,11 +206,15 @@ int main(int argc, char** argv) {
 
 		}
 
+		// N.b. Need to check whether unix socket connection exists (i.e. whether sock_unix > 0)
+		// Otherwise, we will get a false positive on FD_ISSET(), since sock_unix will be tested on 0 (STDIN):
 		if ((sock_unix > 0) && (FD_ISSET(sock_unix, &fds))) {
 
 			result = recv(sock_unix, buffer, BUFFER_SIZE, 0);
 			errtrap("recv");
 			if (result == 0) {
+				result = close(sock_unix);
+				errtrap("close");
 				sock_unix = 0;
 				printf("Lost unix connection\n");
 			} else {
