@@ -32,7 +32,7 @@ adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
 #adb -s $1 shell sh /data/benchmark.sh $4 $5 $wakeport
 
 sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
-echo "START" | nc -U -w0 relay.sock
+echo "START" | nc -UN relay.sock
 result=$?
 if [ "$result" != "0" ]; then
 	echo "Error on meter start"
@@ -52,11 +52,12 @@ else
 fi
 
 sleep 10
-#echo "STOP" | nc -U -w0 relay.sock
-echo "SAVEmonsoon_${filesuffix}" | nc -U -w0 relay.sock
-result=$?
-if [ "$result" != "0" ]; then
-	echo "Error on meter stop"
+#echo "STOP" | nc -UN relay.sock
+#result=$?
+#if [ "$result" != "0" ]; then
+result=$(echo "SAVEmonsoon_${filesuffix}" | nc -U relay.sock)
+if [ "$result" != "OK" ]; then
+	echo "Error on meter stop:  $result"
 	exit 1
 else
 	echo "OK on meter stop"
