@@ -60,25 +60,39 @@ def get_latency(file_name):
 #end_def
 
 
-def get_energy(file_name, start, stop):
+def get_energy(file_name):
 
 	# file_name = ""
-	# start = 0.0
-	# stop = 0.0
 
 	logline = ""
 	logline_list = []
 	iteration = 0
 	time = 0.0
 	amps = 0.0
-	watts = 0.0
 	volts = 0.0
 
 	amps_total = 0.0
-	watts_total = 0.0
+	start = 0.0
+	stop = 0.0
 
+	# Get linecount (kludge):
 	input_file = open(file_name, "r")
+	while (True):
+		logline = input_file.readline()
+		if (logline == ""):
+			break
+		#end_if
+		iteration += 1
+	#end_while
+	input_file.close()
 
+	start = 18.0  # fixed
+	stop = float(iteration - 2) / 5000.0 - 19.5  # Set stop to 19.5s before end
+	iteration = 0  # reset counter
+	print("File:  %s  Stop:  %f" % (file_name, stop))
+
+	# Reopen file:
+	input_file = open(file_name, "r")
 	# Skip first line:
 	logline = input_file.readline()
 
@@ -100,20 +114,23 @@ def get_energy(file_name, start, stop):
 
 		logline_list = logline.split(",")
 		# Sanity
-		if (len(logline_list) != 4):
+		if (len(logline_list) != 3):
 			print("Error:  Unexpected line length")
 			sys.exit(1)
 		#end_if
 
 		time = float(logline_list[0])
 		amps = float(logline_list[1])
-		watts = float(logline_list[2])
-		volts = float(logline_list[3])
+		volts = float(logline_list[2])
 
 		# Sanity
 		if ((volts < 3.9) or (volts > 4.1)):
 			print("Error:  Unexpected voltage")
-			sys.exit(1)
+
+			print(file_name)
+			print(iteration)
+
+			#sys.exit(1)
 		#end_if
 
 		if (time <= start):
@@ -125,9 +142,9 @@ def get_energy(file_name, start, stop):
 		#end_if
 
 		amps_total += amps
-		watts_total += watts
 
 	#end_while
+
 
 	'''
 	print("iterations:  %d" % (iteration))
@@ -373,7 +390,7 @@ def main():
 	saturation = ""
 
 	#delay = "0ms"  # Kludge -- 0ms or lognormal delay
-	delay = "log"
+	delay = "0ms"
 	if (delay == "0ms"):
 		saturation = "Saturated"
 	elif (delay == "log"):
@@ -388,8 +405,7 @@ def main():
 	workloads = ["A", "B", "C", "D", "E", "F"]
 	#workloads = ["A", "B", "C", "E"]
 	governors = ["schedutil_none", "userspace_50", "userspace_80", "performance_none", "powersave_none"]
-	#prefix = "../logs/save0ms/YCSB_SQL_"
-	prefix = "../logs/save_latency/YCSB_SQL_"
+	prefix = "../logs/combined/YCSB_SQL_"
 
 	for workload in workloads:
 
@@ -414,48 +430,18 @@ def main():
 
 	# Get energy data:
 
-	workloads = ["a", "b", "c", "d", "e", "f"]
-	governors = ["schedutil", "fix50", "fix80", "performance", "powersave"]
-	prefix = "../logs/energy_csv/sql_"
+	prefix = "../logs/combined/monsoon_SQL_"
 
-	# Really awful kludge:  manually observed start/stop times, to nearest second:
-	if (delay == "0ms"):
-		start_list_list = [[24, 24, 24, 23, 24], [24, 24, 24, 24, 25], [24, 18, 24, 21, 24], [24, 22, 25, 24, 24], [25, 24, 25, 23, 23], [25, 24, 24, 24, 25]]
-		stop_list_list =  [[32, 32, 30, 29, 43], [31, 31, 31, 29, 44], [33, 25, 31, 26, 43], [31, 30, 31, 29, 43], [38, 39, 38, 32, 61], [32, 32, 31, 30, 43]]
-	elif (delay == "log"):
-		start_list_list = [[24, 22, 23, 18, 25], [24, 23, 26, 24, 24], [25, 26, 25, 24, 15], [23, 25, 21, 24, 22], [23, 24, 24, 18, 19], [24, 25, 24, 23, 24]]
-		stop_list_list =  [[103, 85, 84, 89, 108], [91, 83, 77, 56, 93], [90, 81, 74, 71, 85], [87, 81, 71, 68, 90], [119, 94, 95, 62, 127], [102, 88, 83, 72, 108]]
-	else:
-		print("Error:  Invalid delay")
-		sys.exit(1)
-	#end_if
-
-	start_list = []
-	stop_list = []
-	start = 0.0
-	stop = 0.0
-
-	null_list = [23, 25, 23, 25, 24]
-	null_start = 0.0
-	null_energy = 0.0
-
-	for workload, start_list, stop_list in zip(workloads, start_list_list, stop_list_list):
+	for workload in workloads:
 
 		energy_list = []
-		for governor, start, stop, null_start in zip(governors, start_list, stop_list, null_list):
+		for governor in governors:
 
-			filename = prefix + workload + "_" + delay + "_" + governor + ".csv"
-			energy = get_energy(filename, start, stop)
+			filename = prefix + workload + "_" + delay + "_" + governor + "_1.csv"
+			energy = get_energy(filename)
 			print(filename + " : " + str(energy))
 
-			print("Times:  %d %d %d" % (start, stop, stop - start))
-
-			# Get null energy:
-			filename = "../logs/energy_csv/sql_n_null_" + governor + ".csv"
-			null_energy = get_energy(filename, null_start, null_start + (stop - start))
-			print("Null energy:  %f" % (null_energy))
-
-			energy_list.append(energy - null_energy)
+			energy_list.append(energy)
 
 		#end_for
 
