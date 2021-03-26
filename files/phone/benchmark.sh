@@ -20,28 +20,13 @@ set_governor() {
 		echo "$1" > $cpu_dir/cpu$i/cpufreq/scaling_governor
 		# Speed is only valid for the userspace governor:
 		if [ "$1" = "userspace" ]; then
-			# kludge -- hardcode speeds for now in lieu of "$frequency":
-			speed="X"
-			if [ "$i" = "0" ]; then
-				if [ "$frequency" = "50" ]; then
-					speed="960000"
-				fi
-				if [ "$frequency" = "80" ]; then
-					speed="1478400"
-				fi
-			fi
-			if [ "$i" = "4" ]; then
-				if [ "$frequency" = "50" ]; then
-					speed="1267200"
-				fi
-				if [ "$frequency" = "80" ]; then
-					speed="1958400"
-				fi
-			fi
-
-			echo "$speed" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed
+			# Extract the specific big-little speeds from the uber-parameter:
+			freq_little="$(echo $frequency | cut -d "-" -f1)"
+			freq_big="$(echo $frequency | cut -d "-" -f2)"
+			echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
+			echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
 		fi
-		cat $cpu_dir/cpu$i/cpufreq/scaling_setspeed >> $logfile
+		#cat $cpu_dir/cpu$i/cpufreq/scaling_setspeed >> $logfile
 
 	done
 
@@ -153,10 +138,10 @@ echo "$result" >> $logfile
 
 ##toggle_events 0
 
+echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
+
 echo "LOGMARKER Battery after:" >> $trace_log
 dumpsys battery >> $trace_log
-
-echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 
 # Trap for on-app error:
 if [ "$result" == "ERR" ]; then
@@ -164,6 +149,9 @@ if [ "$result" == "ERR" ]; then
 	error_exit "ERR on benchmark app"
 fi
 echo "Received benchmark app finished signal" >> $logfile
+
+cat $cpu_dir/cpu0/cpufreq/scaling_setspeed >> $trace_log
+cat $cpu_dir/cpu4/cpufreq/scaling_setspeed >> $trace_log
 
 # Reset CPU governors:
 set_governor "$default"
@@ -174,14 +162,14 @@ dumpsys battery > /data/power.txt
 send_wakeup
 echo "OK" > $errfile
 echo "Clean Exit" >> $logfile
-echo foo > /sys/power/wake_unlock
+#echo foo > /sys/power/wake_unlock
 
 # Block until we receive cleanup ping from foreground script:
 result="$(cat /data/finish.pipe)"
 echo $result >> $trace_log  # Save timesync (received as wakeup ping)
 echo $(date +"Phone time 3:  %H:%M:%S.%N") >> $trace_log
 echo "Received wakeup ping from main script" >> $logfile
-#echo foo > /sys/power/wake_unlock
+echo foo > /sys/power/wake_unlock
 
 # Pull results:
 cat $trace_dir/trace > /data/trace.log
