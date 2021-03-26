@@ -132,8 +132,8 @@ set_governor "$governor"
 ##echo 150000 > $trace_dir/buffer_size_kb
 ##toggle_events 1
 echo > $trace_dir/trace
-#echo 1 > $trace_dir/tracing_enabled
 echo 1 > $trace_dir/tracing_on
+echo $(date +"Phone time 1:  %H:%M:%S.%N") >> $trace_log
 
 echo "LOGMARKER Battery before:" >> $trace_log
 dumpsys battery >> $trace_log
@@ -151,12 +151,12 @@ echo "Start blocking on benchmark app signal" >> $logfile
 result="$(cat /data/results.pipe)"
 echo "$result" >> $logfile
 
+##toggle_events 0
+
 echo "LOGMARKER Battery after:" >> $trace_log
 dumpsys battery >> $trace_log
 
-# Turn off tracing:
-##echo 0 > $trace_dir/tracing_on
-##toggle_events 0
+echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 
 # Trap for on-app error:
 if [ "$result" == "ERR" ]; then
@@ -164,10 +164,6 @@ if [ "$result" == "ERR" ]; then
 	error_exit "ERR on benchmark app"
 fi
 echo "Received benchmark app finished signal" >> $logfile
-
-# Pull results:
-cat $trace_dir/trace > /data/trace.log
-##echo 1500 > $trace_dir/buffer_size_kb
 
 # Reset CPU governors:
 set_governor "$default"
@@ -179,5 +175,18 @@ send_wakeup
 echo "OK" > $errfile
 echo "Clean Exit" >> $logfile
 echo foo > /sys/power/wake_unlock
+
+# Block until we receive cleanup ping from foreground script:
+result="$(cat /data/finish.pipe)"
+echo $result >> $trace_log  # Save timesync (received as wakeup ping)
+echo $(date +"Phone time 3:  %H:%M:%S.%N") >> $trace_log
+echo "Received wakeup ping from main script" >> $logfile
+#echo foo > /sys/power/wake_unlock
+
+# Pull results:
+cat $trace_dir/trace > /data/trace.log
+##echo 1500 > $trace_dir/buffer_size_kb
+echo 0 > $trace_dir/tracing_on
+
 exit 0
 

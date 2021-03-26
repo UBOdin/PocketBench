@@ -5,6 +5,10 @@
 rm /data/start.pipe
 mknod /data/start.pipe p
 
+# Create another pipe to synch end of main script with foreground script:
+rm /data/finish.pipe
+mknod /data/finish.pipe p
+
 # Launch main benchmark script in the background:
 nohup sh /data/benchmark.sh $1 $2 $3 > /data/output.out &
 
