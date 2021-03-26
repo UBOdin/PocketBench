@@ -53,10 +53,11 @@ fi
 
 sleep 10
 #echo "STOP" | nc -UN relay.sock
-#result=$?
-#if [ "$result" != "0" ]; then
 result=$(echo "SAVEmonsoon_${filesuffix}" | nc -U relay.sock)
-if [ "$result" != "OK" ]; then
+# Split up return string from meter into errflag and timestamp:
+error_flag=(echo $result | cut -c1-2)
+meter_time=$(echo $result | cut -c3-)
+if [ "$error_flag" != "OK" ]; then
 	echo "Error on meter stop:  $result"
 	exit 1
 else
@@ -67,7 +68,10 @@ fi
 echo "Waiting for phone reconnect..."
 adb wait-for-device
 
-# Get results (and trap for error):
+# Wakeup phone script to commence cleanup (and simultaneously inject synchronization timestamp):
+adb shell "echo $meter_time > /data/finish.pipe"
+
+# Trap for errors on phone script:
 adb pull /data/results.txt
 result="$(cat results.txt)"
 echo "Benchmark results:  $result"
@@ -78,11 +82,6 @@ if [ "$result" = "ERR" ]; then
 else
 	echo "OK on phone script" 
 fi
-
-adb pull /data/phonelog.txt
-cat phonelog.txt
-
-echo "Run ${2} ${3} ${6} ${4} ${5} -- ${result}" >> progressfile.txt
 
 # Sanity check:  Verify benchmark was run on-battery:
 adb pull /data/power.txt
@@ -96,7 +95,9 @@ else
 fi
 
 
-# pull log
+# pull script log and tracing log:
+adb pull /data/phonelog.txt
+cat phonelog.txt
 adb -s $1 pull /data/trace.log
 mv trace.log logs/$filename
 gzip logs/$filename
