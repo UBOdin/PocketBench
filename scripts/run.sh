@@ -8,9 +8,11 @@ if [ "$6" = "lognormal" ]; then
 else
 	delay="$6"
 fi
+cpuspeed="$(echo $5 | cut -d ":" -f2)"
+filespeed="$(echo $5 | cut -d ":" -f1)"
 timestamp="$(date +%Y%m%d%H%M%S)"
-#filesuffix="${2}_${3}_${delay}_${4}_${5}_${7}_$timestamp"
-filesuffix="${2}_${3}_${delay}_${4}_${5}_${7}"
+#filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
+filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}"
 filename="YCSB_${filesuffix}"
 
 printf "Rebooting and running benchmark on device %s\n" $1
@@ -24,12 +26,12 @@ adb -s $1 wait-for-device
 sleep 10
 printf "Rooted\n"
 
-adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $5 $6 $7 #create database
+adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $cpuspeed $6 $7 #create database
 
 sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
-adb -s $1 shell sh /data/start_benchmark.sh $4 $5 $wakeport &
-#adb -s $1 shell sh /data/benchmark.sh $4 $5 $wakeport
+adb -s $1 shell sh /data/start_benchmark.sh $4 $cpuspeed $wakeport &
+#adb -s $1 shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
 
 sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
 echo "START" | nc -UN relay.sock
@@ -55,7 +57,9 @@ sleep 10
 #echo "STOP" | nc -UN relay.sock
 result=$(echo "SAVEmonsoon_${filesuffix}" | nc -U relay.sock)
 # Split up return string from meter into errflag and timestamp:
-error_flag=(echo $result | cut -c1-2)
+echo "RESULT"
+echo $result
+error_flag=$(echo $result | cut -c1-2)
 meter_time=$(echo $result | cut -c3-)
 if [ "$error_flag" != "OK" ]; then
 	echo "Error on meter stop:  $result"
