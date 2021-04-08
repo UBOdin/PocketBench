@@ -14,6 +14,7 @@ timestamp="$(date +%Y%m%d%H%M%S)"
 #filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
 filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}"
 filename="YCSB_${filesuffix}"
+meter="0"  # boolean -- whether using Monsoon meter
 
 printf "Rebooting and running benchmark on device %s\n" $1
 
@@ -33,14 +34,18 @@ echo "Starting phone script"
 adb -s $1 shell sh /data/start_benchmark.sh $4 $cpuspeed $wakeport &
 #adb -s $1 shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
 
-sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
-echo "START" | nc -UN relay.sock
-result=$?
-if [ "$result" != "0" ]; then
-	echo "Error on meter start"
-	exit 1
+if [ "$meter" = "1" ]; then
+	sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
+	echo "START" | nc -UN relay.sock
+	result=$?
+	if [ "$result" != "0" ]; then
+		echo "Error on meter start"
+		exit 1
+	else
+		echo "OK on meter start"
+	fi
 else
-	echo "OK on meter start"
+	echo "(No meter start)"
 fi
 
 # Block on wakeup wifi ping from phone:
@@ -53,19 +58,24 @@ else
 	echo "OK on wifi block"
 fi
 
-sleep 10
-#echo "STOP" | nc -UN relay.sock
-result=$(echo "SAVEmonsoon_${filesuffix}" | nc -U relay.sock)
-# Split up return string from meter into errflag and timestamp:
-echo "RESULT"
-echo $result
-error_flag=$(echo $result | cut -c1-2)
-meter_time=$(echo $result | cut -c3-)
-if [ "$error_flag" != "OK" ]; then
-	echo "Error on meter stop:  $result"
-	exit 1
+if [ "$meter" = "1" ]; then
+	sleep 10
+	#echo "STOP" | nc -UN relay.sock
+	result=$(echo "SAVEmonsoon_${filesuffix}" | nc -U relay.sock)
+	# Split up return string from meter into errflag and timestamp:
+	echo "RESULT"
+	echo $result
+	error_flag=$(echo $result | cut -c1-2)
+	meter_time=$(echo $result | cut -c3-)
+	if [ "$error_flag" != "OK" ]; then
+		echo "Error on meter stop:  $result"
+		exit 1
+	else
+		echo "OK on meter stop"
+	fi
 else
-	echo "OK on meter stop"
+	echo "(No meter stop)"
+	meter_time="(dummy)"
 fi
 
 # Block until phone is manually reconnected after measurement:
@@ -87,17 +97,20 @@ else
 	echo "OK on phone script" 
 fi
 
-# Sanity check:  Verify benchmark was run on-battery:
-adb pull /data/power.txt
-result="$(cat power.txt | grep "USB")"
-echo "BATTERY:  $result2"
-if [ "$result" != "  USB powered: false" ]; then
-	echo "Error on battery power"
-	exit 1 
+if [ "$meter" = "1" ]; then
+	# Sanity check:  Verify benchmark was run on-battery:
+	adb pull /data/power.txt
+	result="$(cat power.txt | grep "USB")"
+	echo "BATTERY:  $result2"
+	if [ "$result" != "  USB powered: false" ]; then
+		echo "Error on battery power"
+		exit 1
+	else
+		echo "OK on battery power"
+	fi
 else
-	echo "OK on battery power"
+	echo "(skipping battery sanity)"
 fi
-
 
 # pull script log and tracing log:
 adb pull /data/phonelog.txt
