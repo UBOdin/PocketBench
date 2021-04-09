@@ -75,7 +75,7 @@ if [ "$meter" = "1" ]; then
 	fi
 else
 	echo "(No meter stop)"
-	meter_time="(dummy)"
+	meter_time="dummy"
 fi
 
 # Block until phone is manually reconnected after measurement:
@@ -83,7 +83,7 @@ echo "Waiting for phone reconnect..."
 adb wait-for-device
 
 # Wakeup phone script to commence cleanup (and simultaneously inject synchronization timestamp):
-adb shell "echo $meter_time > /data/finish.pipe"
+adb shell "echo ${meter_time} > /data/finish.pipe"
 
 # Trap for errors on phone script:
 adb pull /data/results.txt
