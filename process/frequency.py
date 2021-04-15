@@ -214,6 +214,23 @@ def main():
 	ax.set_ylim([0, 2.7])
 	ax.set_xlim([0, max_time])
 
+	print(len(timestamp_list))
+	print(len(frequency_list))
+
+	output_file_name = filename + ".txt" #"outfile.csv"
+	output_file = open(output_file_name, "w")
+	output_line = ""
+
+	for i in range(len(timestamp_list)):
+
+		output_line = str(timestamp_list[i]) + "\t" + str(frequency_list[i]) + "\r\n"
+
+		output_file.write(output_line)
+
+	#end_for
+
+	output_file.close()
+
 	plt.show()
 
 	fig.savefig("graphs/frequency_" + workload + "_" + delay + ".pdf", bbox_inches = "tight")
