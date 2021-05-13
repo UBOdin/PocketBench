@@ -112,6 +112,9 @@ else
 	echo "(skipping battery sanity)"
 fi
 
+# Wakeup phone script again (to let it know it can drop its wakelock and exit):
+adb shell "echo ${meter_time} > /data/finish.pipe"
+
 # pull script log and tracing log:
 adb pull /data/phonelog.txt
 cat phonelog.txt

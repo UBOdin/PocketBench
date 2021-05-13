@@ -1,13 +1,11 @@
 
 toggle_events() {
 
-	echo $1 > $trace_dir/events/sched/sched_switch/enable
-	echo $1 > $trace_dir/events/block/block_rq_insert/enable
-	echo $1 > $trace_dir/events/block/block_rq_complete/enable
-	#echo $1 > $trace_dir/events/cpufreq_interactive/enable
+	#echo $1 > $trace_dir/events/sched/sched_switch/enable
+	echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
 	echo $1 > $trace_dir/events/power/cpu_frequency/enable
-	echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
-	echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
+	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
+	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
 
 }
 
@@ -114,8 +112,8 @@ fi
 set_governor "$governor"
 
 # Turn on tracing:
-##echo 150000 > $trace_dir/buffer_size_kb
-##toggle_events 1
+echo 150000 > $trace_dir/buffer_size_kb
+toggle_events 1
 echo > $trace_dir/trace
 echo 1 > $trace_dir/tracing_on
 echo $(date +"Phone time 1:  %H:%M:%S.%N") >> $trace_log
@@ -136,7 +134,7 @@ echo "Start blocking on benchmark app signal" >> $logfile
 result="$(cat /data/results.pipe)"
 echo "$result" >> $logfile
 
-##toggle_events 0
+toggle_events 0
 
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 
@@ -169,12 +167,15 @@ result="$(cat /data/finish.pipe)"
 echo $result >> $trace_log  # Save timesync (received as wakeup ping)
 echo $(date +"Phone time 3:  %H:%M:%S.%N") >> $trace_log
 echo "Received wakeup ping from main script" >> $logfile
-echo foo > /sys/power/wake_unlock
+#echo foo > /sys/power/wake_unlock
 
 # Pull results:
 cat $trace_dir/trace > /data/trace.log
-##echo 1500 > $trace_dir/buffer_size_kb
+echo 1500 > $trace_dir/buffer_size_kb
 echo 0 > $trace_dir/tracing_on
 
+# Block again until we receive exit ping from foreground script:
+result="$(cat /data/finish.pipe)"
+echo foo > /sys/power/wake_unlock
 exit 0
 
