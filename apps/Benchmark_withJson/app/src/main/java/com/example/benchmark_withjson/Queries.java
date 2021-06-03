@@ -204,6 +204,8 @@ public class Queries {
 
                         try {
 
+Utils.putMarker("PDE Start op");
+
                             stmt = con.createStatement();
 
                             if(query.contains("UPDATE")){
@@ -222,13 +224,19 @@ public class Queries {
 
                             }
 
+Utils.putMarker("PDE Stop op");
+
                         }
                         catch (SQLiteException e){
                             sqlException = 1;
 
+Utils.putMarker("PDE Error 1");
+
                             continue;
                         } catch (SQLException e) {
                             sqlException = 1;
+
+Utils.putMarker("PDE Error 2");
 
                             e.printStackTrace();
                             continue;
