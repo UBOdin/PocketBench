@@ -44,10 +44,10 @@ def get_latency(file_name):
 
 	#end_while
 
-	print("iterations:  %d" % (iteration))
+	#print("iterations:  %d" % (iteration))
 
-	print(starttime)
-	print(endtime)
+	#print(starttime)
+	#print(endtime)
 	print("Latency:  ", endtime - starttime)
 
 	input_file.close()
@@ -75,20 +75,26 @@ def main():
 	#end_for
 	'''
 
+	checkcount = 0
+
 	for filename in file_list:
 
 		if (filename[0:4] != "YCSB"):
 			continue
 		#end_if
 
-		print(filename)
+		#print(filename)
 		print(prefix + filename)
 		latency = get_latency(prefix + filename)
 		latency_list.append(latency)
 
+		checkcount += 1
+
 	#end_for
 
 	print(latency_list)
+
+	print(checkcount)
 
 #end_def
 
@@ -102,7 +108,7 @@ def quick():
 #end_def
 
 
-quick() #main()
+main()
 
 
 

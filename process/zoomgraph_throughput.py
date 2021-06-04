@@ -75,7 +75,7 @@ def get_latency(file_name):
 	print(endtime)
 	print("Latency:  ", endtime - starttime)
 	'''
-	print(file_name + "  " + str(endtime - starttime))
+	#print(file_name + "  " + str(endtime - starttime))
 
 
 	input_file.close()
@@ -125,6 +125,7 @@ def get_latency_list(prefix, threads):
 			perrun_latency_list.append(latency)
 			perrun_throughput_list.append(throughput)
 
+			print("Threads:  " + str(i) + "  Per thread latency:  " + str(raw_latency))
 			#print(latency, throughput)
 		#end_for
 
