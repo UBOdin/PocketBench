@@ -67,6 +67,8 @@ echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
 # SELinux is a pain:
 setenforce 0
 
+echo -1 > /proc/sys/kernel/perf_event_paranoid
+
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
 printf "Getpid:\n$$\n" >> /data/start.pipe
 
@@ -128,6 +130,14 @@ chmod 777 /data/results.pipe
 
 #am kill-all
 am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
+
+# Pin benchmark app to core:
+##ps -A | grep "withjson" > /data/apppid.txt
+##/data/pincore.exe < /data/apppid.txt
+#if [ "$?" != "0" ]; then
+#	set_governor "$default"
+#	error_exit "ERR on corepin"
+#fi
 
 # Block until app completes run and outputs exit info:
 echo "Start blocking on benchmark app signal" >> $logfile
