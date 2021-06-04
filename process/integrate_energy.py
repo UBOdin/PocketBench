@@ -172,13 +172,13 @@ def bargraph_latency(latency_list_list, saturation):
 	latency = 0.0
 	clusterlen = 0
 	width = 0
-	color_list = ["b", "r", "g", "y", "orange"]
+	#color_list = ["b", "r", "g", "y", "orange"]
+	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 	color = ""
-	#label_list = ["schedutil", "midspeed", "performance", "powersave"]
-	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	#label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	label_list = ["schedutil", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
 	label = ""
 	ticklabel_list = []
-
 
 	clusterlen = len(latency_list_list[0])
 	width = 1
@@ -248,9 +248,11 @@ def bargraph_energy(energy_list_list, saturation):
 	energy = 0.0
 	clusterlen = 0
 	width = 0
-	color_list = ["b", "r", "g", "y", "orange"]
+	#color_list = ["b", "r", "g", "y", "orange"]
+	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 	color = ""
-	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	#label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	label_list = ["schedutil", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
 	label = ""
 	ticklabel_list = []
 
@@ -330,7 +332,8 @@ def scatterplot_latency_energy(latency_list_list, energy_list_list, saturation):
 	#energy_list = energy_list_list[0]
 
 	marker_list = ['o', 's', 'd', '>', '<']
-	label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	#label_list = ["schedutil", "fixed 50%", "fixed 80%", "performance", "powersave"]
+	label_list = ["schedutil", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
 
 	workload_list = ["A", "B", "C", "D", "E", "F"]
 
@@ -404,8 +407,9 @@ def main():
 
 	workloads = ["A", "B", "C", "D", "E", "F"]
 	#workloads = ["A", "B", "C", "E"]
-	governors = ["schedutil_none", "userspace_50", "userspace_80", "performance_none", "powersave_none"]
-	prefix = "../logs/combined/YCSB_SQL_"
+	#governors = ["schedutil_none", "userspace_50", "userspace_80", "performance_none", "powersave_none"]
+	governors = ["schedutil_none", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none", "powersave_none"]
+	prefix = "../logs/newdir/YCSB_SQL_"
 
 	for workload in workloads:
 
