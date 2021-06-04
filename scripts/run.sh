@@ -2,7 +2,7 @@
 # run benchmark
 
 wakeport="2017"  # Phone-client wifi wakeup port
-# $2 = DB (sql, bdb, bdb100); $3 = workload (A, B, C etc.); $6 = delay (lognormal etc.)
+# $2 = DB (sql); $3 = workload (A, B, C etc.); $4 = governor (schedutil etc.); $5 = speed; $6 = delay (lognormal etc.); $7 = threadcount (1); $8 = runcount
 if [ "$6" = "lognormal" ]; then
 	delay="log"
 else
@@ -12,7 +12,7 @@ cpuspeed="$(echo $5 | cut -d ":" -f2)"
 filespeed="$(echo $5 | cut -d ":" -f1)"
 timestamp="$(date +%Y%m%d%H%M%S)"
 #filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
-filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}"
+filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_${8}"
 filename="YCSB_${filesuffix}"
 meter="0"  # boolean -- whether using Monsoon meter
 
