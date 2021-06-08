@@ -46,7 +46,7 @@ static int start_perfmon() {
 	pea_struct.pinned = 0;  // N.b. pinned = 1 _is_ incompatible with PERF_FORMAT_GROUP -- either a bug in kernel or documentation?
 	pea_struct.exclusive = 0;
 	pea_struct.exclude_user = 0;  // Track userspace
-	pea_struct.exclude_kernel = 0;  // And kernel
+	pea_struct.exclude_kernel = 1;  // And kernel
 	pea_struct.exclude_hv = 1;  // NOT HV (if any)
 
 	// Open perf fd:
@@ -83,23 +83,22 @@ static int stop_perfmon() {
 		return -3;
 	}
 
-//	output_array[i].cache_refs = ((unsigned long*)perf_buff)[1];
-
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
 
+	// Sanity (should be collecting 1 item):
+	if (((unsigned long*)perf_buff)[0] != 1) {
+		__android_log_print(ANDROID_LOG_VERBOSE, "PocketData", "Error:  Bad perf itemcount\n");
+		return -5;
+	}
 
+	// Open handle to ftrace to save output:
 	result = open(trace_filename, O_WRONLY);
 	if (result == -1) {
 		errlog();
 		return -4;
 	}
 	trace_fd = result;
-
-if (((unsigned long*)perf_buff)[0] != 1) {
-	__android_log_print(ANDROID_LOG_VERBOSE, "PocketData", "Error:  Bad perf itemcount\n");
-	return -5;
-}
 
 	memset(&output_buff, 0, sizeof(output_buff));
 	cycles = ((unsigned long*)perf_buff)[1];
@@ -111,7 +110,6 @@ if (((unsigned long*)perf_buff)[0] != 1) {
 		return -6;
 	}
 
-
 	// Cleanup:
 	close(perf_cycles_fd);
 	close(trace_fd);
@@ -122,8 +120,6 @@ if (((unsigned long*)perf_buff)[0] != 1) {
 
 
 extern "C" JNIEXPORT jint JNICALL Java_com_example_benchmark_1withjson_MainActivity_cyclecount(JNIEnv *env, jobject thiz, jint toggle) {
-
-//	return (jint)(foo * 3 + 1);
 
 	if (toggle == 1) {
 		return start_perfmon();
