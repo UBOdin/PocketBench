@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
         System.loadLibrary("perflib");
     }
 
-    public native int hello(int foo);
+    public static native int cyclecount(int startstop);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +87,6 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 //        if(!Utils.doesDBExist(this,"BDBBenchmark")){
         if (!Queries.db_exists()) {
             Log.d(PDE, "Creating DB");
-            Log.d(PDE, "Retval:  " + this.hello(10));
             //Create the databases from the JSON
             CreateDB createDB = new CreateDB(this);
             tester = createDB.create(load_map.get(Utils.workload));
@@ -99,7 +98,6 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
         }
 
         Log.d(PDE, "DB exists -- Running DB Benchmark");
-        Log.d(PDE, "Retval:  " + this.hello(20));
 
         String singleJsonString = Utils.jsonToString(this, load_map.get(Utils.workload));
         Utils.jsonStringToObject(singleJsonString);
@@ -111,6 +109,8 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 
         } else {
 
+            // Signal perf to start collecting cycles:
+            Log.d(PDE, "Retval 1:  " + cyclecount(1));
             // Set up DB handle:
             Queries.init_db_handle(this);
 
@@ -147,6 +147,8 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
 
             // Close DB handle:
             Queries.close_db_handle();
+            // Stop collecting cycles:
+            Log.d(PDE, "Retval 0:  " + cyclecount(0));
 
         }
 
