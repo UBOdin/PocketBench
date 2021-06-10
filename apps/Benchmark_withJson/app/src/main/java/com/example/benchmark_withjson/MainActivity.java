@@ -31,7 +31,8 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
         System.loadLibrary("perflib");
     }
 
-    public static native int cyclecount(int startstop);
+    public static native int startcount(int dummy);
+    public static native int stopcount(int dummy);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
         } else {
 
             // Signal perf to start collecting cycles:
-            Log.d(PDE, "Retval 1:  " + cyclecount(1));
+            Log.d(PDE, "startcount() retval:  " + startcount(1));
             // Set up DB handle:
             Queries.init_db_handle(this);
 
@@ -148,7 +149,7 @@ public class MainActivity extends AppCompatActivity /*implements Runnable*/ {
             // Close DB handle:
             Queries.close_db_handle();
             // Stop collecting cycles:
-            Log.d(PDE, "Retval 0:  " + cyclecount(0));
+            Log.d(PDE, "stopcount() retval:  " + stopcount(0));
 
         }
 

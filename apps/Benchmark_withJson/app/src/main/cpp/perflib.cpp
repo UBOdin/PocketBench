@@ -15,7 +15,7 @@
 #define OUTPUT_SIZE 256
 
 
-static int perf_cycles_fd;
+static int perf_cycles_fd = 0;
 
 
 static void errlog() {
@@ -27,7 +27,7 @@ static void errlog() {
 }
 
 
-static int start_perfmon() {
+extern "C" JNIEXPORT jint JNICALL Java_com_example_benchmark_1withjson_MainActivity_startcount(JNIEnv *env, jobject thiz, jint param) {
 
 	int result;
 	struct perf_event_attr pea_struct;
@@ -61,12 +61,12 @@ static int start_perfmon() {
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_RESET, 0);
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_ENABLE, 0);
 
-	return 100;
+	return 0;
 
 }
 
 
-static int stop_perfmon() {
+extern "C" JNIEXPORT jint JNICALL Java_com_example_benchmark_1withjson_MainActivity_stopcount(JNIEnv *env, jobject thiz, jint param) {
 
 	int result;
 	char perf_buff[PERFBUFF_SIZE];
@@ -75,6 +75,11 @@ static int stop_perfmon() {
 	char output_buff[OUTPUT_SIZE];
 	int output_len;
 	unsigned long cycles;
+
+	// Errtrap uninitialized fd:
+	if (perf_cycles_fd <= 0) {
+		return -1;
+	}
 
 	// Collect results:
 	result = read(perf_cycles_fd, perf_buff, PERFBUFF_SIZE);
@@ -113,23 +118,10 @@ static int stop_perfmon() {
 	// Cleanup:
 	close(perf_cycles_fd);
 	close(trace_fd);
+	perf_cycles_fd = 0;  // signal tracing is off
 
-	return 200;
-
-}
-
-
-extern "C" JNIEXPORT jint JNICALL Java_com_example_benchmark_1withjson_MainActivity_cyclecount(JNIEnv *env, jobject thiz, jint toggle) {
-
-	if (toggle == 1) {
-		return start_perfmon();
-	}
-
-	if (toggle == 0) {
-		return stop_perfmon();
-	}
-
-	return -1;
+	return 0;
 
 }
+
 
