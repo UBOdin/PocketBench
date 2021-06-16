@@ -144,11 +144,6 @@ def command(string_array):
 
 		print("SCRIPT RESULT:  " + str(result))
 
-		if (result != 4):
-			break
-		#end_if
-		print("Dropped loglines.  Re-running.")
-
 	#end_while
 
 	if (result != 0):
