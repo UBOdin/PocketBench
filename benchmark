@@ -11,7 +11,8 @@ args = parser.parse_args()
 #android_id = "ZX1G22TKW7" # Ed's old phone
 #android_id = "199020104301402615" # Dragonboard 8074
 #android_id = "ZX1G22LXTH" # Nexus 6 wired for Monsoon
-android_id = "FA7A21A02869" # Pixel 2
+android_id = "FA7A21A02869" # Pixel 2 wired for Monsoon
+#android_id = "FA7AK1A06424" # Pixel 2 (unmodded)
 
 def help_message():
 	print '\nCommand List:\n'
@@ -63,10 +64,11 @@ def setup_app(name):
 def command(string_array):
 
 	databases = ["SQL", "WAL", "NULL"]
-	workloads = ["A", "B", "C", "D", "E", "F"]
+	#workloads = ["A", "B", "C", "D", "E", "F"]
+	workloads = ["A", "B", "C", "D", "E", "F", "N"]
 	governors = ["userspace", "powersave", "performance", "schedutil"]
 	# 300000 364800 441600 518400 595200 672000 748800 825600 883200 960000 1036800 1094400 1171200 1248000 1324800 1401600 1478400 1555200 1670400 1747200 1824000 1900800
-	# 300000 345600 422400 499200 576000 652800 729600 806400 902400 979200 1056000 1132800 1190400 1267200 1344000 1420800 1497600 1574400 1651200 1728000 1804800 1881600 1958400 2035200 2112000 2208000 2265600 2323200 2342400 2361600 2457600 
+	# 300000 345600 422400 499200 576000 652800 729600 806400 902400 979200 1056000 1132800 1190400 1267200 1344000 1420800 1497600 1574400 1651200 1728000 1804800 1881600 1958400 2035200 2112000 2208000 2265600 2323200 2342400 2361600 2457600
 	speeds = []  # Skip this sanity for now
 	delays = ["0ms", "1ms", "lognormal", "null"]
 
@@ -76,6 +78,9 @@ def command(string_array):
 	speed = "" # Only valid if governor == "userspace"
 	delay = ""
 	threads = ""
+	runno = ""
+	littlespeed = 0
+	bigspeed = 0
 
 	result = 0
 
@@ -85,6 +90,11 @@ def command(string_array):
 	speed = string_array[3]
 	delay = string_array[4]
 	threads = "1"  # string_array[5]
+	if (len(string_array) > 6):
+		runno = string_array[6]
+	else:
+		runno = "1"
+	#end_if
 
 	print("PARAMETERS:")
 	print(string_array)
@@ -96,8 +106,14 @@ def command(string_array):
 	#end_if
 
 	if (governor != "userspace"):
-		speed = "none" # Don't use slashes (messes with subdirectories) or parentheses (messes with scripting)
+		speed = "none:0-0" # Don't use slashes (messes with subdirectories) or parentheses (messes with scripting) or semicolons (ditto)
+	else:
+		#speed = "1478400-1958400"
+		little_speed = int(speed) * 19008  # % of lomax (1900800)
+		big_speed = int(speed) * 24576  # % of himax (2457600)
+		speed = speed + ":" + str(little_speed) + "-" + str(big_speed)
 	#end_if
+	print("Speed:  " + speed)
 
 	print("Running " + database + " " + workload)
 	check = device_connected()
@@ -105,6 +121,8 @@ def command(string_array):
 		print("No Device Connected!")
 		return 0
 	#end_if
+
+	print("Run number:  " + runno)
 
 	while (True):
 
@@ -121,7 +139,7 @@ def command(string_array):
 		print("success")
 
 		print("running...")
-		result = subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload, governor, speed, delay, threads])
+		result = subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload, governor, speed, delay, threads, runno])
 		print("log is present in the logs directory.")
 
 		print("SCRIPT RESULT:  " + str(result))
@@ -320,7 +338,7 @@ def run_all(input_array):
 
 def main():
 
-	while True:
+	while (True):
 		input = raw_input('benchmark...$ ')
 		try:
 			input = input.split()
@@ -344,21 +362,24 @@ def main():
 				#end_for
 			#end_if
 
-			skip_count = 0
+			skip_count = 0 
 
 			if (input[0].lower() == "what"):
 				#workload_list = ["sql a", "sql b", "sql c", "sql d", "sql e", "sql f"]
-				workload_list = ["sql a", "sql b", "sql c", "sql e"]
+				#workload_list = ["sql a", "sql b", "sql c", "sql e"]
+				workload_list = ["sql a", "sql f"]
 
-				#governor_list = ["userspace x", "powersave x", "performance x", "schedutil x"]
-				#governor_list = ["schedutil x"]
-				governor_list = ["userspace x", "powersave x", "performance x"]
+				#governor_list = ["schedutil x", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x", "powersave x"]
+				governor_list = ["schedutil x", "userspace 50", "userspace 55", "userspace 60", "userspace 65", "userspace 70"]
 
 				#delay_list = ["0ms", "1ms", "lognormal"]
-				#delay_list = ["lognormal"]
+				#delay_list = ["0ms", "lognormal"]
 				delay_list = ["0ms"]
 
 				threads_list = ["1"]
+
+				run_count = 5
+				#run_count = 1
 
 				#subprocess.call(["rm", "monsoonlog.txt"])
 				#subprocess.call(["rm", "progressfile.txt"])
@@ -366,13 +387,15 @@ def main():
 					for governor in governor_list:
 						for workload in workload_list:
 							for threads in threads_list:
-								parameters = workload + " " + governor + " " + delay + " " + threads
-								if (skip_count >= 0):
-									result = command(parameters.split())
-								else:
-									print("Skipping workload %d:  %s" % (skip_count, parameters))
-								#end_if
-								skip_count += 1
+								for runno in range(run_count):
+									parameters = workload + " " + governor + " " + delay + " " + threads + " " + str(runno)
+									if (skip_count >= 0):
+										result = command(parameters.split())
+									else:
+										print("Skipping workload %d:  %s" % (skip_count, parameters))
+									#end_if
+									skip_count += 1
+								#end_for
 							#end_for
 						#end_for
 					#end_for
