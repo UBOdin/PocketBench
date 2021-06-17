@@ -124,28 +124,21 @@ def command(string_array):
 
 	print("Run number:  " + runno)
 
-	while (True):
+	print("setting up phone...")
+	subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
+	print("success")
 
-		print("setting up phone...")
-		subprocess.call(['sh', 'scripts/phone_setup.sh', android_id])
-		print("success")
+	print("building and installing app...")
+	##result = subprocess.call(['sh', 'scripts/build.sh'])
+	if (result != 0):
+		print("Error on build");
+		sys.exit(1)
+	#end_if
+	print("success")
 
-		print("building and installing app...")
-		result = subprocess.call(['sh', 'scripts/build.sh'])
-		if (result != 0):
-			print("Error on build");
-			sys.exit(1)
-		#end_if
-		print("success")
-
-		print("running...")
-		result = subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload, governor, speed, delay, threads, runno])
-		print("log is present in the logs directory.")
-
-		print("SCRIPT RESULT:  " + str(result))
-
-	#end_while
-
+	print("running...")
+	result = subprocess.call(['sh', 'scripts/run.sh', android_id, database, workload, governor, speed, delay, threads, runno])
+	print("log is present in the logs directory.")
 	if (result != 0):
 		print("Error on script:  " + str(result))
 		sys.exit(1)
