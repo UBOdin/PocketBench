@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
 	struct sockaddr_in ssin_listen;
 	int sock_listen;
 	int port_listen;
+	long optval;
 	char server_ip_address[] = "128.205.39.155";
 
 	char logfile[] = "wifi_server_log.txt";
@@ -81,6 +82,11 @@ writelog(buffer);
 	result = socket(AF_INET, SOCK_STREAM, 0);
 	errtrap("socket");
 	sock_listen = result;
+
+	// Disable reuse checking (sidestep TIME_WAIT problems):
+	optval = 1;
+	result = setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+	errtrap("setsockopt");
 
 	// Populate sockaddr_in struct with ip port and address:
 	ssin_listen.sin_family = AF_INET;
@@ -128,6 +134,8 @@ writelog(buffer);
 	result = close(sock);
 	errtrap("close");
 writelog("After close");
+
+	close(sock_listen);
 
 	result = close(fd_log);
 	errtrap("close");
