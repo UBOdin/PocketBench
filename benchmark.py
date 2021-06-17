@@ -93,7 +93,7 @@ def command(string_array):
 	if (len(string_array) > 6):
 		runno = string_array[6]
 	else:
-		runno = "1"
+		runno = "0"
 	#end_if
 
 	print("PARAMETERS:")
@@ -358,7 +358,8 @@ def main():
 				workload_list = ["sql a", "sql f"]
 
 				#governor_list = ["schedutil x", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x", "powersave x"]
-				governor_list = ["schedutil x", "userspace 50", "userspace 55", "userspace 60", "userspace 65", "userspace 70"]
+				#governor_list = ["schedutil x", "userspace 50", "userspace 55", "userspace 60", "userspace 65", "userspace 70"]
+				governor_list = ["schedutil x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
 
 				#delay_list = ["0ms", "1ms", "lognormal"]
 				#delay_list = ["0ms", "lognormal"]
