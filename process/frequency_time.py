@@ -53,6 +53,8 @@ def process_loglines(file_name, trace_list_list):
 	fixed_list = []
 	trace_list = []
 
+	perfcycles = 0
+
 	input_file = gzip.open(file_name, "r")
 
 	while (True):
@@ -109,9 +111,11 @@ def process_loglines(file_name, trace_list_list):
 					#starttime += float(logline[33:46])
 				#end_if
 			else:
-				if ("SQL_END" in logline):
+				#if ("SQL_END" in logline):
+				if ("Cycle data" in logline):
 					trace_list = [iteration, time, "end", cpu, freq]
 					trace_list_list.append(trace_list)
+					perfcycles = int(logline[79:])
 					break
 					#endtime += float(logline[33:46])
 				#end_if
@@ -196,7 +200,7 @@ def process_loglines(file_name, trace_list_list):
 
 	input_file.close()
 
-	return
+	return perfcycles
 
 #end_def
 
@@ -279,6 +283,8 @@ def bargraphs():
 	mean = 0.0
 	err = 0.0
 
+	perfcycles = 0
+
 	#prefix = "YCSB_SQL_A_0ms_"
 	#prefix = "save_unpinned/YCSB_SQL_A_0ms_"
 	#governor_list = ["schedutil_none", "userspace_50", "userspace_55", "userspace_60", "userspace_65", "userspace_70"]
@@ -289,7 +295,8 @@ def bargraphs():
 	label_list = ["", "Unpinned A", "Unpinned F", "Pinned A", "Pinned F"]
 	'''
 	#'''
-	prefix = ""
+	#prefix = "../logs/runs_20200521/"
+	prefix = "../logs/"
 	#governor_list = ["save_unpinned/YCSB_SQL_A_0ms_schedutil_none", "save_pinned/YCSB_SQL_A_0ms_schedutil_none", "save_unpinned/YCSB_SQL_A_0ms_userspace_50", "save_pinned/YCSB_SQL_A_0ms_userspace_50", "save_unpinned/YCSB_SQL_A_0ms_userspace_55", "save_pinned/YCSB_SQL_A_0ms_userspace_55", "save_unpinned/YCSB_SQL_A_0ms_userspace_60", "save_pinned/YCSB_SQL_A_0ms_userspace_60", "save_unpinned/YCSB_SQL_A_0ms_userspace_65", "save_pinned/YCSB_SQL_A_0ms_userspace_65"]
 	governor_list = ["save_unpinned/YCSB_SQL_F_0ms_schedutil_none", "save_pinned/YCSB_SQL_F_0ms_schedutil_none", "save_unpinned/YCSB_SQL_F_0ms_userspace_50", "save_pinned/YCSB_SQL_F_0ms_userspace_50", "save_unpinned/YCSB_SQL_F_0ms_userspace_55", "save_pinned/YCSB_SQL_F_0ms_userspace_55", "save_unpinned/YCSB_SQL_F_0ms_userspace_60", "save_pinned/YCSB_SQL_F_0ms_userspace_60", "save_unpinned/YCSB_SQL_F_0ms_userspace_65", "save_pinned/YCSB_SQL_F_0ms_userspace_65"]
 
@@ -314,17 +321,23 @@ def bargraphs():
 			trace_list_list = []
 			filename = prefix + governor + "_1_" + str(run) + ".gz"
 			#print(filename)
-			process_loglines(filename, trace_list_list)
+			perfcycles = process_loglines(filename, trace_list_list)
 			cycles, time = graph_freq_time(trace_list_list);
 
+			'''
 			if ("userspace" in governor):
 				cycles = get_cycles(governor, time)
 			#end_if
+			'''
+			cycles = perfcycles
 
 			cycle_list.append(cycles)
 			time_list.append(time)
 
 		#end_for
+
+		print(cycle_list)
+		print(time_list)
 
 		cycle_list_list.append(cycle_list)
 		time_list_list.append(time_list)
@@ -366,11 +379,12 @@ def bargraphs():
 	print(index_list)
 	ax.set_xticklabels(label_list)
 
-	ax.axis([0, barcount, 5000000, 7000000])
+	#ax.axis([0, barcount, 5000000, 7000000])
+	ax.axis([0, barcount, 7000000, 11000000])
 	#ax.set_title("Workload A", fontsize = 16, fontweight = "bold")
 	ax.set_title("Workload F", fontsize = 16, fontweight = "bold")
 	ax.set_xlabel("CPU affinity and governor", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("CPU cycles (M) (90% confidence)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Perf HW CPU cycles (M) (90% confidence)", fontsize = 16, fontweight = "bold")
 
 	plt.show()
 
@@ -432,13 +446,18 @@ def main():
 	cycles = 0
 	time = 0
 
+	perfcycles = 0
+
 	print(sys.version_info)
 
 	filename = sys.argv[1]
 
 	print(filename)
 
-	process_loglines(filename, trace_list_list)
+	perfcycles = process_loglines(filename, trace_list_list)
+
+	print("early exit")
+	sys.exit(0)
 
 	graph_freq_time(trace_list_list);
 
