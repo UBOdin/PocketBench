@@ -367,7 +367,7 @@ def main():
 
 				threads_list = ["1"]
 
-				run_count = 5
+				run_count = 3
 				#run_count = 1
 
 				#subprocess.call(["rm", "monsoonlog.txt"])

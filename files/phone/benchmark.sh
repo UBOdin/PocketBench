@@ -72,7 +72,7 @@ echo -1 > /proc/sys/kernel/perf_event_paranoid
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
 printf "Getpid:\n$$\n" >> /data/start.pipe
 
-sleep 30
+sleep 20
 
 sync
 echo 3 > /proc/sys/vm/drop_caches
@@ -129,7 +129,6 @@ mknod /data/results.pipe p
 chmod 777 /data/results.pipe
 
 #am kill-all
-am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
 
 # Pin benchmark app to core:
 ##ps -A | grep "withjson" > /data/apppid.txt
@@ -139,10 +138,9 @@ am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainAc
 #	error_exit "ERR on corepin"
 #fi
 
-# Block until app completes run and outputs exit info:
-echo "Start blocking on benchmark app signal" >> $logfile
-result="$(cat /data/results.pipe)"
-echo "$result" >> $logfile
+echo "Running compute proc" >> $logfile
+/data/compute.exe 100000000
+echo "Compute result:  ${?}" >> $logfile
 
 toggle_events 0
 

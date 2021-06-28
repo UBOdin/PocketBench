@@ -14,22 +14,8 @@ timestamp="$(date +%Y%m%d%H%M%S)"
 #filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
 filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_${8}"
 filename="YCSB_${filesuffix}"
-meter="0"  # boolean -- whether using Monsoon meter
+meter="1"  # boolean -- whether using Monsoon meter
 
-printf "Rebooting and running benchmark on device %s\n" $1
-
-adb -s $1 reboot
-adb -s $1 wait-for-device
-sleep 10
-printf "Rebooted\n"
-adb -s $1 root
-adb -s $1 wait-for-device
-sleep 10
-printf "Rooted\n"
-
-adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $cpuspeed $6 $7 #create database
-
-sleep 15 # Let phone settle before starting script:
 echo "Starting phone script"
 adb -s $1 shell sh /data/start_benchmark.sh $4 $cpuspeed $wakeport &
 #adb -s $1 shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
