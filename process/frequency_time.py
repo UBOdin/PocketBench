@@ -296,7 +296,7 @@ def bargraphs():
 	'''
 	#'''
 	#prefix = "../logs/runs_20200521/"
-	prefix = "../logs/"
+	prefix = "../logs/save_runs_20210608/"
 	#governor_list = ["save_unpinned/YCSB_SQL_A_0ms_schedutil_none", "save_pinned/YCSB_SQL_A_0ms_schedutil_none", "save_unpinned/YCSB_SQL_A_0ms_userspace_50", "save_pinned/YCSB_SQL_A_0ms_userspace_50", "save_unpinned/YCSB_SQL_A_0ms_userspace_55", "save_pinned/YCSB_SQL_A_0ms_userspace_55", "save_unpinned/YCSB_SQL_A_0ms_userspace_60", "save_pinned/YCSB_SQL_A_0ms_userspace_60", "save_unpinned/YCSB_SQL_A_0ms_userspace_65", "save_pinned/YCSB_SQL_A_0ms_userspace_65"]
 	governor_list = ["save_unpinned/YCSB_SQL_F_0ms_schedutil_none", "save_pinned/YCSB_SQL_F_0ms_schedutil_none", "save_unpinned/YCSB_SQL_F_0ms_userspace_50", "save_pinned/YCSB_SQL_F_0ms_userspace_50", "save_unpinned/YCSB_SQL_F_0ms_userspace_55", "save_pinned/YCSB_SQL_F_0ms_userspace_55", "save_unpinned/YCSB_SQL_F_0ms_userspace_60", "save_pinned/YCSB_SQL_F_0ms_userspace_60", "save_unpinned/YCSB_SQL_F_0ms_userspace_65", "save_pinned/YCSB_SQL_F_0ms_userspace_65"]
 
