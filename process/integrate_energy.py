@@ -9,6 +9,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
 
+import math
+import statistics
+
+
+def mean_margin(data_list):
+
+	n = 0
+	mean = 0.0
+	stdev = 0.0
+	zstar = 1.645 # for 90% -- 1.96 # for 95%
+	margin = 0.0
+
+	n = len(data_list)
+	mean = statistics.mean(data_list)
+	stdev = statistics.stdev(data_list) # stdev() or pstdev()
+	margin = zstar * (stdev / math.sqrt(n))
+
+	return mean, margin
+
+#end_def
+
 
 def get_latency(file_name):
 
@@ -86,8 +107,8 @@ def get_energy(file_name):
 	#end_while
 	input_file.close()
 
-	start = 18.0  # fixed
-	stop = float(iteration - 2) / 5000.0 - 19.5  # Set stop to 19.5s before end
+	start = 7.0  # fixed
+	stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
 	iteration = 0  # reset counter
 	print("File:  %s  Stop:  %f" % (file_name, stop))
 
@@ -463,23 +484,92 @@ def main():
 #end_def
 
 
-def quick():
+def bargraph_ex1():
 
-	filename = ""
+	prefix = ""
+	energy_list = []
 	energy = 0.0
+	energy_mean_list = []
+	energy_mean = 0.0
+	energy_err = 0.0
+	governor_list = []
+	offset_list = []
+	color_list = []
+	color = ""
+	runcount = 0
+	runno = 0
 
-	filename = "sql_a_0ms_fix50.csv"
+	#prefix = "../logs/save_runs_20210618/experiment_1/monsoon_SQL_"
+	#prefix = "../logs/save_runs_20210618/experiment_2_500/monsoon_SQL_"
+	prefix = "../logs/save_runs_20210618/experiment_2_1000/monsoon_SQL_"
+	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
+	workload = "F"  # N.b. N/A for micro experiments
+	delay = "0ms"  # N.b. N/A for micro experiments
 
-	energy = get_energy(filename)
+	runcount = 3
+	for governor in governor_list:
+		energy_list = []
+		for runno in range(runcount):
+			filename = prefix + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".csv"
+			energy = get_energy(filename)
+			print(filename + " : " + str(energy))
+			energy_list.append(energy)
+		#end_for
+		energy_mean, energy_err = mean_margin(energy_list)
+		energy_mean_list.append(energy_mean)
+		if (governor == "schedutil_none"):
+			color = "red"
+		else:
+			color = "blue"
+		#end_if
+		color_list.append(color)
+	#end_for
 
-	print("Energy:")
+
+	label_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
+	listlen = len(energy_mean_list)
+	offset_list = np.arange(0, listlen)
+
+	print("Len:  " + str(listlen))
+
+	fig, ax = plt.subplots()
+
+	for offset, energy_mean, color, label in zip(offset_list, energy_mean_list, color_list, label_list):
+		ax.bar(offset, energy_mean, color = color) #, width = width, color = color)
+	#end_for
+
+	ax.set_xticks(np.arange(0, listlen), minor = False)
+	ax.set_xticklabels(label_list)
+	#ax.set_title("Experiment 1:  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
+	#ax.set_title("Experiment 2 (.5ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
+	ax.set_title("Experiment 2 (1ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
+	ax.set_xlabel("Governor policy", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
+
+	plt.show()
 
 	return
 
 #end_def
 
 
-main()
-#quick()
+def quick():
 
+	filename = ""
+	energy = 0.0
+
+	filename = sys.argv[1]
+
+	energy = get_energy(filename)
+
+	print("Energy:  %f" % (energy))
+
+	return
+
+#end_def
+
+
+#main()
+#quick()
+bargraph_ex1()
 
