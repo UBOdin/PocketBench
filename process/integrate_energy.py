@@ -31,7 +31,7 @@ def mean_margin(data_list):
 #end_def
 
 
-def get_latency(file_name):
+def get_runtime(file_name):
 
 	# file_name = ""
 
@@ -45,7 +45,7 @@ def get_latency(file_name):
 	while (True):
 
 		# Keep reading until finished:
-		logline = input_file.readline()
+		logline = input_file.readline().decode("ascii")
 
 		if (logline == ""):
 			break
@@ -110,7 +110,7 @@ def get_energy(file_name):
 	start = 7.0  # fixed
 	stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
 	iteration = 0  # reset counter
-	print("File:  %s  Stop:  %f" % (file_name, stop))
+	#print("File:  %s  Stop:  %f" % (file_name, stop))
 
 	# Reopen file:
 	input_file = open(file_name, "r")
@@ -439,7 +439,7 @@ def main():
 
 			filename = prefix + workload + "_" + delay + "_" + governor + "_1.gz"
 
-			latency = get_latency(filename)
+			latency = get_runtime(filename)
 			print(filename + " : " + str(latency))
 
 			latency_list.append(latency)
@@ -484,9 +484,14 @@ def main():
 #end_def
 
 
-def bargraph_ex1():
+def bargraph_microbench():
 
 	prefix = ""
+	runtime_list = []
+	runtime = 0.0
+	runtime_mean_list = []
+	runtime_mean = 0.0
+	runtime_err = 0.0
 	energy_list = []
 	energy = 0.0
 	energy_mean_list = []
@@ -501,20 +506,27 @@ def bargraph_ex1():
 
 	#prefix = "../logs/save_runs_20210618/experiment_1/monsoon_SQL_"
 	#prefix = "../logs/save_runs_20210618/experiment_2_500/monsoon_SQL_"
-	prefix = "../logs/save_runs_20210618/experiment_2_1000/monsoon_SQL_"
+	prefix = "../logs/save_runs_20210618/experiment_2_1000/"
 	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
-	workload = "F"  # N.b. N/A for micro experiments
+	workload = "A"  # N.b. N/A for micro experiments
 	delay = "0ms"  # N.b. N/A for micro experiments
 
 	runcount = 3
 	for governor in governor_list:
+		runtime_list = []
 		energy_list = []
 		for runno in range(runcount):
-			filename = prefix + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".csv"
+			filename = prefix + "YCSB_SQL_" + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".gz"
+			runtime = get_runtime(filename)
+			print(filename + " : " + str(runtime))
+			runtime_list.append(runtime)
+			filename = prefix + "monsoon_SQL_" + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".csv"
 			energy = get_energy(filename)
-			print(filename + " : " + str(energy))
+			#print(filename + " : " + str(energy))
 			energy_list.append(energy)
 		#end_for
+		runtime_mean, runtime_err = mean_margin(runtime_list)
+		runtime_mean_list.append(runtime_mean)
 		energy_mean, energy_err = mean_margin(energy_list)
 		energy_mean_list.append(energy_mean)
 		if (governor == "schedutil_none"):
@@ -527,24 +539,33 @@ def bargraph_ex1():
 
 
 	label_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
-	listlen = len(energy_mean_list)
+	listlen = len(governor_list)
 	offset_list = np.arange(0, listlen)
 
 	print("Len:  " + str(listlen))
 
-	fig, ax = plt.subplots()
+	fig, ax = plt.subplots(2, 1)
 
-	for offset, energy_mean, color, label in zip(offset_list, energy_mean_list, color_list, label_list):
-		ax.bar(offset, energy_mean, color = color) #, width = width, color = color)
+	for offset, runtime_mean, color, label in zip(offset_list, runtime_mean_list, color_list, label_list):
+		ax[0].bar(offset, runtime_mean, color = color) #, width = width, color = color)
 	#end_for
 
-	ax.set_xticks(np.arange(0, listlen), minor = False)
-	ax.set_xticklabels(label_list)
-	#ax.set_title("Experiment 1:  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
-	#ax.set_title("Experiment 2 (.5ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
-	ax.set_title("Experiment 2 (1ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
-	ax.set_xlabel("Governor policy", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Total energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
+	ax[0].set_xticks(np.arange(0, listlen), minor = False)
+	ax[0].set_xticklabels([])
+	#ax[0].set_title("Experiment 1:  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
+	#ax[0].set_title("Experiment 2 (.5ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
+	ax[0].set_title("Experiment 2 (1ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
+	ax[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
+
+
+	for offset, energy_mean, color, label in zip(offset_list, energy_mean_list, color_list, label_list):
+		ax[1].bar(offset, energy_mean, color = color) #, width = width, color = color)
+	#end_for
+
+	ax[1].set_xticks(np.arange(0, listlen), minor = False)
+	ax[1].set_xticklabels(label_list)
+	ax[1].set_xlabel("Governor policy", fontsize = 16, fontweight = "bold")
+	ax[1].set_ylabel("Total energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
 
 	plt.show()
 
@@ -571,5 +592,5 @@ def quick():
 
 #main()
 #quick()
-bargraph_ex1()
+bargraph_microbench()
 
