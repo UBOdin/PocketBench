@@ -138,7 +138,7 @@ chmod 777 /data/results.pipe
 #	error_exit "ERR on corepin"
 #fi
 
-echo "Running compute proc" >> $logfile
+echo "SQL_params:  governor:  ${1} ${2}" >> $trace_log
 /data/compute.exe 100000000
 echo "Compute result:  ${?}" >> $logfile
 
