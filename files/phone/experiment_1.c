@@ -40,9 +40,9 @@ int main(int argc, char** argv) {
 	char output_buff[OUTPUT_SIZE];
 	int output_len;
 
-	int loopcount;
-	double degree;
-	double sum;
+	long long loopcount;
+	long long innercount;
+	long long sum;
 
 //printf("Experiment 1\n");
 	// Open handle to ftrace to save output:
@@ -63,26 +63,22 @@ int main(int argc, char** argv) {
 	}
 
 	loopcount = atoi(argv[1]);
+//printf("Loopcount:  %llu\n  size:  %lu\n", loopcount, sizeof(loopcount));
 	if (loopcount <= 0) {
 		printf("Err:  Bad loopcount\n");
 		_Exit(1);
 	}
-//printf("Loopcount:  %f\n", loopcount);
 
-	degree = 0;
-	while (1) {
-
-		if (degree >= loopcount) {
-			break;
+	sum = 0;
+	innercount = 20;
+	for (long long i = 0; i < loopcount; i++) {
+		for (long long j = 0; j < innercount; j++) {
+			sum = sum + i + j;
 		}
-
-		sum += sin(degree * PI / 180);
-		degree++;
-
 	}
 
-//printf("Degrees:  %f\n", degree);
-	PRINTLOG("SQL_check:  %d %f", loopcount, sum);
+//printf("loopcount:  %llu  sum:  %llu\n", loopcount, sum);
+	PRINTLOG("SQL_experiment_1:  loopcount:  %lld  sum:  %lld\n", loopcount, sum);
 	PRINTLOG("SQL_END");
 
 	return 0;

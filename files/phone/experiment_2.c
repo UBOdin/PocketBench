@@ -41,12 +41,10 @@ int main(int argc, char** argv) {
 	char output_buff[OUTPUT_SIZE];
 	int output_len;
 
-	int loopcount;
-	double degree;
-	double sum;
-	int batchcount;
-	int innerloop;
-	int outerloop;
+	long long loopcount;
+	long long batchcount;
+	long long innercount;
+	long long sum;
 	long sleep_us;
 
 	struct timespec interval;
@@ -70,26 +68,23 @@ int main(int argc, char** argv) {
 	}
 
 	loopcount = atoi(argv[1]);
+//printf("Loopcount:  %llu\n  size:  %lu\n", loopcount, sizeof(loopcount));
 	if (loopcount <= 0) {
 		printf("Err:  Bad loopcount\n");
 		_Exit(1);
 	}
-//printf("Loopcount:  %d\n", loopcount);
 
-	batchcount = 5000;
-	degree = 0;
-	sleep_us = 1000;
+	batchcount = 50000;
+	sleep_us = 100;
 
-	for (outerloop = 0; outerloop < batchcount; outerloop++) {
-
-		for (innerloop = 0; innerloop < loopcount / batchcount; innerloop++) {
-
-//printf("Outerloop:  %f  Innerloop:  %f  Degree:  %f\n", outerloop, innerloop, degree);
-			sum += sin(degree * PI / 180);
-			degree++;
-
+	sum = 0;
+	innercount = 20;
+	for (long long i = 0; i < batchcount; i++) {
+		for (long long j = 0; j < loopcount / batchcount; j++) {
+			for (long long k = 0; k < innercount; k++) {
+				sum = sum + i + j + k;
+			}
 		}
-
 		interval.tv_sec = 0;
 		interval.tv_nsec = sleep_us * 1000;
 		result = nanosleep(&interval, NULL);
@@ -97,11 +92,10 @@ int main(int argc, char** argv) {
 			errlog();
 			return 7;
 		}
-
 	}
 
 //printf("Degrees:  %f\n", degree);
-	PRINTLOG("SQL_experiment_2:  loops:  %d  batches:  %d  sleep_us:  %ld  sum:  %f", loopcount, batchcount, sleep_us, sum);
+	PRINTLOG("SQL_experiment_2:  loopcount:  %lld  batchcount:  %lld  sleep_us:  %ld  sum:  %lld", loopcount, batchcount, sleep_us, sum);
 	PRINTLOG("SQL_END");
 
 	return 0;
