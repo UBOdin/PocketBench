@@ -503,11 +503,27 @@ def bargraph_microbench():
 	color = ""
 	runcount = 0
 	runno = 0
+	sleep = ""
+	batches = ""
 
-	#prefix = "../logs/save_runs_20210618/experiment_1/monsoon_SQL_"
-	#prefix = "../logs/save_runs_20210618/experiment_2_500/monsoon_SQL_"
-	prefix = "../logs/save_runs_20210618/experiment_2_1000/"
+	prefix = sys.argv[1]
+	dirname = prefix.split("/")[-2]
+	param_list = dirname.split("_")
+	if (len(param_list) == 3):
+		batches = "5000"  # legacy support
+		sleep = param_list[2]
+	elif (len(param_list) == 4):
+		batches = param_list[2]
+		sleep = param_list[3]
+	else:
+		print("Unexpected param count")
+		sys.exit(1)
+	#end_if
+	print(prefix)
+	print("Sleep:  " + sleep + "  Batches:  " + batches)
+
 	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
+	#governor_list = ["schedutil_none", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	workload = "A"  # N.b. N/A for micro experiments
 	delay = "0ms"  # N.b. N/A for micro experiments
 
@@ -518,7 +534,7 @@ def bargraph_microbench():
 		for runno in range(runcount):
 			filename = prefix + "YCSB_SQL_" + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".gz"
 			runtime = get_runtime(filename)
-			print(filename + " : " + str(runtime))
+			#print(filename + " : " + str(runtime))
 			runtime_list.append(runtime)
 			filename = prefix + "monsoon_SQL_" + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".csv"
 			energy = get_energy(filename)
@@ -526,6 +542,7 @@ def bargraph_microbench():
 			energy_list.append(energy)
 		#end_for
 		runtime_mean, runtime_err = mean_margin(runtime_list)
+		print(filename + " : " + str(runtime_mean))
 		runtime_mean_list.append(runtime_mean)
 		energy_mean, energy_err = mean_margin(energy_list)
 		energy_mean_list.append(energy_mean)
@@ -539,6 +556,7 @@ def bargraph_microbench():
 
 
 	label_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
+	#label_list = ["default", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
 	listlen = len(governor_list)
 	offset_list = np.arange(0, listlen)
 
@@ -552,9 +570,7 @@ def bargraph_microbench():
 
 	ax[0].set_xticks(np.arange(0, listlen), minor = False)
 	ax[0].set_xticklabels([])
-	#ax[0].set_title("Experiment 1:  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
-	#ax[0].set_title("Experiment 2 (.5ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
-	ax[0].set_title("Experiment 2 (1ms sleep):  Energy Per Run (Average of 3)", fontsize = 20, fontweight = "bold")
+	ax[0].set_title("Experiment 2 (" + sleep + "ms sleep) (" + batches + " batches):  Runtime and Energy Per Policy (Average of 3)", fontsize = 20, fontweight = "bold")
 	ax[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
 
 
