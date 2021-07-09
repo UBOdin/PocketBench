@@ -92,20 +92,18 @@ int main(int argc, char** argv) {
 
 	PRINTLOG("SQL_START");
 
-	if (argc != 2) {
-		printf("Err:  Missing loopcount\n");
+	if (argc != 4) {
+		printf("Err:  Incorrect params\n");
 		_Exit(1);
 	}
 
 	loopcount = atoi(argv[1]);
-//printf("Loopcount:  %llu\n  size:  %lu\n", loopcount, sizeof(loopcount));
 	if (loopcount <= 0) {
 		printf("Err:  Bad loopcount\n");
 		_Exit(1);
 	}
-
-	batchcount = 50000;
-	sleep_us = 100;
+	batchcount = atoi(argv[2]);
+	sleep_us = atoi(argv[3]);
 
 	// Enable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_RESET, 0);
@@ -119,12 +117,14 @@ int main(int argc, char** argv) {
 				sum = sum + i + j + k;
 			}
 		}
-		interval.tv_sec = 0;
-		interval.tv_nsec = sleep_us * 1000;
-		result = nanosleep(&interval, NULL);
-		if (result == -1) {
-			errlog();
-			return 7;
+		if (sleep_us > 0) {
+			interval.tv_sec = 0;
+			interval.tv_nsec = sleep_us * 1000;
+			result = nanosleep(&interval, NULL);
+			if (result == -1) {
+				errlog();
+				return 7;
+			}
 		}
 	}
 
