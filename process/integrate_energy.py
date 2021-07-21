@@ -39,6 +39,7 @@ def get_runtime(file_name):
 	iteration = 0
 	starttime = 0.0
 	endtime = 0.0
+	cycles = 0.0
 
 	input_file = gzip.open(file_name, "r")
 
@@ -66,6 +67,10 @@ def get_runtime(file_name):
 			endtime += float(logline[33:46])
 		#end_if
 
+		if ("Cycle data" in logline):
+			cycles = float(logline[79:])
+		#end_if
+
 	#end_while
 
 	#print("iterations:  %d" % (iteration))
@@ -76,7 +81,7 @@ def get_runtime(file_name):
 
 	input_file.close()
 
-	return (endtime - starttime) * 1000.0
+	return (endtime - starttime) * 1000.0, cycles / (1000.0 * 1000.0)
 
 #end_def
 
@@ -492,6 +497,11 @@ def bargraph_microbench():
 	runtime_mean_list = []
 	runtime_mean = 0.0
 	runtime_err = 0.0
+	cycles_list = []
+	cycles = 0.0
+	cycles_mean_list = []
+	cycles_mean = 0.0
+	cycles_err = 0.0
 	energy_list = []
 	energy = 0.0
 	energy_mean_list = []
@@ -533,17 +543,20 @@ def bargraph_microbench():
 		energy_list = []
 		for runno in range(runcount):
 			filename = prefix + "YCSB_SQL_" + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".gz"
-			runtime = get_runtime(filename)
+			runtime, cycles = get_runtime(filename)
 			#print(filename + " : " + str(runtime))
 			runtime_list.append(runtime)
+			cycles_list.append(cycles)
 			filename = prefix + "monsoon_SQL_" + workload + "_" + delay + "_" + governor + "_1_" + str(runno) + ".csv"
 			energy = get_energy(filename)
 			#print(filename + " : " + str(energy))
 			energy_list.append(energy)
 		#end_for
 		runtime_mean, runtime_err = mean_margin(runtime_list)
-		print(filename + " : " + str(runtime_mean))
 		runtime_mean_list.append(runtime_mean)
+		cycles_mean, cycles_err = mean_margin(cycles_list)
+		cycles_mean_list.append(cycles_mean)
+		print(filename + " : " + str(runtime_mean) + " -- " + str(cycles_mean))
 		energy_mean, energy_err = mean_margin(energy_list)
 		energy_mean_list.append(energy_mean)
 		if (governor == "schedutil_none"):
@@ -570,9 +583,18 @@ def bargraph_microbench():
 
 	ax[0].set_xticks(np.arange(0, listlen), minor = False)
 	ax[0].set_xticklabels([])
-	ax[0].set_title("Experiment 2 (" + sleep + "ms sleep) (" + batches + " batches):  Runtime and Energy Per Policy (Average of 3)", fontsize = 20, fontweight = "bold")
+	ax[0].set_title("Experiment 2 (" + batches + " batches) (" + sleep + "ms sleep):  Runtime and Energy Per Policy (Average of 3)", fontsize = 20, fontweight = "bold")
 	ax[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
 
+	#'''
+	ax_rh = ax[0].twinx()
+
+	for offset, cycles_mean, color, label in zip(offset_list, cycles_mean_list, color_list, label_list):
+		ax_rh.plot(offset, cycles_mean, color = "black", marker = "+", markersize = 10)
+	#end_for
+
+	ax_rh.set_ylabel("CPU cycles ($M$) (userspace)", fontsize = 16, fontweight = "bold")
+	#'''
 
 	for offset, energy_mean, color, label in zip(offset_list, energy_mean_list, color_list, label_list):
 		ax[1].bar(offset, energy_mean, color = color) #, width = width, color = color)
