@@ -139,7 +139,7 @@ chmod 777 /data/results.pipe
 #fi
 
 echo "SQL_params:  governor:  ${1} ${2}" >> $trace_log
-/data/compute.exe 100000000
+/data/compute.exe 100000000 50000 100
 echo "Compute result:  ${?}" >> $logfile
 
 toggle_events 0
