@@ -52,6 +52,7 @@ def process_loglines(file_name, trace_list_list):
 	param_list = []
 	fixed_list = []
 	trace_list = []
+	target_cpu = 0
 
 	perfcycles = 0
 
@@ -126,6 +127,8 @@ def process_loglines(file_name, trace_list_list):
 			continue
 		#end_if
 
+		# N.b. for the cpu_frequency event, the cpu field is the CPU# on which the governor
+		# runs.  It is *not* necessarily the *target* CPU# for which the speed is set.
 		if (func == "cpu_frequency"):
 			index = logline.find(" ", 63, -1)
 			if (index == -1):
@@ -137,10 +140,18 @@ def process_loglines(file_name, trace_list_list):
 				sys.exit(1)
 			#end_if
 			freq = int(logline[69:index])
-			freq_list[cpu] = freq
+
+			#index = logline.find(" ", index, -1)
+			if (logline[index + 1:index + 8] != "cpu_id="):
+				print("Invalid cpu parameter")
+				sys.exit(1)
+			#end_if
+			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
+
+			freq_list[target_cpu] = freq
 			#print("SPEED:  " + str(freq))
-			if (cpu == bench_cpu):
-				trace_list = [iteration, time, "speed", cpu, freq]
+			if (target_cpu == bench_cpu):
+				trace_list = [iteration, time, "speed", target_cpu, freq]
 				trace_list_list.append(trace_list)
 			#end_if
 		#end_if
@@ -219,7 +230,7 @@ def graph_freq_time(trace_list_list):
 	maxspeed = 0
 	cycles = 0
 
-	#fig, ax = plt.subplots()
+	fig, ax = plt.subplots()
 
 	for trace_list, i in zip(trace_list_list, range(len(trace_list_list))):
 		time = trace_list[1]
@@ -248,7 +259,7 @@ def graph_freq_time(trace_list_list):
 	print(cycles)
 	print(cycles / maxtime)
 	'''
-	'''
+	#'''
 	#ax.scatter(time_list, speed_list, s = 5, color = "black")
 	ax.plot(time_list, speed_list, color = "black")
 	ax.axis([0, maxtime * 1.1, 0, maxspeed * 1.1])
@@ -257,7 +268,7 @@ def graph_freq_time(trace_list_list):
 	ax.set_ylabel("Benchmark CPU speed (kHz)", fontsize = 16, fontweight = "bold")
 
 	plt.show()
-	'''
+	#'''
 
 	return cycles, maxtime
 
@@ -456,22 +467,23 @@ def main():
 
 	perfcycles = process_loglines(filename, trace_list_list)
 
-	print("early exit")
-	sys.exit(0)
+	#print("early exit")
+	#sys.exit(0)
 
 	graph_freq_time(trace_list_list);
+	print("bi")
 
-	'''
+	#'''
 	print(len(trace_list_list))
 
 	for e in trace_list_list:
 		print(e)
 	#end_for
-	'''
+	#'''
 
 #end_def
 
 
-#main()
-bargraphs()
+main()
+#bargraphs()
 
