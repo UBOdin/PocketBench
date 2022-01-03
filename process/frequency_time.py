@@ -53,6 +53,9 @@ def process_loglines(file_name, trace_list_list):
 	fixed_list = []
 	trace_list = []
 	target_cpu = 0
+	sleepstate = 0
+	idletime = 0
+	idlecount = 0
 
 	perfcycles = 0
 
@@ -143,18 +146,58 @@ def process_loglines(file_name, trace_list_list):
 
 			#index = logline.find(" ", index, -1)
 			if (logline[index + 1:index + 8] != "cpu_id="):
-				print("Invalid cpu parameter")
+				print("Invalid run cpu parameter")
 				sys.exit(1)
 			#end_if
 			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
 
 			freq_list[target_cpu] = freq
-			#print("SPEED:  " + str(freq))
 			if (target_cpu == bench_cpu):
 				trace_list = [iteration, time, "speed", target_cpu, freq]
 				trace_list_list.append(trace_list)
 			#end_if
 		#end_if
+
+		#'''
+		if (func == "cpu_idle"):
+			index = logline.find(" ", 58, -1)
+			if (index == -1):
+				print("Invalid speed delimiter")
+				sys.exit(1)
+			#end_if
+			if (logline[58:64] != "state="):
+				print("Invalid speed parameter")
+				sys.exit(1)
+			#end_if
+			sleepstate = int(logline[64:index])
+			if (sleepstate == 4294967295):
+				sleepstate = -1
+				idletime += time
+				idlecount += 1
+			else:
+				idletime -= time
+			#end_if
+
+			#index = logline.find(" ", index, -1)
+			if (logline[index + 1:index + 8] != "cpu_id="):
+				print("Invalid idle cpu parameter")
+				sys.exit(1)
+			#end_if
+			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
+
+			# Test hypo:
+			if (cpu != target_cpu):
+				print("cpu mismatch")
+				sys.exit(1)
+			#end_if
+
+			#freq_list[target_cpu] = freq
+			if (target_cpu == bench_cpu):
+				trace_list = [iteration, time, "idle", target_cpu, sleepstate]
+				trace_list_list.append(trace_list)
+			#end_if
+		#end_if
+		#'''
 
 		if (func == "sched_migrate_task"):
 			param_list = logline[68:].split(" ")
@@ -197,7 +240,7 @@ def process_loglines(file_name, trace_list_list):
 
 				bench_cpu = int(param_list[4][9:])
 
-				trace_list = [iteration, time, "migrate", bench_cpu, freq]
+				trace_list = [iteration, time, "migrate", bench_cpu, cpu]
 				trace_list_list.append(trace_list)
 	
 			#end_if
@@ -210,6 +253,9 @@ def process_loglines(file_name, trace_list_list):
 	#print("iterations:  %d" % (iteration))
 
 	input_file.close()
+
+	print("Idle time:  %f" % (idletime))
+	print("Idle count:  %d" % (idlecount))
 
 	return perfcycles
 
@@ -224,7 +270,8 @@ def graph_freq_time(trace_list_list):
 	time = 0.0
 	speed = 0
 	oldtime = 0.0
-	oldspeed = 0
+	oldspeed = 0  # speed from previous iteration (idle or not)
+	savespeed = 0  # speed from previous non-idle iteration
 	basetime = 0.0
 	maxtime = 0.0
 	maxspeed = 0
@@ -235,6 +282,12 @@ def graph_freq_time(trace_list_list):
 	for trace_list, i in zip(trace_list_list, range(len(trace_list_list))):
 		time = trace_list[1]
 		speed = trace_list[4]
+		if (speed > 10):
+			savespeed = speed
+		#end_if
+		if (speed == -1):
+			speed = savespeed
+		#end_if
 		if (i == 0):
 			basetime = time
 		else:
@@ -262,6 +315,7 @@ def graph_freq_time(trace_list_list):
 	#'''
 	#ax.scatter(time_list, speed_list, s = 5, color = "black")
 	ax.plot(time_list, speed_list, color = "black")
+	ax.scatter(time_list, speed_list, color = "black", s = 1)
 	ax.axis([0, maxtime * 1.1, 0, maxspeed * 1.1])
 	ax.set_title("Workload A, Unsaturated System", fontsize = 16, fontweight = "bold")
 	ax.set_xlabel("Benchmark runtime (s)", fontsize = 16, fontweight = "bold")
@@ -269,6 +323,7 @@ def graph_freq_time(trace_list_list):
 
 	plt.show()
 	#'''
+	print("Max time:  %f" % (maxtime))
 
 	return cycles, maxtime
 
@@ -473,13 +528,13 @@ def main():
 	graph_freq_time(trace_list_list);
 	print("bi")
 
-	#'''
+	'''
 	print(len(trace_list_list))
 
 	for e in trace_list_list:
 		print(e)
 	#end_for
-	#'''
+	'''
 
 #end_def
 
