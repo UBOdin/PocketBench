@@ -265,53 +265,103 @@ def process_loglines(file_name, trace_list_list):
 def graph_freq_time(trace_list_list):
 
 	# trace_list_list = []
+	trace_iter = ""  # iterator
 	time_list = []
 	speed_list = []
 	time = 0.0
+	func = ""
 	speed = 0
-	oldtime = 0.0
-	oldspeed = 0  # speed from previous iteration (idle or not)
 	savespeed = 0  # speed from previous non-idle iteration
 	basetime = 0.0
 	maxtime = 0.0
 	maxspeed = 0
+	idlestate = 0
 	cycles = 0
 
 	fig, ax = plt.subplots()
 
-	for trace_list, i in zip(trace_list_list, range(len(trace_list_list))):
+	trace_iter = iter(trace_list_list)
+	trace_list = next(trace_iter)
+	basetime = trace_list[1]
+	assert (trace_list[2] == "start"), "Expected start"
+	i = -1
+	#speed = 1
+	speed = 1401600
+	maxspeed = 1401600
+	savespeed = 1401600
+	idlestate = -1  # Prime to non-idle
+
+	while (True):
+
+		i += 1
+
+		try:
+			trace_list = next(trace_iter)
+		except StopIteration:
+			break
+		#end_try
+
+		#print(i)
+
 		time = trace_list[1]
-		speed = trace_list[4]
-		if (speed > 10):
-			savespeed = speed
+		func = trace_list[2]
+		if (func == "migrate"):
+			#print("Migrate on line %d" % (i))
+			continue
 		#end_if
-		if (speed == -1):
-			speed = savespeed
+		if (func == "speed"):
+
+			if (idlestate < 0):
+				time_list.append(time - basetime)
+				speed_list.append(speed)
+
+				speed = trace_list[4]
+				if (speed > maxspeed):
+					maxspeed = speed
+				#end_if
+				savespeed = speed
+
+				time_list.append(time - basetime)
+				speed_list.append(speed)
+				#cycles += oldspeed * (time - oldtime)
+			#end_if
+
+			if (idlestate == 0):
+				savespeed = trace_list[4]
+			#end_if
+
 		#end_if
-		if (i == 0):
-			basetime = time
-		else:
-			time_list.append(time - basetime)
-			speed_list.append(oldspeed)
-			time_list.append(time - basetime)
-			speed_list.append(speed)
-			cycles += oldspeed * (time - oldtime)
+
+		if (func == "idle"):
+			idlestate = trace_list[4]
+
+			if (idlestate >= 0):
+				# N.b. can't assert this -- can go from, e.g., idle state 0 to 2
+				#assert (speed > 0), ("Expected > 0 speed on %d" % (i))
+				time_list.append(time - basetime)
+				speed_list.append(speed)
+				speed = 0
+				time_list.append(time - basetime)
+				speed_list.append(speed)
+			#end_if
+
+			if (idlestate < 0):
+				# Small bug:  not tracking previous CPU speed when migrating to a new core (ignore and use speed of old core)
+				#assert (speed == 0), ("Expected 0 speed on %d %f" % (i, time))
+				time_list.append(time - basetime)
+				speed_list.append(speed)
+				speed = savespeed
+				time_list.append(time - basetime)
+				speed_list.append(speed)
+			#end_if
+
 		#end_if
-		if (speed > maxspeed):
-			maxspeed = speed
-		#end_if
-		oldtime = time
-		oldspeed = speed
-	#end_for
+
+	#end_while
+	assert (trace_list[2] == "end"), "Expected end"
 	maxtime = trace_list_list[-1][1] - basetime
 
-	'''
-	print("FOOBAR")
-	print(maxtime)
-	print(maxspeed)
-	print(cycles)
-	print(cycles / maxtime)
-	'''
+
 	#'''
 	#ax.scatter(time_list, speed_list, s = 5, color = "black")
 	ax.plot(time_list, speed_list, color = "black")
@@ -324,6 +374,7 @@ def graph_freq_time(trace_list_list):
 	plt.show()
 	#'''
 	print("Max time:  %f" % (maxtime))
+	print("Max speed:  %d" % (maxspeed))
 
 	return cycles, maxtime
 
