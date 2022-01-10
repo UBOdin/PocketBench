@@ -6,6 +6,7 @@ toggle_events() {
 	echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
+	echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -60,6 +61,7 @@ trace_dir=/sys/kernel/debug/tracing
 trace_log=/sys/kernel/debug/tracing/trace_marker
 errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
+userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 
 rm $logfile
 echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
@@ -72,7 +74,11 @@ echo -1 > /proc/sys/kernel/perf_event_paranoid
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
 printf "Getpid:\n$$\n" >> /data/start.pipe
 
-sleep 30
+if [ "$userapp" = "1" ]; then
+	sleep 30
+else
+	sleep 20
+fi
 
 sync
 echo 3 > /proc/sys/vm/drop_caches
@@ -128,9 +134,6 @@ rm /data/results.pipe
 mknod /data/results.pipe p
 chmod 777 /data/results.pipe
 
-#am kill-all
-am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
-
 # Pin benchmark app to core:
 ##ps -A | grep "withjson" > /data/apppid.txt
 ##/data/pincore.exe < /data/apppid.txt
@@ -139,10 +142,19 @@ am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainAc
 #	error_exit "ERR on corepin"
 #fi
 
-# Block until app completes run and outputs exit info:
-echo "Start blocking on benchmark app signal" >> $logfile
-result="$(cat /data/results.pipe)"
-echo "$result" >> $logfile
+#am kill-all
+if [ "$userapp" = "1" ]; then
+	am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
+	# Block until app completes run and outputs exit info:
+	echo "Start blocking on benchmark app signal" >> $logfile
+	result="$(cat /data/results.pipe)"
+	echo "$result" >> $logfile
+else
+	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
+	#/data/compute.exe 100000000 50000 100
+	/data/compute.exe 1000 1
+	echo "Microbenchmark result:  ${?}" >> $logfile
+fi
 
 toggle_events 0
 

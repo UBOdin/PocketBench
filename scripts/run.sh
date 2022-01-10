@@ -13,23 +13,30 @@ filespeed="$(echo $5 | cut -d ":" -f1)"
 timestamp="$(date +%Y%m%d%H%M%S)"
 #filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
 filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_${8}"
-filename="YCSB_${filesuffix}"
 meter="0"  # boolean -- whether using Monsoon meter
+userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 
-printf "Rebooting and running benchmark on device %s\n" $1
+if [ "$userapp" = "1" ]; then
+	filename="YCSB_${filesuffix}"
 
-adb -s $1 reboot
-adb -s $1 wait-for-device
-sleep 10
-printf "Rebooted\n"
-adb -s $1 root
-adb -s $1 wait-for-device
-sleep 10
-printf "Rooted\n"
+	printf "Rebooting and running benchmark on device %s\n" $1
 
-adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $cpuspeed $6 $7 #create database
+	adb -s $1 reboot
+	adb -s $1 wait-for-device
+	sleep 10
+	printf "Rebooted\n"
+	adb -s $1 root
+	adb -s $1 wait-for-device
+	sleep 10
+	printf "Rooted\n"
 
-sleep 15 # Let phone settle before starting script:
+	adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $cpuspeed $6 $7 #create database
+
+	sleep 15 # Let phone settle before starting script:
+else
+	filename="micro_${filesuffix}"
+fi
+
 echo "Starting phone script"
 adb -s $1 shell sh /data/start_benchmark.sh $4 $cpuspeed $wakeport &
 #adb -s $1 shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
