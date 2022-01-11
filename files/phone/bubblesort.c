@@ -1,5 +1,6 @@
 
 
+#include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
@@ -80,58 +81,86 @@ int main(int argc, char** argv) {
 
 	printf("Hello World\n");
 
-// TODO:  Parameterize size
-//	int buffsize = 100;
-
-	int buffsize;
+	int sortsize;
 	int* sortbuff;
 	char statm_filename[] = "/proc/self/statm"; 
 	int result;
 	int statm_fd;
-	int statm_buffsize = 64;
-	char statm_buffer[statm_buffsize];
+	int iosize = 64;
+	char iobuff[iosize];
 	char* statm_save;
 	char* token;
 	int vmsize;
 	int sparse;
+	char trace_filename[] = "/sys/kernel/debug/tracing/trace_marker";
+	int trace_fd;
 
 	if (argc != 3) {
 		printf("Err:  Wrong paramcount\n");
 		_Exit(1);
 	}
 
-	buffsize = atoi(argv[1]);
+	sortsize = atoi(argv[1]);
 	sparse = atoi(argv[2]);
-	sortbuff = malloc(sizeof(int) * buffsize * sparse);
+	sortbuff = malloc(sizeof(int) * sortsize * sparse);
 
-//	printf("Buffer:  %p\n", sortbuff);
+//	printf("Sort Buffer:  %p\n", sortbuff);
 	printf("Sparse:  %d\n", sparse);
-	printf("Size:  %d\n", buffsize);
+	printf("Sort Size:  %d\n", sortsize);
 //	printf("Max:  %d\n", RAND_MAX);
 
 	result = open(statm_filename, O_RDONLY);
 	if (result == -1) {
-		printf("Err on open()\n");
+		printf("Err on statm open():  %d  %s\n", errno, strerror(errno));
 		_Exit(1);
 	}
 	statm_fd = result;
 
-	populate(sortbuff, buffsize, sparse);
-//	print(sortbuff, buffsize, sparse);
-	sort(sortbuff, buffsize, sparse);
-//	print(sortbuff, buffsize, sparse);
-	test(sortbuff, buffsize, sparse);
-
-	result = read(statm_fd, statm_buffer, statm_buffsize);
+	result = open(trace_filename, O_WRONLY);
 	if (result == -1) {
-		printf("Err on read()\n");
+		printf("Err on trace open():  %d %s\n", errno, strerror(errno));
 		_Exit(1);
 	}
-	token = strtok_r(statm_buffer, " ", &statm_save);
+	trace_fd = result;
+
+
+printf("Trace fd:  %d\n", trace_fd);
+
+	populate(sortbuff, sortsize, sparse);
+//	print(sortbuff, sortsize, sparse);
+	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
+	result = write(trace_fd, iobuff, iosize);
+	if (result == -1) {
+		printf("Err on trace write() 1:  %d %s\n", errno, strerror(errno));
+		_Exit(1);
+	}
+	sort(sortbuff, sortsize, sparse);
+	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_END\", \"thread\":0}\n");  // legacy flag
+	result = write(trace_fd, iobuff, iosize);
+	if (result == -1) {
+		printf("Err on trace write() 2:  %d %s\n", errno, strerror(errno));
+		_Exit(1);
+	}
+	snprintf(iobuff, iosize, "Cycle data\n");  // legacy flag
+	result = write(trace_fd, iobuff, iosize);
+	if (result == -1) {
+		printf("Err on trace write() 3:  %d %s\n", errno, strerror(errno));
+		_Exit(1);
+	}
+//	print(sortbuff, sortsize, sparse);
+	test(sortbuff, sortsize, sparse);
+
+	result = read(statm_fd, iobuff, iosize);
+	if (result == -1) {
+		printf("Err on statm read():  %d %s\n", errno, strerror(errno));
+		_Exit(1);
+	}
+	token = strtok_r(iobuff, " ", &statm_save);
 	vmsize = atoi(token);
 
 	printf("Memory:  %d\n", vmsize);
 
+	close(trace_fd);
 	close(statm_fd);
 
 	return 0;
