@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 	pea_struct.pinned = 0;  // N.b. pinned = 1 _is_ incompatible with PERF_FORMAT_GROUP -- either a bug in kernel or documentation?
 	pea_struct.exclusive = 0;
 	pea_struct.exclude_user = 0;  // Track userspace
-	pea_struct.exclude_kernel = 1;  // And kernel
+	pea_struct.exclude_kernel = 0;  // And kernel
 	pea_struct.exclude_hv = 1;  // NOT HV (if any)
 
 	// Open perf fd:
