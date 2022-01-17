@@ -13,7 +13,7 @@ filespeed="$(echo $5 | cut -d ":" -f1)"
 timestamp="$(date +%Y%m%d%H%M%S)"
 #filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
 filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_${8}"
-meter="0"  # boolean -- whether using Monsoon meter
+meter="1"  # boolean -- whether using Monsoon meter
 userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 
 if [ "$userapp" = "1" ]; then
@@ -56,6 +56,7 @@ else
 fi
 
 # Block on wakeup wifi ping from phone:
+echo "Starting blocking -- Start app"
 ./server.exe $wakeport
 result=$?
 if [ "$result" != "0" ]; then

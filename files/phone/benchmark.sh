@@ -2,11 +2,11 @@
 toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
-	echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	##echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
+	##echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	echo $1 > $trace_dir/events/power/cpu_idle/enable
+	##echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -150,10 +150,18 @@ if [ "$userapp" = "1" ]; then
 	result="$(cat /data/results.pipe)"
 	echo "$result" >> $logfile
 else
-	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
-	#/data/compute.exe 100000000 50000 100
-	/data/compute.exe 1000 1
-	echo "Microbenchmark result:  ${?}" >> $logfile
+	#echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
+	##/data/compute.exe 100000000 50000 100
+	#/data/compute.exe 1000 1
+	#echo "Microbenchmark result:  ${?}" >> $logfile
+
+	echo "Fixed wait benchmark" >> $trace_log
+	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
+	sleep 180
+	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
+	echo "Cycle data" >> $trace_log
+	echo "Fixed benchmark done" >> $logfile
+
 fi
 
 toggle_events 0
@@ -170,6 +178,7 @@ if [ "$result" == "ERR" ]; then
 fi
 echo "Received benchmark app finished signal" >> $logfile
 
+printf "Governor used:  %s\n" "$governor" >> $trace_log
 cat $cpu_dir/cpu0/cpufreq/scaling_setspeed >> $trace_log
 cat $cpu_dir/cpu4/cpufreq/scaling_setspeed >> $trace_log
 
