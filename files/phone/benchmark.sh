@@ -152,10 +152,7 @@ if [ "$userapp" = "1" ]; then
 else
 	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 	##/data/compute.exe 100000000 50000 100
-	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	/data/compute.exe 10000 32
-	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
-	echo "Cycle data" >> $trace_log
 	echo "Microbenchmark result:  ${?}" >> $logfile
 
 	#echo "Fixed wait benchmark" >> $trace_log
