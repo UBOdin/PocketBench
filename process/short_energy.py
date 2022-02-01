@@ -31,6 +31,283 @@ def mean_margin(data_list):
 #end_def
 
 
+def process_loglines(file_name):  #, trace_list_list):
+
+	# file_name = ""
+	trace_list_list = []
+
+	logline = ""
+	iteration = 0
+	cpu = 0
+	pid = 0
+	time = 0.0
+	index = 0
+	timeend = 0
+	eventend = 0
+	eventtype = ""
+	datastart = 0
+	freq = 0
+	freq_list = [0, 0, 0, 0, 0, 0, 0, 0]
+	starttime = 0.0
+	endtime = 0.0
+	startflag = False
+	bench_cpu = 0
+	bench_pid = 0
+	param = ""
+	param_list = []
+	fixed_list = []
+	trace_list = []
+	target_cpu = 0
+	sleepstate = 0
+	idletime = 0
+	idlecount = 0
+	perfcycles = 0
+	cacherefs = 0
+	cachemisses = 0
+
+	offcount = 0
+	oncount = 0
+
+	input_file = gzip.open(file_name, "r")
+
+	while (True):
+
+		# Keep reading until finished:
+		logline = input_file.readline().decode("ascii")
+
+		if (logline == ""):
+			print("Never hit endmark")
+			sys.exit(1)
+			break
+		#end_if
+
+		iteration += 1
+		if (iteration % 1000 == 0):
+			#print("Iteration:  ", iteration)
+			pass
+		#end_if
+
+		'''
+		if (iteration == 80):
+			break
+		#end_if
+		'''
+
+		if (len(logline) < 50):
+			continue
+		#end_if
+		if (logline[48] != ":"):
+			continue
+		#end_if
+
+		# Calculate length of timefield (n.b. can vary):
+		index = logline.find(":", 34)
+		if (index == -1):
+			print("Missing timeend")
+			sys.exit(1)
+		#end_if
+		timeend = index
+
+		pid = int(logline[17:23])
+		cpu = int(logline[24:27])
+		time = float(logline[34:timeend])
+
+		# Find end of ftrace event type:
+		index = logline.find(":", timeend + 2)
+		if (index == -1):
+			print("Invalid ftrace event")
+			sys.exit(1)
+		#end_if
+		eventend = index
+		eventtype = logline[timeend + 2:eventend]
+		datastart = eventend + 2
+
+		'''
+		print("Time end:  " + str(timeend))
+		print(eventtype)
+		print("Func end:  " + str(eventend))
+		print(datastart)
+		'''
+
+		if (eventtype == "tracing_mark_write"):
+			if (startflag == False):
+				if ("SQL_START" in logline):
+					startflag = True
+					bench_cpu = cpu
+					bench_pid = pid
+					trace_list = [iteration, time, "start", cpu, freq]
+					trace_list_list.append(trace_list)
+					starttime = time
+				#end_if
+			else:
+				if ("SQL_END" in logline):
+					trace_list = [iteration, time, "end", cpu, freq]
+					trace_list_list.append(trace_list)
+					endtime = time
+					break
+				#end_if
+
+				if ("CACHE_REFS" in logline):
+					cacherefs = int(logline[datastart + 13:])
+				#end_if
+
+				if ("CACHE_MISSES" in logline):
+					cachemisses = int(logline[datastart + 15:])
+				#end_if
+
+			#end_if
+		#end_if
+
+		if (startflag == False):
+			continue
+		#end_if
+
+		# N.b. for the cpu_frequency event, the cpu field is the CPU# on which the governor
+		# runs.  It is *not* necessarily the *target* CPU# for which the speed is set.
+		if (eventtype == "cpu_frequency"):
+
+			print("BOMB -- fix this event to remove hardcoded logline timefield assumptions")
+			sys.exit(1)
+
+			index = logline.find(" ", 63, -1)
+			if (index == -1):
+				print("Invalid speed delimiter")
+				sys.exit(1)
+			#end_if
+			if (logline[63:69] != "state="):
+				print("Invalid speed parameter")
+				sys.exit(1)
+			#end_if
+			freq = int(logline[69:index])
+
+			#index = logline.find(" ", index, -1)
+			if (logline[index + 1:index + 8] != "cpu_id="):
+				print("Invalid run cpu parameter")
+				sys.exit(1)
+			#end_if
+			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
+
+			freq_list[target_cpu] = freq
+			if (target_cpu == bench_cpu):
+				trace_list = [iteration, time, "speed", target_cpu, freq]
+				trace_list_list.append(trace_list)
+			#end_if
+		#end_if
+
+		#'''
+		if (eventtype == "cpu_idle"):
+			index = logline.find(" ", datastart)
+			if (index == -1):
+				print("Invalid speed delimiter")
+				sys.exit(1)
+			#end_if
+			if (logline[datastart:datastart + 6] != "state="):
+				print("Invalid speed parameter")
+				sys.exit(1)
+			#end_if
+			sleepstate = int(logline[datastart + 6:index])
+			if (sleepstate == 4294967295):
+				sleepstate = -1
+				idletime += time
+				idlecount += 1
+				offcount += 1
+			else:
+				idletime -= time
+				oncount += 1
+			#end_if
+
+			#index = logline.find(" ", index, -1)
+			if (logline[index + 1:index + 8] != "cpu_id="):
+				print("Invalid idle cpu parameter")
+				sys.exit(1)
+			#end_if
+			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
+
+			# Test hypo:
+			if (cpu != target_cpu):
+				print("cpu mismatch")
+				sys.exit(1)
+			#end_if
+
+			#freq_list[target_cpu] = freq
+			if (target_cpu == bench_cpu):
+				trace_list = [iteration, time, "idle", target_cpu, sleepstate]
+				trace_list_list.append(trace_list)
+			#end_if
+		#end_if
+		#'''
+
+		if (eventtype == "sched_migrate_task"):
+			param_list = logline[datastart:].split(" ")
+
+			# Kludge to sanitize for task names containing spaces:
+			fixed_list = []
+			for param in param_list:
+				if ("=" in param):
+					fixed_list.append(param)
+				#end_if
+			#end_for
+			param_list = fixed_list
+
+			if (param_list[1][0:4] != "pid="):
+				print("Invalid migrate parameter")
+				sys.exit(1)
+			#end_if
+
+			if (int(param_list[1][4:]) == bench_pid):
+
+				if (param_list[3][0:9] != "orig_cpu="):
+					print("Invalid origin parameter")
+					sys.exit(1)
+				#end_if
+				if (int(param_list[3][9:]) != bench_cpu):
+					print("Invalid origin cpu")
+					sys.exit(1)
+				#end_if
+				if (param_list[4][0:9] != "dest_cpu="):
+					print("Invalid destination parameter")
+					sys.exit(1)
+				#end_if
+
+				'''
+				print(iteration)
+				print(time)
+				print(bench_cpu)
+				print(str(int(param_list[4][9:])))
+				'''
+
+				bench_cpu = int(param_list[4][9:])
+
+				trace_list = [iteration, time, "migrate", bench_cpu, cpu]
+				trace_list_list.append(trace_list)
+	
+			#end_if
+
+
+		#end_if
+
+	#end_while
+
+	#print("iterations:  %d" % (iteration))
+
+	input_file.close()
+
+	print("Idle time:  %f" % (idletime))
+	print("Idle count:  %d" % (idlecount))
+	print(starttime)
+	print(endtime)
+	print("Latency:  ", endtime - starttime)
+	print(cacherefs)
+	print(cachemisses)
+	print(offcount)
+	print(oncount)
+
+	#return perfcycles
+	return (endtime - starttime) * 1000.0 #, cycles / (1000.0 * 1000.0)
+
+#end_def
+
+
 def get_runtime(file_name):
 
 	# file_name = ""
@@ -255,9 +532,9 @@ def bargraph_latency(latency_list, benchname):
 	#end_for
 	#'''
 
-	ax.set_title("Latency Per Governor" + benchname, fontsize = 20, fontweight = "bold")
+	ax.set_title("Runtime for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Total latency ($ms$)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
 	plt.show()
@@ -323,7 +600,7 @@ def bargraph_energy(energy_list, benchname):
 	#end_for
 	#'''
 
-	ax.set_title("Net Energy Per Governor" + benchname, fontsize = 20, fontweight = "bold")
+	ax.set_title("Net Energy for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Net energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
 
@@ -353,7 +630,7 @@ def main():
 	benchname = ""
 
 	path = sys.argv[1]
-	benchname = " Youtube (150s video playback) (no kernel trace)"
+	benchname = "Bubblesort (10k ints, 64 per 4k page):\nRuntime for different CPU policies"
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
 
 	# Get latency data:
@@ -368,6 +645,7 @@ def main():
 
 		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
 		latency = get_runtime(filename)
+		#latency = process_loglines(filename)
 		print(filename + " : " + str(latency))
 
 		latency_list.append(latency)
