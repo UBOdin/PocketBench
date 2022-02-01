@@ -40,6 +40,8 @@ def get_runtime(file_name):
 	starttime = 0.0
 	endtime = 0.0
 	cycles = 0.0
+	cacherefs = 0
+	cachemisses = 0
 
 	input_file = gzip.open(file_name, "r")
 
@@ -59,12 +61,20 @@ def get_runtime(file_name):
 			pass
 		#end_if
 
-		if ("_START" in logline):
-			starttime += float(logline[33:46])
+		if ("SQL_START" in logline):
+			starttime += float(logline[33:48])
 		#end_if
 
-		if ("_END" in logline):
-			endtime += float(logline[33:46])
+		if ("SQL_END" in logline):
+			endtime += float(logline[33:48])
+		#end_if
+
+		if ("CACHE_REFS" in logline):
+			cacherefs = int(logline[83:])
+		#end_if
+
+		if ("CACHE_MISSES" in logline):
+			cachemisses = int(logline[85:])
 		#end_if
 
 		'''
@@ -80,6 +90,8 @@ def get_runtime(file_name):
 	#print(starttime)
 	#print(endtime)
 	#print("Latency:  ", endtime - starttime)
+	print(cacherefs)
+	print(cachemisses)
 
 	input_file.close()
 
@@ -292,7 +304,7 @@ def bargraph_energy(energy_list, benchname):
 
 		offset_list += width
 
-		ticklabel_list.append(label)
+		ticklabel_list.append(label + "\n" + str(int(energy)))
 
 		output_file.write("%s & %f \\\\\n" % (label, energy))
 
@@ -341,8 +353,8 @@ def main():
 	benchname = ""
 
 	path = sys.argv[1]
-	#benchname = " Youtube (150s video playback) (no kernel trace)"
-	benchname = " Youtube (150s video playback) (with kernel trace)"
+	benchname = " Youtube (150s video playback) (no kernel trace)"
+	#benchname = " Youtube (150s video playback) (with kernel trace)"
 
 	# Get latency data:
 
@@ -364,7 +376,7 @@ def main():
 
 	bargraph_latency(latency_list, benchname)
 
-	#return
+	return
 
 	# Get energy data:
 
