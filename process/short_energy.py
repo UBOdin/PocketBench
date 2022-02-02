@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
 
+from matplotlib.lines import Line2D
+
 import math
 import statistics
 
@@ -372,7 +374,7 @@ def get_runtime(file_name):
 
 	input_file.close()
 
-	return (endtime - starttime) * 1000.0, cycles / (1000.0 * 1000.0)
+	return (endtime - starttime) * 1000.0, cacherefs, cachemisses
 
 #end_def
 
@@ -483,9 +485,11 @@ def get_energy(file_name):
 #end_def
 
 
-def bargraph_latency(latency_list, benchname):
+def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 
 	# latency_list = []
+	# cacheref_list = []
+	# cachemiss_list = []
 	# benchname = ""
 	latency = 0.0
 	clusterlen = 0
@@ -507,13 +511,15 @@ def bargraph_latency(latency_list, benchname):
 		color_list.append("blue")
 	#end_for
 
-	fig, ax = plt.subplots()
+	fig_list, ax_list = plt.subplots(3, 1)
 
 	#ticklabel_list.append("")
 
-	for latency, offset, color, label in zip(latency_list, offset_list, color_list, label_list):
+	for latency, cacherefs, cachemisses, offset, color, label in zip(latency_list, cacherefs_list, cachemisses_list, offset_list, color_list, label_list):
 
-		ax.bar(offset, latency, width = width, color = color)
+		ax_list[0].bar(offset, latency, width = width, color = color)
+		ax_list[1].bar(offset, cacherefs / 1000000, width = width, color = color)
+		ax_list[2].bar(offset, cachemisses / 1000000, width = width, color = color)
 
 		offset_list += width
 
@@ -523,20 +529,48 @@ def bargraph_latency(latency_list, benchname):
 
 	print(ticklabel_list)
 	#'''
-	ax.set_xticks(np.arange(0, offset_list[0]) * 2, False)
-	ax.set_xticklabels(ticklabel_list)
-	tick_list = ax.get_xticklabels()
+	for i in range(len(ax_list)):
+		ax_list[i].set_xticks(np.arange(0, offset_list[0]) * 2, False)
+	#end_for
+	ax_list[0].set_xticklabels([])
+	ax_list[1].set_xticklabels([])
+	ax_list[2].set_xticklabels(ticklabel_list)
+	tick_list = ax_list[2].get_xticklabels()
 	for i in range(len(tick_list)):
 		tick_list[i].set_rotation(-45)
 		tick_list[i].set_ha("left")
 	#end_for
 	#'''
 
-	ax.set_title("Runtime for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
-	ax.set_xlabel("Governor", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_title("Runtime for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
+	ax_list[2].set_xlabel("Governor", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("Cache refs (M)", fontsize = 16, fontweight = "bold")
+	ax_list[2].set_ylabel("Cache misses (M)", fontsize = 16, fontweight = "bold")
 
-	plt.tight_layout()
+	plt.show()
+	plt.close("all")
+
+
+	fig_list, ax_list = plt.subplots(2, 1)
+
+	handle_list = []
+	for latency, cacherefs, cachemisses, color, i, label in zip(latency_list, cacherefs_list, cachemisses_list, color_list, range(clusterlen), label_list):
+		ax_list[0].scatter(cachemisses / 1000000, latency, color = color, s = 50)
+		ax_list[0].annotate(str(i), (cachemisses / 1000000 + .1, latency + 10), fontweight = "bold")
+		ax_list[1].scatter(cacherefs / 1000000, latency, color = color, s = 50)
+		ax_list[1].annotate(str(i), (cacherefs / 1000000 + 2, latency + 10), fontweight = "bold")
+		handle_list.append(Line2D([], [], label = str(i) + " = " + label, linewidth = 0))
+	#end_for
+
+	ax_list[0].set_title("Runtime and Cache Misses for a Given CPU Governor", fontsize = 10, fontweight = "bold")
+	ax_list[0].set_xlabel("Cache misses (M)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
+	ax_list[0].legend(handles = handle_list)
+	ax_list[1].set_xlabel("Cache references (M)", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
+	ax_list[1].legend(handles = handle_list)
+
 	plt.show()
 
 	return
@@ -628,6 +662,10 @@ def main():
 	delay = ""
 	saturation = ""
 	benchname = ""
+	cacherefs_list = []
+	cacherefs = 0
+	cachemisses_list = []
+	cachemisses = 0
 
 	path = sys.argv[1]
 	benchname = "Bubblesort (10k ints, 64 per 4k page):\nRuntime for different CPU policies"
@@ -644,15 +682,17 @@ def main():
 	for governor in governors:
 
 		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
-		latency = get_runtime(filename)
+		latency, cacherefs, cachemisses = get_runtime(filename)
 		#latency = process_loglines(filename)
 		print(filename + " : " + str(latency))
 
 		latency_list.append(latency)
+		cacherefs_list.append(cacherefs)
+		cachemisses_list.append(cachemisses)
 
 	#end_for
 
-	bargraph_latency(latency_list, benchname)
+	bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname)
 
 	return
 
