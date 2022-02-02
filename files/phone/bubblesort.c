@@ -2,15 +2,101 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/perf_event.h>
+#include <linux/hw_breakpoint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/syscall.h>
 #include <time.h>
 #include <unistd.h>
 
 
 //int sparse = 1;
 //int sparse = 4096;
+
+#define PERFBUFF_SIZE 64
+
+
+#define errtrap(error) (__errtrap(result, error, __LINE__))
+void __errtrap(int result, const char* error, int line) {
+
+	if (result == -1) {
+		printf("Error in %s() on line %d:  %s\n", error, line, strerror(errno));
+		_exit(errno);
+	}
+	return;
+
+}
+
+
+int perf_init(int* perf_ref_fd_ptr, int* perf_miss_fd_ptr) {
+
+	int perf_ref_fd;
+	int perf_miss_fd;
+	int result;
+	struct perf_event_attr pea_struct;
+
+	// Initialize HW performance monitoring structure:
+	memset(&pea_struct, 0, sizeof(pea_struct));
+	pea_struct.type = PERF_TYPE_HARDWARE;
+	pea_struct.size = sizeof(struct perf_event_attr);
+	pea_struct.config = PERF_COUNT_HW_CACHE_REFERENCES;  // Track cache references with this monitor
+	pea_struct.sample_period = 0;  // Not using sample periods; will do manual collection
+	pea_struct.sample_type = 0;  // ditto above
+	pea_struct.read_format = PERF_FORMAT_GROUP;  // | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
+	// Some bitfields:
+	pea_struct.disabled = 1;  // Disabled for now -- will start collection later
+	pea_struct.inherit = 0;  // Yes, track both client and worker (n.b. documentation says this = 1 is incompatible with PERF_FORMAT_GROUP -- it is _not_; bug?)
+	pea_struct.pinned = 0;  // N.b. pinned = 1 _is_ incompatible with PERF_FORMAT_GROUP -- either a bug in kernel or documentation?
+	pea_struct.exclusive = 0;
+	pea_struct.exclude_user = 0;  // Track userspace
+	pea_struct.exclude_kernel = 0;  // But not kernel
+	pea_struct.exclude_hv = 1;  // And not hv (if any)
+
+	// Group leader for first of 2 events (cache references):
+	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, -1, 0);
+	errtrap("perf_event_open");
+	perf_ref_fd = result;
+	// Configure second event to monitor cache misses:
+	pea_struct.config = PERF_COUNT_HW_CACHE_MISSES;
+	pea_struct.disabled = 0;  // N.b. -- enabled, but dependent on status of leader event (initially disabled)
+	// Include in monitoring group:
+	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, perf_ref_fd, 0);
+	errtrap("perf_event_open");
+	perf_miss_fd = result;
+
+	// Enable perf:
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_RESET, 0);
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_ENABLE, 0);
+
+	*perf_ref_fd_ptr = perf_ref_fd;
+	*perf_miss_fd_ptr = perf_miss_fd;
+
+	return 0;
+
+}
+
+
+int perf_finish(int perf_ref_fd, int perf_miss_fd, unsigned long* cache_refs_ptr, unsigned long* cache_misses_ptr) {
+
+	int result;
+	char perf_buff[PERFBUFF_SIZE];
+
+	// Fetch cache data from perf:
+	result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
+	errtrap("read");
+	*cache_refs_ptr = ((unsigned long*)perf_buff)[1];
+	*cache_misses_ptr = ((unsigned long*)perf_buff)[2];
+
+	// Disable perf:
+	ioctl(perf_ref_fd, PERF_EVENT_IOC_DISABLE, 0);
+	close(perf_ref_fd);
+	close(perf_miss_fd);
+
+	return 0;
+
+}
 
 
 int populate(int* sortbuff, int buffsize, int sparse) {
@@ -95,6 +181,11 @@ int main(int argc, char** argv) {
 	char trace_filename[] = "/sys/kernel/debug/tracing/trace_marker";
 	int trace_fd;
 
+	int perf_ref_fd;
+	int perf_miss_fd;
+	unsigned long cache_refs;
+	unsigned long cache_misses;
+
 	if (argc != 3) {
 		printf("Err:  Wrong paramcount\n");
 		_Exit(1);
@@ -110,17 +201,11 @@ int main(int argc, char** argv) {
 //	printf("Max:  %d\n", RAND_MAX);
 
 	result = open(statm_filename, O_RDONLY);
-	if (result == -1) {
-		printf("Err on statm open():  %d  %s\n", errno, strerror(errno));
-		_Exit(1);
-	}
+	errtrap("open");
 	statm_fd = result;
 
 	result = open(trace_filename, O_WRONLY);
-	if (result == -1) {
-		printf("Err on trace open():  %d %s\n", errno, strerror(errno));
-		_Exit(1);
-	}
+	errtrap("open");
 	trace_fd = result;
 
 
@@ -128,33 +213,30 @@ printf("Trace fd:  %d\n", trace_fd);
 
 	populate(sortbuff, sortsize, sparse);
 //	print(sortbuff, sortsize, sparse);
+
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
 	result = write(trace_fd, iobuff, iosize);
-	if (result == -1) {
-		printf("Err on trace write() 1:  %d %s\n", errno, strerror(errno));
-		_Exit(1);
-	}
+	errtrap("write");
+	perf_init(&perf_ref_fd, &perf_miss_fd);
+
 	sort(sortbuff, sortsize, sparse);
+
+	perf_finish(perf_ref_fd, perf_miss_fd, &cache_refs, &cache_misses);
+	snprintf(iobuff, iosize, "CACHE_REFS:  %lu\n", cache_refs);
+	result = write(trace_fd, iobuff, iosize);
+	errtrap("write");
+	snprintf(iobuff, iosize, "CACHE_MISSES:  %lu\n", cache_misses);
+	result = write(trace_fd, iobuff, iosize);
+	errtrap("write");
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_END\", \"thread\":0}\n");  // legacy flag
 	result = write(trace_fd, iobuff, iosize);
-	if (result == -1) {
-		printf("Err on trace write() 2:  %d %s\n", errno, strerror(errno));
-		_Exit(1);
-	}
-	snprintf(iobuff, iosize, "Cycle data\n");  // legacy flag
-	result = write(trace_fd, iobuff, iosize);
-	if (result == -1) {
-		printf("Err on trace write() 3:  %d %s\n", errno, strerror(errno));
-		_Exit(1);
-	}
+	errtrap("write");
+
 //	print(sortbuff, sortsize, sparse);
 	test(sortbuff, sortsize, sparse);
 
 	result = read(statm_fd, iobuff, iosize);
-	if (result == -1) {
-		printf("Err on statm read():  %d %s\n", errno, strerror(errno));
-		_Exit(1);
-	}
+	errtrap("read");
 	token = strtok_r(iobuff, " ", &statm_save);
 	vmsize = atoi(token);
 
