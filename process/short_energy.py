@@ -304,8 +304,12 @@ def process_loglines(file_name):  #, trace_list_list):
 	print(offcount)
 	print(oncount)
 
+	for e in trace_list_list:
+		print(e)
+	#end_for
+
 	#return perfcycles
-	return (endtime - starttime) * 1000.0 #, cycles / (1000.0 * 1000.0)
+	return (endtime - starttime) * 1000.0, cacherefs, cachemisses
 
 #end_def
 
@@ -683,7 +687,7 @@ def main():
 
 		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
 		latency, cacherefs, cachemisses = get_runtime(filename)
-		#latency = process_loglines(filename)
+		latency = process_loglines(filename)
 		print(filename + " : " + str(latency))
 
 		latency_list.append(latency)
@@ -720,5 +724,19 @@ def main():
 #end_def
 
 
+def quick():
+
+	filename = ""
+
+	filename = sys.argv[1]
+
+	process_loglines(filename)
+
+	return
+
+#end_def
+
+
 main()
+#quick()
 
