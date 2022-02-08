@@ -30,10 +30,10 @@ void __errtrap(int result, const char* error, int line) {
 }
 
 
-int perf_init(int* perf_ref_fd_ptr, int* perf_miss_fd_ptr) {
+int perf_init(int event_1, int event_2, int* perf_1_fd_ptr, int* perf_2_fd_ptr) {
 
-	int perf_ref_fd;
-	int perf_miss_fd;
+	int perf_1_fd;
+	int perf_2_fd;
 	int result;
 	struct perf_event_attr pea_struct;
 
@@ -41,7 +41,7 @@ int perf_init(int* perf_ref_fd_ptr, int* perf_miss_fd_ptr) {
 	memset(&pea_struct, 0, sizeof(pea_struct));
 	pea_struct.type = PERF_TYPE_HARDWARE;
 	pea_struct.size = sizeof(struct perf_event_attr);
-	pea_struct.config = PERF_COUNT_HW_CACHE_REFERENCES;  // Track cache references with this monitor
+	pea_struct.config = event_1;
 	pea_struct.sample_period = 0;  // Not using sample periods; will do manual collection
 	pea_struct.sample_type = 0;  // ditto above
 	pea_struct.read_format = PERF_FORMAT_GROUP;  // | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
@@ -50,49 +50,55 @@ int perf_init(int* perf_ref_fd_ptr, int* perf_miss_fd_ptr) {
 	pea_struct.inherit = 0;  // Yes, track both client and worker (n.b. documentation says this = 1 is incompatible with PERF_FORMAT_GROUP -- it is _not_; bug?)
 	pea_struct.pinned = 0;  // N.b. pinned = 1 _is_ incompatible with PERF_FORMAT_GROUP -- either a bug in kernel or documentation?
 	pea_struct.exclusive = 0;
-	pea_struct.exclude_user = 0;  // Track userspace
-	pea_struct.exclude_kernel = 0;  // But not kernel
-	pea_struct.exclude_hv = 1;  // And not hv (if any)
+	pea_struct.exclude_user = 0;
+	pea_struct.exclude_kernel = 0;
+	pea_struct.exclude_hv = 1;
 
 	// Group leader for first of 2 events (cache references):
 	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, -1, 0);
 	errtrap("perf_event_open");
-	perf_ref_fd = result;
-	// Configure second event to monitor cache misses:
-	pea_struct.config = PERF_COUNT_HW_CACHE_MISSES;
-	pea_struct.disabled = 0;  // N.b. -- enabled, but dependent on status of leader event (initially disabled)
-	// Include in monitoring group:
-	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, perf_ref_fd, 0);
-	errtrap("perf_event_open");
-	perf_miss_fd = result;
+	perf_1_fd = result;
+
+	if (event_2 > 0) {
+		// Configure second event to monitor cache misses:
+		pea_struct.config = event_2;
+		pea_struct.disabled = 0;  // N.b. -- enabled, but dependent on status of leader event (initially disabled)
+		// Include in monitoring group:
+		result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, perf_1_fd, 0);
+		errtrap("perf_event_open");
+		perf_2_fd = result;
+	} else {
+		perf_2_fd = -1;  // Magic val:  Invalid
+	}
 
 	// Enable perf:
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_RESET, 0);
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_ENABLE, 0);
+	ioctl(perf_1_fd, PERF_EVENT_IOC_RESET, 0);
+	ioctl(perf_1_fd, PERF_EVENT_IOC_ENABLE, 0);
 
-	*perf_ref_fd_ptr = perf_ref_fd;
-	*perf_miss_fd_ptr = perf_miss_fd;
+	*perf_1_fd_ptr = perf_1_fd;
+	*perf_2_fd_ptr = perf_2_fd;
 
 	return 0;
 
 }
 
 
-int perf_finish(int perf_ref_fd, int perf_miss_fd, unsigned long* cache_refs_ptr, unsigned long* cache_misses_ptr) {
+int perf_finish(int perf_1_fd, int perf_2_fd, unsigned long* result_1_ptr, unsigned long* result_2_ptr) {
 
 	int result;
 	char perf_buff[PERFBUFF_SIZE];
 
 	// Fetch cache data from perf:
-	result = read(perf_ref_fd, perf_buff, PERFBUFF_SIZE);
+	result = read(perf_1_fd, perf_buff, PERFBUFF_SIZE);
 	errtrap("read");
-	*cache_refs_ptr = ((unsigned long*)perf_buff)[1];
-	*cache_misses_ptr = ((unsigned long*)perf_buff)[2];
-
 	// Disable perf:
-	ioctl(perf_ref_fd, PERF_EVENT_IOC_DISABLE, 0);
-	close(perf_ref_fd);
-	close(perf_miss_fd);
+	ioctl(perf_1_fd, PERF_EVENT_IOC_DISABLE, 0);
+	close(perf_1_fd);
+	*result_1_ptr = ((unsigned long*)perf_buff)[1];
+	if (perf_2_fd > 0) {
+		close(perf_2_fd);
+		*result_2_ptr = ((unsigned long*)perf_buff)[2];
+	}
 
 	return 0;
 
@@ -217,7 +223,7 @@ printf("Trace fd:  %d\n", trace_fd);
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-	perf_init(&perf_ref_fd, &perf_miss_fd);
+	perf_init(PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES, &perf_ref_fd, &perf_miss_fd);
 
 	sort(sortbuff, sortsize, sparse);
 
