@@ -1,16 +1,18 @@
 
+#define _GNU_SOURCE
 
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/perf_event.h>
 #include <linux/hw_breakpoint.h>
+#include <sched.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
 #include <sys/syscall.h>
 #include <time.h>
 #include <unistd.h>
-
 
 //int sparse = 1;
 //int sparse = 4096;
@@ -105,6 +107,25 @@ int perf_finish(int perf_1_fd, int perf_2_fd, unsigned long* result_1_ptr, unsig
 }
 
 
+int pin_core(int core) {
+
+	long tid;
+	cpu_set_t set;
+	int result;
+
+	// Pin client thread to core(s):
+	tid = syscall(__NR_gettid);
+	CPU_ZERO(&set);
+	CPU_SET(core, &set);
+	result = sched_setaffinity(tid, sizeof(set), &set);
+	errtrap("sched_setaffinity");
+	printf("Thread tid %ld pinned to core %d\n", tid, core);
+
+	return 0;
+
+}
+
+
 int populate(int* sortbuff, int buffsize, int sparse) {
 
 /*
@@ -186,19 +207,20 @@ int main(int argc, char** argv) {
 	int sparse;
 	char trace_filename[] = "/sys/kernel/debug/tracing/trace_marker";
 	int trace_fd;
+	int perf_1_fd;
+	int perf_2_fd;
+	unsigned long result_1;
+	unsigned long result_2;
+	int coreno;
 
-	int perf_ref_fd;
-	int perf_miss_fd;
-	unsigned long cache_refs;
-	unsigned long cache_misses;
-
-	if (argc != 3) {
+	if (argc != 4) {
 		printf("Err:  Wrong paramcount\n");
 		_Exit(1);
 	}
 
 	sortsize = atoi(argv[1]);
 	sparse = atoi(argv[2]);
+	coreno = atoi(argv[3]);
 	sortbuff = malloc(sizeof(int) * sortsize * sparse);
 
 //	printf("Sort Buffer:  %p\n", sortbuff);
@@ -213,25 +235,28 @@ int main(int argc, char** argv) {
 	result = open(trace_filename, O_WRONLY);
 	errtrap("open");
 	trace_fd = result;
-
-
-printf("Trace fd:  %d\n", trace_fd);
+//	printf("Trace fd:  %d\n", trace_fd);
 
 	populate(sortbuff, sortsize, sparse);
 //	print(sortbuff, sortsize, sparse);
 
+	if (coreno > 0) {
+		pin_core(coreno);
+	}
+
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-	perf_init(PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES, &perf_ref_fd, &perf_miss_fd);
+//	perf_init(PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES, &perf_1_fd, &perf_2_fd);
+	perf_init(PERF_COUNT_HW_CPU_CYCLES, -1, &perf_1_fd, &perf_2_fd);
 
 	sort(sortbuff, sortsize, sparse);
 
-	perf_finish(perf_ref_fd, perf_miss_fd, &cache_refs, &cache_misses);
-	snprintf(iobuff, iosize, "CACHE_REFS:  %lu\n", cache_refs);
+	perf_finish(perf_1_fd, perf_2_fd, &result_1, &result_2);
+	snprintf(iobuff, iosize, "CACHE_REFS:  %lu\n", result_1);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-	snprintf(iobuff, iosize, "CACHE_MISSES:  %lu\n", cache_misses);
+	snprintf(iobuff, iosize, "CACHE_MISSES:  %lu\n", result_2);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_END\", \"thread\":0}\n");  // legacy flag
