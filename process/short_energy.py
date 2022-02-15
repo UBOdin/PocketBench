@@ -69,6 +69,9 @@ def process_loglines(file_name):  #, trace_list_list):
 
 	offcount = 0
 	oncount = 0
+	oncore = False
+	oncoretime = 0
+	offcoretime = 0
 
 	input_file = gzip.open(file_name, "r")
 
@@ -79,6 +82,9 @@ def process_loglines(file_name):  #, trace_list_list):
 
 		if (logline == ""):
 			print("Never hit endmark")
+			print(file_name)
+			print(iteration)
+			print(logline)
 			sys.exit(1)
 			break
 		#end_if
@@ -95,10 +101,12 @@ def process_loglines(file_name):  #, trace_list_list):
 		#end_if
 		'''
 
-		if (len(logline) < 50):
+		# Skip ftrace header lines:
+		if (logline[0] == "#"):
 			continue
 		#end_if
-		if (logline[48] != ":"):
+
+		if (len(logline) < 50):
 			continue
 		#end_if
 
@@ -106,6 +114,8 @@ def process_loglines(file_name):  #, trace_list_list):
 		index = logline.find(":", 34)
 		if (index == -1):
 			print("Missing timeend")
+			print(iteration)
+			print(logline)
 			sys.exit(1)
 		#end_if
 		timeend = index
@@ -132,6 +142,7 @@ def process_loglines(file_name):  #, trace_list_list):
 		'''
 
 		if (eventtype == "tracing_mark_write"):
+
 			if (startflag == False):
 				if ("SQL_START" in logline):
 					startflag = True
@@ -140,12 +151,16 @@ def process_loglines(file_name):  #, trace_list_list):
 					trace_list = [iteration, time, "start", cpu, freq]
 					trace_list_list.append(trace_list)
 					starttime = time
+					oncore = True
+					oncoretime -= time
 				#end_if
 			else:
 				if ("SQL_END" in logline):
 					trace_list = [iteration, time, "end", cpu, freq]
 					trace_list_list.append(trace_list)
 					endtime = time
+					oncore = False  # Technically still oncore, but stop tracking time...
+					oncoretime += time
 					break
 				#end_if
 
@@ -288,12 +303,59 @@ def process_loglines(file_name):  #, trace_list_list):
 
 		#end_if
 
+		if (eventtype == "sched_switch"):
+
+			param_list = logline[datastart:].split(" ")
+
+			# Kludge to sanitize for task names containing spaces:
+			fixed_list = []
+			for param in param_list:
+				if ("=" in param):
+					fixed_list.append(param)
+				#end_if
+			#end_for
+			param_list = fixed_list
+
+			if (param_list[1][0:9] != "prev_pid="):
+				print("Invalid prev parameter")
+				sys.exit(1)
+			#end_if
+
+			if (int(param_list[1][9:]) == bench_pid):
+				if (oncore == False):
+					print("Expected offcore")
+					sys.exit(1)
+				#end_if
+				oncore = False
+				oncoretime += time
+				offcoretime -= time
+			#end_if
+
+			if (param_list[6][0:9] != "next_pid="):
+				print("Invalid next parameter")
+				sys.exit(1)
+			#end_if
+
+			if (int(param_list[6][9:]) == bench_pid):
+				if (oncore == True):
+					print("Expected oncore")
+					sys.exit(1)
+				#end_if
+				oncore = True
+				oncoretime -= time
+				offcoretime += time
+			#end_if
+
+
+		#end_if
+
 	#end_while
 
 	#print("iterations:  %d" % (iteration))
 
 	input_file.close()
 
+	print("")
 	print("Idle time:  %f" % (idletime))
 	print("Idle count:  %d" % (idlecount))
 	print(starttime)
@@ -303,10 +365,15 @@ def process_loglines(file_name):  #, trace_list_list):
 	print(cachemisses)
 	print(offcount)
 	print(oncount)
+	print(oncoretime)
+	print(offcoretime)
+	print(str((offcoretime * 100.0) / (offcoretime + oncoretime)))
 
+	#'''
 	for e in trace_list_list:
 		print(e)
 	#end_for
+	#'''
 
 	#return perfcycles
 	return (endtime - starttime) * 1000.0, cacherefs, cachemisses
@@ -549,8 +616,10 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 	ax_list[0].set_title("Runtime for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
 	ax_list[2].set_xlabel("Governor", fontsize = 16, fontweight = "bold")
 	ax_list[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_ylabel("Cache refs (M)", fontsize = 16, fontweight = "bold")
-	ax_list[2].set_ylabel("Cache misses (M)", fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_ylabel("Cache refs (M)", fontsize = 16, fontweight = "bold")
+	#ax_list[2].set_ylabel("Cache misses (M)", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("Cycle count (k)", fontsize = 16, fontweight = "bold")
+	ax_list[2].set_ylabel("IGNORE", fontsize = 16, fontweight = "bold")
 
 	plt.show()
 	plt.close("all")
@@ -686,8 +755,8 @@ def main():
 	for governor in governors:
 
 		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
-		latency, cacherefs, cachemisses = get_runtime(filename)
-		latency = process_loglines(filename)
+		#latency, cacherefs, cachemisses = get_runtime(filename)
+		latency, cacherefs, cachemisses = process_loglines(filename)
 		print(filename + " : " + str(latency))
 
 		latency_list.append(latency)
