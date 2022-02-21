@@ -180,7 +180,7 @@ int test(int* sortbuff, int buffsize, int sparse) {
 	for (int i = 0; i < buffsize - 1; i++) {
 		if (sortbuff[i * sparse] > sortbuff[(i + 1) * sparse]) {
 			printf("Unsorted\n");
-			return 1;
+			return -1;
 		}
 	}
 
@@ -244,6 +244,9 @@ int main(int argc, char** argv) {
 		pin_core(coreno);
 	}
 
+	snprintf(iobuff, iosize, "PARAMS:  Sortsize:  %d  Sparsity:  %d  Core:  %d\n", sortsize, sparse, coreno);
+	result = write(trace_fd, iobuff, iosize);
+	errtrap("write");
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
@@ -264,7 +267,8 @@ int main(int argc, char** argv) {
 	errtrap("write");
 
 //	print(sortbuff, sortsize, sparse);
-	test(sortbuff, sortsize, sparse);
+	result = test(sortbuff, sortsize, sparse);
+	errtrap("bubblesort_verity");
 
 	result = read(statm_fd, iobuff, iosize);
 	errtrap("read");
