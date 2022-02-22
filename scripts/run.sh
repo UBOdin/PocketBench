@@ -13,7 +13,7 @@ filespeed="$(echo $5 | cut -d ":" -f1)"
 timestamp="$(date +%Y%m%d%H%M%S)"
 #filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
 filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_${8}"
-meter="1"  # boolean -- whether using Monsoon meter
+meter="0"  # boolean -- whether using Monsoon meter
 userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 
 if [ "$userapp" = "1" ]; then
@@ -90,10 +90,7 @@ fi
 echo "Waiting for phone reconnect..."
 adb wait-for-device
 
-# Wakeup phone script to commence cleanup (and simultaneously inject synchronization timestamp):
-adb shell "echo ${meter_time} > /data/finish.pipe"
-
-# Trap for errors on phone script:
+# Trap for initial errors on phone script (may be no resultfile yet):
 adb pull /data/results.txt
 result="$(cat results.txt)"
 echo "Benchmark results:  $result"
@@ -102,7 +99,22 @@ if [ "$result" = "ERR" ]; then
 	echo "Error on phone script"
 	exit 1
 else
-	echo "OK on phone script" 
+	echo "OK on phone script"
+fi
+
+# Wakeup phone script to commence cleanup (and simultaneously inject synchronization timestamp):
+adb shell "echo ${meter_time} > /data/finish.pipe"
+
+# Trap for more errors on phone script:
+adb pull /data/results.txt
+result="$(cat results.txt)"
+echo "Benchmark results:  $result"
+# Trap for error on phone script:
+if [ "$result" = "ERR" ]; then
+	echo "Error on phone script"
+	exit 1
+else
+	echo "OK on phone script"
 fi
 
 if [ "$meter" = "1" ]; then
