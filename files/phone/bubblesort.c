@@ -126,6 +126,17 @@ int pin_core(int core) {
 }
 
 
+int zeroout(int* sortbuff, int buffsize, int sparse) {
+
+	for (int i = 0; i < buffsize; i++) {
+		sortbuff[i * sparse] = 0;
+	}
+
+	return 0;
+
+}
+
+
 int populate(int* sortbuff, int buffsize, int sparse) {
 
 /*
@@ -175,6 +186,41 @@ int sort(int* sortbuff, int buffsize, int sparse) {
 }
 
 
+// Loop [buffsize] number of times, reading from random points in the array:
+int randomread(int* sortbuff, int buffsize, int sparse, int loopcount) {
+
+	int index;
+	int sum;  // keep and return dummy value to prevent optimizing out
+
+	srand(time(NULL));
+	for (int i = 0; i < loopcount; i++) {
+
+		index = rand() % buffsize;
+		sum += sortbuff[index * sparse];
+	}
+
+	return sum;
+
+}
+
+
+// Loop [buffsize] number of times, writing to random points in the array:
+int randomwrite(int* sortbuff, int buffsize, int sparse, int loopcount) {
+
+	int index;
+
+	srand(time(NULL));
+	for (int i = 0; i < loopcount; i++) {
+
+		index = rand() % buffsize;
+		sortbuff[index * sparse] = 1;
+	}
+
+	return 0;
+
+}
+
+
 int test(int* sortbuff, int buffsize, int sparse) {
 
 	for (int i = 0; i < buffsize - 1; i++) {
@@ -199,7 +245,7 @@ int main(int argc, char** argv) {
 	char statm_filename[] = "/proc/self/statm"; 
 	int result;
 	int statm_fd;
-	int iosize = 64;
+	int iosize = 128;
 	char iobuff[iosize];
 	char* statm_save;
 	char* token;
@@ -212,8 +258,11 @@ int main(int argc, char** argv) {
 	unsigned long result_1;
 	unsigned long result_2;
 	int coreno;
+	int testtype;  // whether bubblesort, randomread, or randomwrite
+	int dummysum;
+	int loopcount;
 
-	if (argc != 4) {
+	if (argc != 6) {
 		printf("Err:  Wrong paramcount\n");
 		_Exit(1);
 	}
@@ -221,6 +270,8 @@ int main(int argc, char** argv) {
 	sortsize = atoi(argv[1]);
 	sparse = atoi(argv[2]);
 	coreno = atoi(argv[3]);
+	testtype = atoi(argv[4]);
+	loopcount = atoi(argv[5]);
 	sortbuff = malloc(sizeof(int) * sortsize * sparse);
 
 //	printf("Sort Buffer:  %p\n", sortbuff);
@@ -237,14 +288,21 @@ int main(int argc, char** argv) {
 	trace_fd = result;
 //	printf("Trace fd:  %d\n", trace_fd);
 
-	populate(sortbuff, sortsize, sparse);
-//	print(sortbuff, sortsize, sparse);
+	if (testtype == 1) {
+		populate(sortbuff, sortsize, sparse);
+//		print(sortbuff, sortsize, sparse);
+	} else if ((testtype == 2) || (testtype == 3)) {
+		zeroout(sortbuff, sortsize, sparse);
+	} else {
+		printf("Invalid test param\n");
+		_exit(1);
+	}
 
 	if (coreno > 0) {
 		pin_core(coreno);
 	}
 
-	snprintf(iobuff, iosize, "PARAMS:  Sortsize:  %d  Sparsity:  %d  Core:  %d\n", sortsize, sparse, coreno);
+	snprintf(iobuff, iosize, "PARAMS:  Sortsize:  %d  Sparsity:  %d  Core:  %d  Test:  %d  Loop:  %d\n", sortsize, sparse, coreno, testtype, loopcount);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
@@ -253,7 +311,15 @@ int main(int argc, char** argv) {
 //	perf_init(PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES, &perf_1_fd, &perf_2_fd);
 	perf_init(PERF_COUNT_HW_CPU_CYCLES, -1, &perf_1_fd, &perf_2_fd);
 
-	sort(sortbuff, sortsize, sparse);
+	if (testtype == 1) {
+		sort(sortbuff, sortsize, sparse);
+	}
+	if (testtype == 2) {
+		dummysum = randomread(sortbuff, sortsize, sparse, loopcount);
+	}
+	if (testtype == 3) {
+		randomwrite(sortbuff, sortsize, sparse, loopcount);
+	}
 
 	perf_finish(perf_1_fd, perf_2_fd, &result_1, &result_2);
 	snprintf(iobuff, iosize, "CACHE_REFS:  %lu\n", result_1);
@@ -266,9 +332,11 @@ int main(int argc, char** argv) {
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
 
-//	print(sortbuff, sortsize, sparse);
-	result = test(sortbuff, sortsize, sparse);
-	errtrap("bubblesort_verity");
+	if (testtype == 1) {
+//		print(sortbuff, sortsize, sparse);
+		result = test(sortbuff, sortsize, sparse);
+		errtrap("bubblesort_verity");
+	}
 
 	result = read(statm_fd, iobuff, iosize);
 	errtrap("read");
@@ -276,6 +344,7 @@ int main(int argc, char** argv) {
 	vmsize = atoi(token);
 
 	printf("Memory:  %d\n", vmsize);
+	printf("Dummy sum:  %d\n", dummysum);
 
 	close(trace_fd);
 	close(statm_fd);
