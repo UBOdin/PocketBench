@@ -1,12 +1,12 @@
 
 toggle_events() {
 
-	#echo $1 > $trace_dir/events/sched/sched_switch/enable
-	##echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	##echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	echo $1 > $trace_dir/events/sched/sched_switch/enable
+	echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
+	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	##echo $1 > $trace_dir/events/power/cpu_idle/enable
+	#echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -63,6 +63,7 @@ errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
 userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 
+rm $errfile
 rm $logfile
 echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
 
@@ -126,9 +127,6 @@ echo > $trace_dir/trace
 echo 1 > $trace_dir/tracing_on
 echo $(date +"Phone time 1:  %H:%M:%S.%N") >> $trace_log
 
-echo "LOGMARKER Battery before:" >> $trace_log
-dumpsys battery >> $trace_log
-
 # Set up IPC pipe to retrieve end-of-run info from app:
 rm /data/results.pipe
 mknod /data/results.pipe p
@@ -152,7 +150,12 @@ if [ "$userapp" = "1" ]; then
 else
 	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 	##/data/compute.exe 100000000 50000 100
-	/data/compute.exe 10000 32
+	/data/compute.exe 10000 4096 7 1
+	if [ "$?" != "0" ]; then
+		toggle_events 0
+		set_governor "$default"
+		error_exit "ERR on microbench"
+	fi
 	echo "Microbenchmark result:  ${?}" >> $logfile
 
 	#echo "Fixed wait benchmark" >> $trace_log
@@ -167,9 +170,6 @@ fi
 toggle_events 0
 
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
-
-echo "LOGMARKER Battery after:" >> $trace_log
-dumpsys battery >> $trace_log
 
 # Trap for on-app error:
 if [ "$result" == "ERR" ]; then
