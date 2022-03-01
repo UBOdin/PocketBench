@@ -32,7 +32,7 @@ void __errtrap(int result, const char* error, int line) {
 }
 
 
-int perf_init(int event_1, int event_2, int* perf_1_fd_ptr, int* perf_2_fd_ptr) {
+int perf_init(int type, int config_1, int config_2, int* perf_1_fd_ptr, int* perf_2_fd_ptr) {
 
 	int perf_1_fd;
 	int perf_2_fd;
@@ -41,9 +41,9 @@ int perf_init(int event_1, int event_2, int* perf_1_fd_ptr, int* perf_2_fd_ptr) 
 
 	// Initialize HW performance monitoring structure:
 	memset(&pea_struct, 0, sizeof(pea_struct));
-	pea_struct.type = PERF_TYPE_HARDWARE;
+	pea_struct.type = type;
 	pea_struct.size = sizeof(struct perf_event_attr);
-	pea_struct.config = event_1;
+	pea_struct.config = config_1;
 	pea_struct.sample_period = 0;  // Not using sample periods; will do manual collection
 	pea_struct.sample_type = 0;  // ditto above
 	pea_struct.read_format = PERF_FORMAT_GROUP;  // | PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
@@ -61,9 +61,9 @@ int perf_init(int event_1, int event_2, int* perf_1_fd_ptr, int* perf_2_fd_ptr) 
 	errtrap("perf_event_open");
 	perf_1_fd = result;
 
-	if (event_2 > 0) {
+	if (config_2 > 0) {
 		// Configure second event to monitor cache misses:
-		pea_struct.config = event_2;
+		pea_struct.config = config_2;
 		pea_struct.disabled = 0;  // N.b. -- enabled, but dependent on status of leader event (initially disabled)
 		// Include in monitoring group:
 		result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, perf_1_fd, 0);
@@ -261,6 +261,26 @@ int main(int argc, char** argv) {
 	int testtype;  // whether bubblesort, randomread, or randomwrite
 	int dummysum;
 	int loopcount;
+	int type;
+	int config_1;
+	int config_2;
+
+	type = PERF_TYPE_HARDWARE;
+	config_1 = PERF_COUNT_HW_CPU_CYCLES;
+	config_2 = -1;
+//	config_1 = PERF_COUNT_HW_CACHE_REFERENCES;
+//	config_2 = PERF_COUNT_HW_CACHE_MISSES;
+
+//	type = PERF_TYPE_HW_CACHE;
+//	config_1 = PERF_COUNT_HW_CACHE_DTLB | (PERF_COUNT_HW_CACHE_OP_READ << 8) | (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+//	config_2 = PERF_COUNT_HW_CACHE_DTLB | (PERF_COUNT_HW_CACHE_OP_READ << 8) | (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+//	config_1 = PERF_COUNT_HW_CACHE_DTLB | (PERF_COUNT_HW_CACHE_OP_WRITE << 8) | (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+//	config_2 = PERF_COUNT_HW_CACHE_DTLB | (PERF_COUNT_HW_CACHE_OP_WRITE << 8) | (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+//	config_1 = PERF_COUNT_HW_CACHE_LL | (PERF_COUNT_HW_CACHE_OP_READ << 8) | (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+//	config_2 = PERF_COUNT_HW_CACHE_LL | (PERF_COUNT_HW_CACHE_OP_READ << 8) | (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+
+//printf("type:  %d  conf1:  %d  conf2:  %d\n", type, config_1, config_2);
+//_Exit(0);
 
 	if (argc != 6) {
 		printf("Err:  Wrong paramcount\n");
@@ -272,6 +292,9 @@ int main(int argc, char** argv) {
 	coreno = atoi(argv[3]);
 	testtype = atoi(argv[4]);
 	loopcount = atoi(argv[5]);
+//	type = atoi(argv[6]);
+//	config_1 = atoi(argv[7]);
+//	config_2 = atoi(argv[8]);
 	sortbuff = malloc(sizeof(int) * sortsize * sparse);
 
 //	printf("Sort Buffer:  %p\n", sortbuff);
@@ -302,14 +325,13 @@ int main(int argc, char** argv) {
 		pin_core(coreno);
 	}
 
-	snprintf(iobuff, iosize, "PARAMS:  Sortsize:  %d  Sparsity:  %d  Core:  %d  Test:  %d  Loop:  %d\n", sortsize, sparse, coreno, testtype, loopcount);
+	snprintf(iobuff, iosize, "PARAMS:  Sortsize:  %d  Sparsity:  %d  Core:  %d  Test:  %d  Loop:  %d  Type:  %d  Conf1:  %d  Conf2:  %d\n", sortsize, sparse, coreno, testtype, loopcount, type, config_1, config_2);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-//	perf_init(PERF_COUNT_HW_CACHE_REFERENCES, PERF_COUNT_HW_CACHE_MISSES, &perf_1_fd, &perf_2_fd);
-	perf_init(PERF_COUNT_HW_CPU_CYCLES, -1, &perf_1_fd, &perf_2_fd);
+	perf_init(type, config_1, config_2, &perf_1_fd, &perf_2_fd);
 
 	if (testtype == 1) {
 		sort(sortbuff, sortsize, sparse);
