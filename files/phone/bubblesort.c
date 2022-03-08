@@ -85,7 +85,7 @@ int perf_init(int type, int config_1, int config_2, int* perf_1_fd_ptr, int* per
 }
 
 
-int perf_finish(int perf_1_fd, int perf_2_fd, unsigned long* result_1_ptr, unsigned long* result_2_ptr) {
+int perf_finish(int perf_1_fd, int perf_2_fd, unsigned long long* result_1_ptr, unsigned long long* result_2_ptr) {
 
 	int result;
 	char perf_buff[PERFBUFF_SIZE];
@@ -96,10 +96,10 @@ int perf_finish(int perf_1_fd, int perf_2_fd, unsigned long* result_1_ptr, unsig
 	// Disable perf:
 	ioctl(perf_1_fd, PERF_EVENT_IOC_DISABLE, 0);
 	close(perf_1_fd);
-	*result_1_ptr = ((unsigned long*)perf_buff)[1];
+	*result_1_ptr = ((unsigned long long*)perf_buff)[1];
 	if (perf_2_fd > 0) {
 		close(perf_2_fd);
-		*result_2_ptr = ((unsigned long*)perf_buff)[2];
+		*result_2_ptr = ((unsigned long long*)perf_buff)[2];
 	}
 
 	return 0;
@@ -255,8 +255,8 @@ int main(int argc, char** argv) {
 	int trace_fd;
 	int perf_1_fd;
 	int perf_2_fd;
-	unsigned long result_1;
-	unsigned long result_2;
+	unsigned long long result_1;
+	unsigned long long result_2;
 	int coreno;
 	int testtype;  // whether bubblesort, randomread, or randomwrite
 	int dummysum;
@@ -344,10 +344,10 @@ int main(int argc, char** argv) {
 	}
 
 	perf_finish(perf_1_fd, perf_2_fd, &result_1, &result_2);
-	snprintf(iobuff, iosize, "CACHE_REFS:  %lu\n", result_1);
+	snprintf(iobuff, iosize, "CACHE_REFS:  %llu\n", result_1);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-	snprintf(iobuff, iosize, "CACHE_MISSES:  %lu\n", result_2);
+	snprintf(iobuff, iosize, "CACHE_MISSES:  %llu\n", result_2);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
 	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_END\", \"thread\":0}\n");  // legacy flag
