@@ -17,6 +17,10 @@ set_governor() {
 
 		echo "1" > $cpu_dir/cpu$i/online
 		echo "$1" > $cpu_dir/cpu$i/cpufreq/scaling_governor
+		result=$?  # Sanity check for supported governor
+		if [ "$result" != "0" ]; then
+			error_exit "ERR Invalid governor"
+		fi
 		# Speed is only valid for the userspace governor:
 		if [ "$1" = "userspace" ]; then
 			if [ "$device" = "nexus6" ]; then
@@ -90,7 +94,11 @@ fi
 sync
 echo 3 > /proc/sys/vm/drop_caches
 
+# TODO:  Sanity check for supported $device strings
+
 governor=$1
+frequency=$2
+wakeport=$3
 if [ "$device" = "nexus6" ]; then
 	default="interactive"
 	cpus="0 1 2 3"
@@ -98,12 +106,6 @@ else
 	default="schedutil"
 	cpus="0 4" # List of cpu core groups (0-3 and 4-7 for Pixel 2)
 fi
-#frequencies="300000 422400 652800 729600 883200 960000 1036800 1190400 1267200 1497600 1574400 1728000 1958400 2265600 2457600 2496000 2572800 2649600"
-
-#governor="ondemand" #"userspace"
-frequency=$2
-
-wakeport=$3
 
 # Sanity check that all CPUs are on (at least for Nexus 6, they should be -- not necessarily for Nexus 5):
 for i in $cpus; do
@@ -112,25 +114,6 @@ for i in $cpus; do
 		error_exit "ERR CPUs not all on"
 	fi
 done
-
-# Sanity check the governor choice to supported values:
-if [ "$governor" = "userspace" ]; then
-	:
-elif [ "$governor" = "powersave" ]; then
-	:
-elif [ "$governor" = "performance" ]; then
-	:
-elif [ "$governor" = "interactive" ] && [ "$device" = "nexus6" ]; then
-	:
-elif [ "$governor" = "ondemand" ] && [ "$device" = "nexus6" ]; then
-	:
-elif [ "$governor" = "schedutil" ] && [ "$device" = "pixel2" ]; then
-	:
-elif [ "$governor" = "ioblock" ] && [ "$device" = "pixel2" ]; then
-	:
-else
-	error_exit "ERR Invalid governor"
-fi
 
 # Set governor as selected:
 set_governor "$governor"
