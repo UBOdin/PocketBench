@@ -19,11 +19,15 @@ set_governor() {
 		echo "$1" > $cpu_dir/cpu$i/cpufreq/scaling_governor
 		# Speed is only valid for the userspace governor:
 		if [ "$1" = "userspace" ]; then
-			# Extract the specific big-little speeds from the uber-parameter:
-			freq_little="$(echo $frequency | cut -d "-" -f1)"
-			freq_big="$(echo $frequency | cut -d "-" -f2)"
-			echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
-			echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
+			if [ "$device" = "nexus6" ]; then
+				echo "$frequency" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed
+			else
+				# Extract the specific big-little speeds from the uber-parameter:
+				freq_little="$(echo $frequency | cut -d "-" -f1)"
+				freq_big="$(echo $frequency | cut -d "-" -f2)"
+				echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
+				echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
+			fi
 		fi
 		#cat $cpu_dir/cpu$i/cpufreq/scaling_setspeed >> $logfile
 
@@ -62,6 +66,8 @@ trace_log=/sys/kernel/debug/tracing/trace_marker
 errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
 userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
+#device="nexus6"
+device="pixel2"
 
 rm $errfile
 rm $logfile
@@ -78,15 +84,20 @@ printf "Getpid:\n$$\n" >> /data/start.pipe
 if [ "$userapp" = "1" ]; then
 	sleep 30
 else
-	sleep 10
+	sleep 20
 fi
 
 sync
 echo 3 > /proc/sys/vm/drop_caches
 
 governor=$1
-default="schedutil"
-cpus="0 4" # List of cpu core groups (0-3 and 4-7 for Pixel 2)
+if [ "$device" = "nexus6" ]; then
+	default="interactive"
+	cpus="0 1 2 3"
+else
+	default="schedutil"
+	cpus="0 4" # List of cpu core groups (0-3 and 4-7 for Pixel 2)
+fi
 #frequencies="300000 422400 652800 729600 883200 960000 1036800 1190400 1267200 1497600 1574400 1728000 1958400 2265600 2457600 2496000 2572800 2649600"
 
 #governor="ondemand" #"userspace"
@@ -109,9 +120,13 @@ elif [ "$governor" = "powersave" ]; then
 	:
 elif [ "$governor" = "performance" ]; then
 	:
-elif [ "$governor" = "schedutil" ]; then
+elif [ "$governor" = "interactive" ] && [ "$device" = "nexus6" ]; then
 	:
-elif [ "$governor" = "ioblock" ]; then
+elif [ "$governor" = "ondemand" ] && [ "$device" = "nexus6" ]; then
+	:
+elif [ "$governor" = "schedutil" ] && [ "$device" = "pixel2" ]; then
+	:
+elif [ "$governor" = "ioblock" ] && [ "$device" = "pixel2" ]; then
 	:
 else
 	error_exit "ERR Invalid governor"
@@ -150,7 +165,10 @@ if [ "$userapp" = "1" ]; then
 else
 	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 	##/data/compute.exe 100000000 50000 100
-	/data/compute.exe 10000 4096 7 1
+	#/data/compute.exe 10000 1 7 2 10000000
+	#/data/compute.exe 10000 4096 7 1 0
+	#/data/compute.exe 10000 1 3 1 0
+	/data/compute.exe 10000 4096 7 1 0
 	if [ "$?" != "0" ]; then
 		toggle_events 0
 		set_governor "$default"
