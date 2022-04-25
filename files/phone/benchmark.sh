@@ -1,12 +1,12 @@
 
 toggle_events() {
 
-	echo $1 > $trace_dir/events/sched/sched_switch/enable
-	echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	#echo $1 > $trace_dir/events/sched/sched_switch/enable
+	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	#echo $1 > $trace_dir/events/power/cpu_idle/enable
+	echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -85,11 +85,13 @@ echo -1 > /proc/sys/kernel/perf_event_paranoid
 # Signal foreground script that we are running (and, importantly, that nohup has already run):
 printf "Getpid:\n$$\n" >> /data/start.pipe
 
+input tap 100 100
 if [ "$userapp" = "1" ]; then
 	sleep 30
 else
 	sleep 20
 fi
+input tap 100 100
 
 sync
 echo 3 > /proc/sys/vm/drop_caches
@@ -150,13 +152,22 @@ else
 	#/data/compute.exe 10000 1 7 2 10000000
 	#/data/compute.exe 10000 4096 7 1 0
 	#/data/compute.exe 10000 1 3 1 0
-	/data/compute.exe 10000 4096 7 1 0
-	if [ "$?" != "0" ]; then
+	#/data/compute.exe 10000 4096 7 1 0
+	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
+	#am instrument -w -e class com.example.test.MetaTest com.example.test.test
+	am instrument -w -e class com.example.test.TempleTest com.example.test.test
+	#am instrument -w -e class com.example.test.CalcTest com.example.test.test
+	result="$?"
+	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
+
+	if [ "$result" != "0" ]; then
 		toggle_events 0
 		set_governor "$default"
 		error_exit "ERR on microbench"
 	fi
 	echo "Microbenchmark result:  ${?}" >> $logfile
+	am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	sleep 5
 
 	#echo "Fixed wait benchmark" >> $trace_log
 	#echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
