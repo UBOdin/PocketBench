@@ -19,18 +19,18 @@ userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbench
 if [ "$userapp" = "1" ]; then
 	filename="YCSB_${filesuffix}"
 
-	printf "Rebooting and running benchmark on device %s\n" $1
+	printf "Rebooting and running benchmark\n"
 
-	adb -s $1 reboot
-	adb -s $1 wait-for-device
+	adb reboot
+	adb wait-for-device
 	sleep 10
 	printf "Rebooted\n"
-	adb -s $1 root
-	adb -s $1 wait-for-device
+	adb root
+	adb wait-for-device
 	sleep 10
 	printf "Rooted\n"
 
-	adb -s $1 shell sh /data/preBenchmark.sh $2 $3 $4 $cpuspeed $6 $7 #create database
+	adb shell sh /data/preBenchmark.sh $2 $3 $4 $cpuspeed $6 $7 #create database
 
 	sleep 15 # Let phone settle before starting script:
 else
@@ -38,8 +38,8 @@ else
 fi
 
 echo "Starting phone script"
-adb -s $1 shell sh /data/start_benchmark.sh $4 $cpuspeed $wakeport &
-#adb -s $1 shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
+adb shell sh /data/start_benchmark.sh $4 $cpuspeed $wakeport &
+#adb shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
 
 if [ "$meter" = "1" ]; then
 	sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
@@ -138,12 +138,12 @@ adb shell "echo ${meter_time} > /data/finish.pipe"
 # pull script log and tracing log:
 adb pull /data/phonelog.txt
 cat phonelog.txt
-adb -s $1 pull /data/trace.log
+adb pull /data/trace.log
 mv trace.log logs/$filename
 gzip logs/$filename
 
 printf "FILENAME:  %s\n" "$filename"
-printf "Completed benchmark for device %s\n" $1
+printf "Completed benchmark\n"
 
 # Sanity check:  Verify main phone script matches:
 #adb pull /data/start.txt
@@ -158,7 +158,6 @@ printf "Completed benchmark for device %s\n" $1
 # (12) Fix ERR result from results.txt
 # (13) Remove inefficient DB populate code in java app
 # (14) Clean-up socket apps (e.g. printing "Exit Clean" to console => nohup)
-# (15) Consistincy-ize the -s $1 phone serial number stuff
 # (16) Battery stats => ftrace logfile
 # (19) Add check for pid==pid
 
