@@ -1,4 +1,10 @@
 
+trace_dir=/sys/kernel/debug/tracing
+echo > $trace_dir/trace
+echo 1 > $trace_dir/tracing_on
+echo "START FOREGROUND SCRIPT" >> $trace_dir/trace_marker
+echo 0 > $trace_dir/tracing_on
+
 # Problem:  We could exit in the foreground before the main script runs nohup
 # in the background, in which case the main script will be killed by SIGHUP.
 # So:  Set up an IPC pipe to synchronize with the main script:

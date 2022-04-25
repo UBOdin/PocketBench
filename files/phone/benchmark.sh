@@ -121,7 +121,6 @@ set_governor "$governor"
 # Turn on tracing:
 echo 150000 > $trace_dir/buffer_size_kb
 toggle_events 1
-echo > $trace_dir/trace
 echo 1 > $trace_dir/tracing_on
 echo $(date +"Phone time 1:  %H:%M:%S.%N") >> $trace_log
 
