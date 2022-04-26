@@ -166,7 +166,7 @@ def process_loglines(file_name):  #, trace_list_list):
 		#end_if
 
 		#'''
-		if ((startflag == True) and (time > starttime + 35.0)):
+		if ((startflag == True) and (time > starttime + 60.0)):
 			print("Exit logline:  " + str(iteration))
 			break
 		#end_if
@@ -326,20 +326,29 @@ def process_loglines(file_name):  #, trace_list_list):
 	if ("userspace" in file_name):
 		for i in range(0, 4):
 			cycletotal += timetotal_list[i] * freq_list[0]
+			cycle_list[i] = timetotal_list[i] * freq_list[0]
 		#end_for
 		for i in range(4, 8):
 			cycletotal += timetotal_list[i] * freq_list[4]
+			cycle_list[i] = timetotal_list[i] * freq_list[4]
 		#end_for
 	#end_if
 
 	if ("performance" in file_name):
 		for i in range(0, 4):
 			cycletotal += timetotal_list[i] * 1900800
+			cycle_list[i] = timetotal_list[i] * 1900800
 		#end_for
 		for i in range(4, 8):
 			cycletotal += timetotal_list[i] * 2457600
+			cycle_list[i] = timetotal_list[i] * 2457600
 		#end_for
 	#end_if
+
+	print("FPP")
+	print(file_name)
+	print(cycletotal)
+	print(cycle_list)
 
 	return timetotal, cycletotal, 0
 
@@ -445,7 +454,7 @@ def get_energy(file_name):
 	#start = 7.0  # fixed
 	#stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
 	start = 15.0
-	stop = 25.0
+	stop = 45.0
 	#start = 8.0
 	#stop = start + 150.0
 	iteration = 0  # reset counter
@@ -724,9 +733,9 @@ def main():
 	#benchname = "Bubblesort (10k ints, 1 per 4k page)\nNexus 6 (4 unicores) (pinned to core)"
 	#benchname = "Bubblesort (10k ints, 1 per 4k page):\nRuntime for different CPU policies (Pinned to big core)"
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
-	benchname = "Facebook (35s user interaction scrolling)"
+	#benchname = "Facebook (35s user interaction scrolling)"
 	#benchname = "Calculator (10s user interaction keypresses)"
-	benchname = "Temple Run (40s launch and game start)"
+	benchname = "Temple Run (55s launch and game start)"
 
 	# Get latency data:
 	#governors = ["interactive_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
