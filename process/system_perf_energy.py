@@ -166,7 +166,7 @@ def process_loglines(file_name):  #, trace_list_list):
 		#end_if
 
 		#'''
-		if ((startflag == True) and (time > starttime + 60.0)):
+		if ((startflag == True) and (time > starttime + 35.0)):
 			print("Exit logline:  " + str(iteration))
 			break
 		#end_if
@@ -350,7 +350,7 @@ def process_loglines(file_name):  #, trace_list_list):
 	print(cycletotal)
 	print(cycle_list)
 
-	return timetotal, cycletotal, 0
+	return timetotal, cycletotal, timetotal_list
 
 
 #end_def
@@ -611,26 +611,73 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 
 	return
 
+#end_def
 
-	fig_list, ax_list = plt.subplots(2, 1)
 
-	handle_list = []
-	for latency, cacherefs, cachemisses, color, i, label in zip(latency_list, cacherefs_list, cachemisses_list, color_list, range(clusterlen), label_list):
-		ax_list[0].scatter(cachemisses / 1000000, latency, color = color, s = 50)
-		ax_list[0].annotate(str(i), (cachemisses / 1000000 + .1, latency + 10), fontweight = "bold")
-		ax_list[1].scatter(cacherefs / 1000000, latency, color = color, s = 50)
-		ax_list[1].annotate(str(i), (cacherefs / 1000000 + 2, latency + 10), fontweight = "bold")
-		handle_list.append(Line2D([], [], label = str(i) + " = " + label, linewidth = 0))
+def bargraph_percore(cycle_list_list, benchname):
+
+	# benchname = ""
+	# cycle_list_list = []
+	timetotal_list = []
+	color_list = []
+	color = ""
+	label_list = []
+
+
+	label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+
+	graphcount = len(cycle_list_list)
+
+	color_list.append("red")
+	for i in range(graphcount - 1):
+		color_list.append("blue")
 	#end_for
 
-	ax_list[0].set_title("Runtime and Cache Misses for a Given CPU Governor", fontsize = 10, fontweight = "bold")
-	ax_list[0].set_xlabel("Cache misses (M)", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
-	ax_list[0].legend(handles = handle_list)
-	ax_list[1].set_xlabel("Cache references (M)", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
-	ax_list[1].legend(handles = handle_list)
+	#offset_list = np.arange(0, clusterlen)
 
+
+
+
+	fig_list, ax_list = plt.subplots(5, 2)
+
+	for i, cycle_list, label, color in zip(range(graphcount), cycle_list_list, label_list, color_list):
+
+		offset_list = np.arange(0, len(cycle_list))
+
+		x = i % 2
+		y = int(i / 2)
+
+		# N.b. "cycles" repurposed to oncore (non-idle) time.  Normalize to (0,1):
+		for j in range(len(cycle_list)):
+			cycle_list[j] = cycle_list[j] / 35
+		#end_for
+
+		ax_list[y, x].bar(offset_list, cycle_list, color = color)
+		#ax_list[y, x].axis([-.5, 7.5, 0, 35])
+		ax_list[y, x].axis([-.5, 7.5, 0, 1])
+		ax_list[y, x].set_title(label, fontsize = 12, fontweight = "bold")
+
+		if (x == 0):
+			#ax_list[y, x].set_ylabel("Runtime ($s$)", fontsize = 12, fontweight = "bold")
+			ax_list[y, x].set_ylabel("Runtime (%)", fontsize = 12, fontweight = "bold")
+		else:
+			ax_list[y, x].set_yticklabels([])
+		#end_if
+
+		if (i >= 7):
+			ax_list[y, x].set_xlabel("Core number", fontsize = 12, fontweight = "bold")
+		else:
+			ax_list[y, x].set_xticklabels([])
+		#end_if
+
+	#end_for
+
+	ax_list[4, 1].set_visible(False)
+
+	#fig_list.suptitle("Per-core Runtime (Non-Idle) for Facebook (35s App Run) For Different Governors", fontsize = 20, fontweight = "bold")
+	fig_list.suptitle("Per-core Percent Runtime (Non-Idle) for Facebook (35s App Run) For Different Governors", fontsize = 20, fontweight = "bold")
+
+	fig_list.subplots_adjust(hspace = .4)
 	plt.show()
 
 	return
@@ -727,15 +774,17 @@ def main():
 	cacherefs_list = []
 	cacherefs = 0
 	cachemisses_list = []
-	cachemisses = 0
+
+	cycle_list_list = []
+	cycle_list = []
 
 	path = sys.argv[1]
 	#benchname = "Bubblesort (10k ints, 1 per 4k page)\nNexus 6 (4 unicores) (pinned to core)"
 	#benchname = "Bubblesort (10k ints, 1 per 4k page):\nRuntime for different CPU policies (Pinned to big core)"
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
-	#benchname = "Facebook (35s user interaction scrolling)"
+	benchname = "Facebook (35s user interaction scrolling)"
 	#benchname = "Calculator (10s user interaction keypresses)"
-	benchname = "Temple Run (55s launch and game start)"
+	#benchname = "Temple Run (55s launch and game start)"
 
 	# Get latency data:
 	#governors = ["interactive_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
@@ -749,18 +798,22 @@ def main():
 	for governor in governors:
 
 		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
-		latency, cacherefs, cachemisses = process_loglines(filename)
+		latency, cacherefs, cycle_list = process_loglines(filename)
 		print(filename + " : " + str(latency))
 
 		latency_list.append(latency)
 		cacherefs_list.append(cacherefs)
-		cachemisses_list.append(cachemisses)
+		cachemisses_list.append(0)
+
+		cycle_list_list.append(cycle_list)
 
 	#end_for
 
-	bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname)
+	#bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname)
 
-	#return
+	bargraph_percore(cycle_list_list, benchname)
+
+	return
 
 	#return
 	#'''
