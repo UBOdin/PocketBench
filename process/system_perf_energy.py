@@ -15,6 +15,10 @@ import math
 import statistics
 
 
+#label_list = ["interactive", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+
+
 def mean_margin(data_list):
 
 	n = 0
@@ -67,6 +71,8 @@ def process_loglines(file_name):  #, trace_list_list):
 
 	offcount = 0
 	oncount = 0
+	startinteracttime = 0.0
+	endinteracttime = 0.0
 
 	input_file = gzip.open(file_name, "r")
 
@@ -145,32 +151,39 @@ def process_loglines(file_name):  #, trace_list_list):
 		'''
 
 		if (eventtype == "tracing_mark_write"):
-
 			if (startflag == False):
-				if ("SQL_START" in logline):
+				#if ("SQL_START" in logline):
+				if ("Start FB" in logline):
 					startflag = True
 					trace_list = [iteration, time, "start", cpu, freq]
 					trace_list_list.append(trace_list)
 					starttime = time
 				#end_if
-			'''
+			#'''
 			else:
-				if ("SQL_END" in logline):
+				#if ("SQL_END" in logline):
+				if ("End FB" in logline):
 					trace_list = [iteration, time, "end", cpu, freq]
 					trace_list_list.append(trace_list)
 					endtime = time
 					break
 				#end_if
+				if ("Start FB" in logline):
+					startinteracttime = time
+				#end_if
+				if ("End FB" in logline):
+					endinteracttime = time
+				#end_if
 			#end_if
-			'''
+			#'''
 		#end_if
 
-		#'''
+		'''
 		if ((startflag == True) and (time > starttime + 35.0)):
 			print("Exit logline:  " + str(iteration))
 			break
 		#end_if
-		#'''
+		'''
 
 		if (startflag == False):
 			continue
@@ -345,12 +358,12 @@ def process_loglines(file_name):  #, trace_list_list):
 		#end_for
 	#end_if
 
-	print("FPP")
-	print(file_name)
-	print(cycletotal)
-	print(cycle_list)
+	print("PROCESSED FILE:  " + file_name)
+	print("WALLCLOCK TIME:  " + str(endtime - starttime))
+	print("TEST RUNNER TIME:  " + str(endinteracttime - startinteracttime))
 
-	return timetotal, cycletotal, timetotal_list
+	#return timetotal, cycletotal, timetotal_list
+	return endtime - starttime, endinteracttime - startinteracttime, timetotal_list
 
 
 #end_def
@@ -548,8 +561,6 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 	#color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 	color_list = []
 	color = ""
-	#label_list = ["interactive", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
-	label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
 
 	label = ""
 	ticklabel_list = []
@@ -563,8 +574,8 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 		color_list.append("blue")
 	#end_for
 
-	fig_list, ax_list = plt.subplots(2, 1)
-	#fig_list, ax_list = plt.subplots(3, 1)
+	fig, ax_list = plt.subplots(2, 1)
+	#fig, ax_list = plt.subplots(3, 1)
 	bottomgraph = len(ax_list) - 1  # Get the number of the bottom graph
 
 	#ticklabel_list.append("")
@@ -614,19 +625,14 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 #end_def
 
 
-def bargraph_percore(cycle_list_list, benchname):
+def bargraph_percore(timetotal_list_list, benchname):
 
 	# benchname = ""
-	# cycle_list_list = []
-	timetotal_list = []
+	# timetotal_list_list = []
 	color_list = []
 	color = ""
-	label_list = []
 
-
-	label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
-
-	graphcount = len(cycle_list_list)
+	graphcount = len(timetotal_list_list)
 
 	color_list.append("red")
 	for i in range(graphcount - 1):
@@ -638,28 +644,30 @@ def bargraph_percore(cycle_list_list, benchname):
 
 
 
-	fig_list, ax_list = plt.subplots(5, 2)
+	fig, ax_list = plt.subplots(5, 2)
 
-	for i, cycle_list, label, color in zip(range(graphcount), cycle_list_list, label_list, color_list):
+	for i, timetotal_list, label, color in zip(range(graphcount), timetotal_list_list, label_list, color_list):
 
-		offset_list = np.arange(0, len(cycle_list))
+		offset_list = np.arange(0, len(timetotal_list))
 
 		x = i % 2
 		y = int(i / 2)
 
-		# N.b. "cycles" repurposed to oncore (non-idle) time.  Normalize to (0,1):
-		for j in range(len(cycle_list)):
-			cycle_list[j] = cycle_list[j] / 35
+		'''
+		# Normalize to (0,1):
+		for j in range(len(timetotal_list)):
+			timetotal_list[j] = timetotal_list[j] / 35
 		#end_for
+		'''
 
-		ax_list[y, x].bar(offset_list, cycle_list, color = color)
-		#ax_list[y, x].axis([-.5, 7.5, 0, 35])
-		ax_list[y, x].axis([-.5, 7.5, 0, 1])
+		ax_list[y, x].bar(offset_list, timetotal_list, color = color)
+		ax_list[y, x].axis([-.5, 7.5, 0, 35])
+		#ax_list[y, x].axis([-.5, 7.5, 0, 1])
 		ax_list[y, x].set_title(label, fontsize = 12, fontweight = "bold")
 
 		if (x == 0):
-			#ax_list[y, x].set_ylabel("Runtime ($s$)", fontsize = 12, fontweight = "bold")
-			ax_list[y, x].set_ylabel("Runtime (%)", fontsize = 12, fontweight = "bold")
+			ax_list[y, x].set_ylabel("Runtime ($s$)", fontsize = 12, fontweight = "bold")
+			#ax_list[y, x].set_ylabel("Runtime (%)", fontsize = 12, fontweight = "bold")
 		else:
 			ax_list[y, x].set_yticklabels([])
 		#end_if
@@ -674,13 +682,121 @@ def bargraph_percore(cycle_list_list, benchname):
 
 	ax_list[4, 1].set_visible(False)
 
-	#fig_list.suptitle("Per-core Runtime (Non-Idle) for Facebook (35s App Run) For Different Governors", fontsize = 20, fontweight = "bold")
-	fig_list.suptitle("Per-core Percent Runtime (Non-Idle) for Facebook (35s App Run) For Different Governors", fontsize = 20, fontweight = "bold")
+	#fig.suptitle("Per-core Runtime (Non-Idle) for Facebook (35s App Run) For Different Governors", fontsize = 20, fontweight = "bold")
+	fig.suptitle("Per-core Percent Runtime (Non-Idle) for Facebook (35s App Run) For Different Governors", fontsize = 20, fontweight = "bold")
 
-	fig_list.subplots_adjust(hspace = .4)
+	fig.subplots_adjust(hspace = .4)
 	plt.show()
 
 	return
+
+#end_def
+
+
+def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
+
+	# benchname = ""
+	# timetotal_list_list = []
+	# ubertime_list = []
+	color_list = []
+	color = ""
+	timetotal_list = []
+	timelittle = 0
+	timebig = 0
+	subtime = 0
+	ubertime = 0.0
+	ticklabel_list = []
+	graphcount = 0
+
+	graphcount = len(timetotal_list_list)
+	#print("Graph count:  %s" % (graphcount))
+
+	# Compute time sums for each of the 4 big and little core clusters:
+	for timetotal_list, ubertime, label in zip(timetotal_list_list, ubertime_list, label_list):
+		timelittle = 0
+		timebig = 0
+
+		#'''
+		# Normalize time range to (0,1):
+		for j in range(len(timetotal_list)):
+			timetotal_list[j] = timetotal_list[j] / (ubertime * 4)
+		#end_for
+		#'''
+
+		for i in range(0, 4):
+			timelittle += timetotal_list[i]
+		#end_for
+		for i in range(4, 8):
+			timebig += timetotal_list[i]
+		#end_for
+		timetotal_list.append(timelittle)
+		timetotal_list.append(timebig)
+		timetotal_list.append(label)
+
+		print(label)
+		print(timetotal_list)
+		print(ubertime)
+		print(timelittle)
+		print(timebig)
+
+	#end_for
+
+	#print(timetotal_list_list)
+
+
+	fig, ax_list = plt.subplots(2, 1)
+
+	color_list = ["red", "blue", "green", "orange"]
+	offset_list = np.arange(0, graphcount)
+
+	# Sort by total time for little cores:
+	timetotal_list_list.sort(key = lambda timetotal_list : timetotal_list[8])
+
+	ticklabel_list = []
+	for i, timetotal_list in zip(range(graphcount), timetotal_list_list):
+		subtime = 0
+		for j in range(0, 4):
+			ax_list[0].bar(i, timetotal_list[j], color = color_list[j], bottom = subtime)
+			subtime += timetotal_list[j]
+		#end_for
+		ticklabel_list.append(timetotal_list[10])
+	#end_for
+
+	ax_list[0].axis([-.5, graphcount - .5, 0, 1])
+	ax_list[0].set_xticks(offset_list)
+	ax_list[0].set_xticklabels(ticklabel_list)
+	ax_list[0].set_title("Little Cores (Total of 4)", fontsize = 12, fontweight = "bold")
+	ax_list[0].set_xlabel("Governor Policy", fontsize = 12, fontweight = "bold")
+	ax_list[0].set_ylabel("Busy Ratio (0,1)", fontsize = 12, fontweight = "bold")
+
+
+	# Sort by total time for little cores:
+	timetotal_list_list.sort(key = lambda timetotal_list : timetotal_list[9])
+
+	ticklabel_list = []
+	for i, timetotal_list in zip(range(graphcount), timetotal_list_list):
+		subtime = 0
+		for j in range(0, 4):
+			ax_list[1].bar(i, timetotal_list[j + 4], color = color_list[j], bottom = subtime)
+			subtime += timetotal_list[j + 4]
+		#end_for
+		ticklabel_list.append(timetotal_list[10])
+	#end_for
+
+	ax_list[1].axis([-.5, graphcount - .5, 0, 1])
+	ax_list[1].set_xticks(offset_list)
+	ax_list[1].set_xticklabels(ticklabel_list)
+	ax_list[1].set_title("Big Cores (Total of 4)", fontsize = 12, fontweight = "bold")
+	ax_list[1].set_xlabel("Governor Policy", fontsize = 12, fontweight = "bold")
+	ax_list[1].set_ylabel("Busy Ratio (0,1)", fontsize = 12, fontweight = "bold")
+
+
+	fig.subplots_adjust(hspace = .4)
+	fig.suptitle("CPU Cluster Usage (Non-Idle) for Facebook (~22s User Interaction) For Different Governors", fontsize = 20, fontweight = "bold")
+	plt.show()
+
+	return
+
 
 #end_def
 
@@ -696,8 +812,6 @@ def bargraph_energy(energy_list, benchname):
 	#color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 	color_list = []
 	color = ""
-	#label_list = ["interactive", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
-	label_list = ["schedutil", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
 	label = ""
 	ticklabel_list = []
 	output_file = ""  # file obj
@@ -764,29 +878,26 @@ def main():
 	prefix = ""
 	workload = ""
 	governor = ""
-	latency = 0.0
-	latency_list = []
+	benchtime = 0.0
+	benchtime_list = []
 	energy = 0.0
 	energy_list = []
 	delay = ""
 	saturation = ""
 	benchname = ""
-	cacherefs_list = []
-	cacherefs = 0
-	cachemisses_list = []
+	interacttime_list = []
+	interacttime = 0
 
-	cycle_list_list = []
-	cycle_list = []
+	timetotal_list_list = []
+	timetotal_list = []
 
 	path = sys.argv[1]
-	#benchname = "Bubblesort (10k ints, 1 per 4k page)\nNexus 6 (4 unicores) (pinned to core)"
-	#benchname = "Bubblesort (10k ints, 1 per 4k page):\nRuntime for different CPU policies (Pinned to big core)"
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
 	benchname = "Facebook (35s user interaction scrolling)"
 	#benchname = "Calculator (10s user interaction keypresses)"
 	#benchname = "Temple Run (55s launch and game start)"
 
-	# Get latency data:
+	# Get benchtime data:
 	#governors = ["interactive_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	governors = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	prefix = "/micro_SQL_"
@@ -794,24 +905,22 @@ def main():
 	delay = "0ms"
 
 	#'''
-	latency_list = []
+	benchtime_list = []
 	for governor in governors:
 
 		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
-		latency, cacherefs, cycle_list = process_loglines(filename)
-		print(filename + " : " + str(latency))
+		benchtime, interacttime, timetotal_list = process_loglines(filename)
+		print(filename + " : " + str(benchtime))
 
-		latency_list.append(latency)
-		cacherefs_list.append(cacherefs)
-		cachemisses_list.append(0)
+		benchtime_list.append(benchtime)
+		interacttime_list.append(interacttime)
 
-		cycle_list_list.append(cycle_list)
+		timetotal_list_list.append(timetotal_list)
 
 	#end_for
 
-	#bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname)
-
-	bargraph_percore(cycle_list_list, benchname)
+	#bargraph_percore(timetotal_list_list, benchname)
+	bargraph_sorted_bigsmall(timetotal_list_list, benchtime_list, benchname)
 
 	return
 
