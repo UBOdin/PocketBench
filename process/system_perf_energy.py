@@ -153,7 +153,7 @@ def process_loglines(file_name):  #, trace_list_list):
 		if (eventtype == "tracing_mark_write"):
 			if (startflag == False):
 				#if ("SQL_START" in logline):
-				if ("Start FB" in logline):
+				if ("FLAG123 Start App" in logline):
 					startflag = True
 					trace_list = [iteration, time, "start", cpu, freq]
 					trace_list_list.append(trace_list)
@@ -162,16 +162,16 @@ def process_loglines(file_name):  #, trace_list_list):
 			#'''
 			else:
 				#if ("SQL_END" in logline):
-				if ("End FB" in logline):
+				if ("FLAG123 End App" in logline):
 					trace_list = [iteration, time, "end", cpu, freq]
 					trace_list_list.append(trace_list)
 					endtime = time
 					break
 				#end_if
-				if ("Start FB" in logline):
+				if ("FLAG123 Start App" in logline):
 					startinteracttime = time
 				#end_if
-				if ("End FB" in logline):
+				if ("FLAG123 End App" in logline):
 					endinteracttime = time
 				#end_if
 			#end_if
@@ -922,7 +922,7 @@ def main():
 	#bargraph_percore(timetotal_list_list, benchname)
 	bargraph_sorted_bigsmall(timetotal_list_list, benchtime_list, benchname)
 
-	return
+	#return
 
 	#return
 	#'''
