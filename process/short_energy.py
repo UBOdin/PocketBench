@@ -72,6 +72,7 @@ def process_loglines(file_name):  #, trace_list_list):
 	oncore = False
 	oncoretime = 0
 	offcoretime = 0
+	switchcount = 0
 
 	input_file = gzip.open(file_name, "r")
 
@@ -329,6 +330,7 @@ def process_loglines(file_name):  #, trace_list_list):
 				oncore = False
 				oncoretime += time
 				offcoretime -= time
+				switchcount += 1
 			#end_if
 
 			if (param_list[6][0:9] != "next_pid="):
@@ -344,6 +346,7 @@ def process_loglines(file_name):  #, trace_list_list):
 				oncore = True
 				oncoretime -= time
 				offcoretime += time
+				switchcount += 1
 			#end_if
 
 
@@ -368,6 +371,7 @@ def process_loglines(file_name):  #, trace_list_list):
 	print(oncoretime)
 	print(offcoretime)
 	print(str((offcoretime * 100.0) / (offcoretime + oncoretime)))
+	print("Switch count:  %d" % (switchcount))
 
 	#'''
 	for e in trace_list_list:
@@ -376,7 +380,9 @@ def process_loglines(file_name):  #, trace_list_list):
 	#'''
 
 	#return perfcycles
-	return (endtime - starttime) * 1000.0, cacherefs, cachemisses
+	#return (endtime - starttime) * 1000.0, cacherefs, cachemisses
+	return (endtime - starttime) * 1000.0, cacherefs, switchcount
+
 
 #end_def
 
@@ -478,8 +484,10 @@ def get_energy(file_name):
 
 	#start = 7.0  # fixed
 	#stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
-	start = 8.0
-	stop = start + 150.0
+	start = 15.0
+	stop = 25.0
+	#start = 8.0
+	#stop = start + 150.0
 	iteration = 0  # reset counter
 	#print("File:  %s  Stop:  %f" % (file_name, stop))
 
@@ -551,6 +559,8 @@ def get_energy(file_name):
 
 	input_file.close()
 
+	print("Got HERE")
+
 	return amps_total / (3600.0 * 5.0)
 
 #end_def
@@ -569,7 +579,9 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 	#color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 	color_list = []
 	color = ""
-	label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+	label_list = ["interactive", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+	#label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+
 	label = ""
 	ticklabel_list = []
 
@@ -582,7 +594,9 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 		color_list.append("blue")
 	#end_for
 
+	#fig_list, ax_list = plt.subplots(2, 1)
 	fig_list, ax_list = plt.subplots(3, 1)
+	bottomgraph = len(ax_list) - 1  # Get the number of the bottom graph
 
 	#ticklabel_list.append("")
 
@@ -591,6 +605,7 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 		ax_list[0].bar(offset, latency, width = width, color = color)
 		ax_list[1].bar(offset, cacherefs / 1000000, width = width, color = color)
 		ax_list[2].bar(offset, cachemisses / 1000000, width = width, color = color)
+		ax_list[2].bar(offset, cachemisses, width = width, color = color)
 
 		offset_list += width
 
@@ -605,8 +620,8 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 	#end_for
 	ax_list[0].set_xticklabels([])
 	ax_list[1].set_xticklabels([])
-	ax_list[2].set_xticklabels(ticklabel_list)
-	tick_list = ax_list[2].get_xticklabels()
+	ax_list[bottomgraph].set_xticklabels(ticklabel_list)
+	tick_list = ax_list[bottomgraph].get_xticklabels()
 	for i in range(len(tick_list)):
 		tick_list[i].set_rotation(-45)
 		tick_list[i].set_ha("left")
@@ -614,15 +629,17 @@ def bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname):
 	#'''
 
 	ax_list[0].set_title("Runtime for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
-	ax_list[2].set_xlabel("Governor", fontsize = 16, fontweight = "bold")
+	ax_list[bottomgraph].set_xlabel("Governor", fontsize = 16, fontweight = "bold")
 	ax_list[0].set_ylabel("Total runtime ($ms$)", fontsize = 16, fontweight = "bold")
 	#ax_list[1].set_ylabel("Cache refs (M)", fontsize = 16, fontweight = "bold")
 	#ax_list[2].set_ylabel("Cache misses (M)", fontsize = 16, fontweight = "bold")
 	ax_list[1].set_ylabel("Cycle count (k)", fontsize = 16, fontweight = "bold")
-	ax_list[2].set_ylabel("IGNORE", fontsize = 16, fontweight = "bold")
+	#ax_list[2].set_ylabel("Switch Count (n)", fontsize = 16, fontweight = "bold")
 
 	plt.show()
 	plt.close("all")
+
+	return
 
 
 	fig_list, ax_list = plt.subplots(2, 1)
@@ -662,6 +679,7 @@ def bargraph_energy(energy_list, benchname):
 	#color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 	color_list = []
 	color = ""
+	#label_list = ["interactive", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
 	label_list = ["schedutil", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "performance"]
 	label = ""
 	ticklabel_list = []
@@ -688,7 +706,8 @@ def bargraph_energy(energy_list, benchname):
 
 		offset_list += width
 
-		ticklabel_list.append(label + "\n" + str(int(energy)))
+		#ticklabel_list.append(label + "\n" + str(int(energy)))
+		ticklabel_list.append(label)
 
 		output_file.write("%s & %f \\\\\n" % (label, energy))
 
@@ -741,15 +760,20 @@ def main():
 	cachemisses = 0
 
 	path = sys.argv[1]
-	benchname = "Bubblesort (10k ints, 64 per 4k page):\nRuntime for different CPU policies"
+	#benchname = "Bubblesort (10k ints, 1 per 4k page)\nNexus 6 (4 unicores) (pinned to core)"
+	#benchname = "Bubblesort (10k ints, 1 per 4k page):\nRuntime for different CPU policies (Pinned to big core)"
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
+	#benchname = "Facebook (30s user interaction scrolling)"
+	benchname = "Calculator (10s user interaction keypresses)"
 
 	# Get latency data:
-
+	#governors = ["interactive_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	governors = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	prefix = "/micro_SQL_"
 	workload = "A"
 	delay = "0ms"
+
+	'''
 
 	latency_list = []
 	for governor in governors:
@@ -768,6 +792,14 @@ def main():
 	bargraph_latency(latency_list, cacherefs_list, cachemisses_list, benchname)
 
 	return
+
+	for runtime, switchcount in zip(latency_list, cachemisses_list):
+		print("Runtime / switches:  %f" % (runtime / switchcount))
+	#end_for
+
+	#return
+
+	'''
 
 	# Get energy data:
 
