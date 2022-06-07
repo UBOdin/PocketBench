@@ -7,8 +7,9 @@ import sys
 #android_id = "ZX1G22TKW7" # Ed's old phone
 #android_id = "199020104301402615" # Dragonboard 8074
 #android_id = "ZX1G22LXTH" # Nexus 6 wired for Monsoon
-android_id = "FA7A21A02869" # Pixel 2 wired for Monsoon
+#android_id = "FA7A21A02869" # Pixel 2 wired for Monsoon
 #android_id = "FA7AK1A06424" # Pixel 2 (unmodded)
+android_id = "(dummy)"  # placeholder -- scripts expect as first parameter
 
 def help_message():
 	print '\nCommand List:\n'
@@ -24,6 +25,7 @@ def command(string_array):
 	#workloads = ["A", "B", "C", "D", "E", "F"]
 	workloads = ["A", "B", "C", "D", "E", "F", "N"]
 	governors = ["userspace", "powersave", "performance", "schedutil"]
+	#governors = ["userspace", "powersave", "performance", "interactive", "ondemand"]
 	# 300000 364800 441600 518400 595200 672000 748800 825600 883200 960000 1036800 1094400 1171200 1248000 1324800 1401600 1478400 1555200 1670400 1747200 1824000 1900800
 	# 300000 345600 422400 499200 576000 652800 729600 806400 902400 979200 1056000 1132800 1190400 1267200 1344000 1420800 1497600 1574400 1651200 1728000 1804800 1881600 1958400 2035200 2112000 2208000 2265600 2323200 2342400 2361600 2457600
 	speeds = []  # Skip this sanity for now
@@ -65,9 +67,12 @@ def command(string_array):
 	if (governor != "userspace"):
 		speed = "none:0-0" # Don't use slashes (messes with subdirectories) or parentheses (messes with scripting) or semicolons (ditto)
 	else:
+		#'''
 		little_speed = int(speed) * 19008  # % of lomax (1900800)
 		big_speed = int(speed) * 24576  # % of himax (2457600)
 		speed = speed + ":" + str(little_speed) + "-" + str(big_speed)
+		#'''
+		#speed = speed + ":" + str(int(speed) * 26496)
 	#end_if
 	print("Speed:  " + speed)
 
@@ -135,16 +140,18 @@ def main():
 				#workload_list = ["sql a", "sql f"]
 				workload_list = ["sql a"]
 
-				#governor_list = ["schedutil x", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
 				governor_list = ["schedutil x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
+				#governor_list = ["interactive x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
+
+
 
 				#delay_list = ["0ms", "lognormal"]
 				delay_list = ["0ms"]
 
 				threads_list = ["1"]
 
-				run_count = 3
-				#run_count = 1
+				#run_count = 3
+				run_count = 1
 
 				skip_count = 0 
 
