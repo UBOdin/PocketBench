@@ -148,14 +148,12 @@ if [ "$userapp" = "1" ]; then
 	echo "$result" >> $logfile
 else
 	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
-	##/data/compute.exe 100000000 50000 100
+	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	#/data/compute.exe 10000 1 7 2 10000000
 	#/data/compute.exe 10000 4096 7 1 0
-	#/data/compute.exe 10000 1 3 1 0
-	#/data/compute.exe 10000 4096 7 1 0
-	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
-	#am instrument -w -e class com.example.test.MetaTest com.example.test.test
-	am instrument -w -e class com.example.test.TempleTest com.example.test.test
+	#/data/compute.exe 10000 1 7 1 0
+	am instrument -w -e class com.example.test.MetaTest com.example.test.test
+	#am instrument -w -e class com.example.test.TempleTest com.example.test.test
 	#am instrument -w -e class com.example.test.CalcTest com.example.test.test
 	result="$?"
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
