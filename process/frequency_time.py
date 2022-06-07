@@ -286,9 +286,9 @@ def graph_freq_time(trace_list_list):
 	assert (trace_list[2] == "start"), "Expected start"
 	i = -1
 	#speed = 1
-	speed = 1401600
-	maxspeed = 1401600
-	savespeed = 1401600
+	speed = 1747200 #1401600
+	maxspeed = 1747200 #1401600
+	savespeed = 1747200 #1401600
 	idlestate = -1  # Prime to non-idle
 
 	while (True):
@@ -367,7 +367,7 @@ def graph_freq_time(trace_list_list):
 	ax.plot(time_list, speed_list, color = "black")
 	ax.scatter(time_list, speed_list, color = "black", s = 1)
 	ax.axis([0, maxtime * 1.1, 0, maxspeed * 1.1])
-	ax.set_title("Workload A, Unsaturated System", fontsize = 16, fontweight = "bold")
+	ax.set_title("Fixed 90 Governor, Workload A, log Delay", fontsize = 16, fontweight = "bold")
 	ax.set_xlabel("Benchmark runtime (s)", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Benchmark CPU speed (kHz)", fontsize = 16, fontweight = "bold")
 
