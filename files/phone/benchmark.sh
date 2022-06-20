@@ -69,6 +69,7 @@ trace_dir=/sys/kernel/debug/tracing
 trace_log=/sys/kernel/debug/tracing/trace_marker
 errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
+graphfile="data/graphlog.txt"
 userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 #device="nexus6"
 device="pixel2"
@@ -131,14 +132,6 @@ rm /data/results.pipe
 mknod /data/results.pipe p
 chmod 777 /data/results.pipe
 
-# Pin benchmark app to core:
-##ps -A | grep "withjson" > /data/apppid.txt
-##/data/pincore.exe < /data/apppid.txt
-#if [ "$?" != "0" ]; then
-#	set_governor "$default"
-#	error_exit "ERR on corepin"
-#fi
-
 #am kill-all
 if [ "$userapp" = "1" ]; then
 	am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
@@ -147,15 +140,19 @@ if [ "$userapp" = "1" ]; then
 	result="$(cat /data/results.pipe)"
 	echo "$result" >> $logfile
 else
+	pkgname="com.facebook.katana"
+	pkgtest="com.example.test.MetaTest"
+	#pkgtest="com.example.test.TempleTest"
+	#pkgtest="com.exmaple.test.CalcTest"
 	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	#/data/compute.exe 10000 1 7 2 10000000
 	#/data/compute.exe 10000 4096 7 1 0
 	#/data/compute.exe 10000 1 7 1 0
-	am instrument -w -e class com.example.test.MetaTest com.example.test.test
-	#am instrument -w -e class com.example.test.TempleTest com.example.test.test
-	#am instrument -w -e class com.example.test.CalcTest com.example.test.test
+	dumpsys gfxinfo $pkgname reset > /dev/null
+	am instrument -w -e class $pkgtest com.example.test.test
 	result="$?"
+	dumpsys gfxinfo $pkgname > $graphfile
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
 	if [ "$result" != "0" ]; then
@@ -167,18 +164,43 @@ else
 	am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	sleep 5
 
-	#echo "Fixed wait benchmark" >> $trace_log
-	#echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
-	#sleep 180
-	#echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
-	#echo "Cycle data" >> $trace_log
-	#echo "Fixed benchmark done" >> $logfile
-
 fi
 
 toggle_events 0
 
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
+
+# Crunch gfxinfo data and inject into ftrace:
+if [ "$userapp" == "0" ]; then
+	# Gross kludge -- hardcoded index map:
+	index_arr=(0 0 0 0 0 0 3 2 0 0 0 0 3 4 4 4 5 4)
+	i=0
+	output=""
+	while read -r line; do
+		line_arr=($line)
+		#len=${#line_arr[*]}
+		#if [ $i -ge 12 ] || [ $i -lt 18 ]; then
+		#	word=${line_arr[((len - 1))]}
+		#	echo $word
+		#fi
+		index=${index_arr[$i]}
+		word=${line_arr[${index}]}
+		if [ $index -ne 0 ]; then
+			#echo "Word:  $word"
+			output="$output $word"
+		fi
+		i=$((i + 1))
+		if [ $i -ge 18 ]; then
+			break
+		fi
+	done < $graphfile
+	# Short sanitycheck:
+	if [ ${line_arr[1]} != "Frame" ]; then
+		error_exit "ERR on frame data"
+	fi
+	printf "GFX DATA:  %s" "$output" >> $trace_log
+fi
+
 
 # Trap for on-app error:
 if [ "$result" == "ERR" ]; then
