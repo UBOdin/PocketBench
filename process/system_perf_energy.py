@@ -152,8 +152,8 @@ def process_loglines(file_name):  #, trace_list_list):
 
 		if (eventtype == "tracing_mark_write"):
 			if (startflag == False):
-				#if ("SQL_START" in logline):
-				if ("FLAG123 Start App" in logline):
+				if ("SQL_START" in logline):
+				#if ("FLAG123 Start App" in logline):
 					startflag = True
 					trace_list = [iteration, time, "start", cpu, freq]
 					trace_list_list.append(trace_list)
@@ -161,8 +161,8 @@ def process_loglines(file_name):  #, trace_list_list):
 				#end_if
 			#'''
 			else:
-				#if ("SQL_END" in logline):
-				if ("FLAG123 End App" in logline):
+				if ("SQL_END" in logline):
+				#if ("FLAG123 End App" in logline):
 					trace_list = [iteration, time, "end", cpu, freq]
 					trace_list_list.append(trace_list)
 					endtime = time
@@ -464,10 +464,13 @@ def get_energy(file_name):
 	#end_while
 	input_file.close()
 
+	# Facebook:  15s - 45s (double check)
+	# Temple Run:  15s - 70s
+
 	#start = 7.0  # fixed
 	#stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
 	start = 15.0
-	stop = 45.0
+	stop = 70.0
 	#start = 8.0
 	#stop = start + 150.0
 	iteration = 0  # reset counter
@@ -540,8 +543,6 @@ def get_energy(file_name):
 	'''
 
 	input_file.close()
-
-	print("Got HERE")
 
 	return amps_total / (3600.0 * 5.0)
 
@@ -762,7 +763,7 @@ def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
 		ticklabel_list.append(timetotal_list[10])
 	#end_for
 
-	ax_list[0].axis([-.5, graphcount - .5, 0, 1])
+	#ax_list[0].axis([-.5, graphcount - .5, 0, 1])
 	ax_list[0].set_xticks(offset_list)
 	ax_list[0].set_xticklabels(ticklabel_list)
 	ax_list[0].set_title("Little Cores (Total of 4)", fontsize = 12, fontweight = "bold")
@@ -783,7 +784,7 @@ def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
 		ticklabel_list.append(timetotal_list[10])
 	#end_for
 
-	ax_list[1].axis([-.5, graphcount - .5, 0, 1])
+	#ax_list[1].axis([-.5, graphcount - .5, 0, 1])
 	ax_list[1].set_xticks(offset_list)
 	ax_list[1].set_xticklabels(ticklabel_list)
 	ax_list[1].set_title("Big Cores (Total of 4)", fontsize = 12, fontweight = "bold")
@@ -825,8 +826,6 @@ def bargraph_energy(energy_list, benchname):
 		color_list.append("blue")
 	#end_for
 
-	output_file = open("data.tex", "w")
-
 	fig, ax = plt.subplots()
 
 	#ticklabel_list.append("")
@@ -840,11 +839,7 @@ def bargraph_energy(energy_list, benchname):
 		#ticklabel_list.append(label + "\n" + str(int(energy)))
 		ticklabel_list.append(label)
 
-		output_file.write("%s & %f \\\\\n" % (label, energy))
-
 	#end_for
-
-	output_file.close()
 
 	print(ticklabel_list)
 	#'''
