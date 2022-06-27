@@ -68,11 +68,11 @@ def process_loglines(file_name):  #, trace_list_list):
 	timetotal_list = []
 	timedelta = 0.0
 	cycle_list = []
-
 	offcount = 0
 	oncount = 0
 	startinteracttime = 0.0
 	endinteracttime = 0.0
+	graphdata_list = []
 
 	input_file = gzip.open(file_name, "r")
 
@@ -301,6 +301,30 @@ def process_loglines(file_name):  #, trace_list_list):
 
 	#print("iterations:  %d" % (iteration))
 
+	# Continue reading tracefile to extract summary GFX data (injected into trace after run):
+	while (True):
+
+		# Keep reading until finished:
+		logline = input_file.readline().decode("ascii")
+
+		if (logline == ""):
+			print("Never hit endmark")
+			print(file_name)
+			print(iteration)
+			print(logline)
+			sys.exit(1)
+			break
+		#end_if
+
+		if ("GFX DATA" in logline):
+			graphdata_list = logline[80:-1].split(" ")
+			print("GRAPH")
+			print(graphdata_list)
+			break
+		#end_if
+
+	#end_while
+
 	input_file.close()
 
 	print("")
@@ -363,77 +387,8 @@ def process_loglines(file_name):  #, trace_list_list):
 	print("TEST RUNNER TIME:  " + str(endinteracttime - startinteracttime))
 
 	#return timetotal, cycletotal, timetotal_list
-	return endtime - starttime, endinteracttime - startinteracttime, timetotal_list
+	return endtime - starttime, endinteracttime - startinteracttime, timetotal_list, graphdata_list
 
-
-#end_def
-
-
-def get_runtime(file_name):
-
-	# file_name = ""
-
-	logline = ""
-	iteration = 0
-	starttime = 0.0
-	endtime = 0.0
-	cycles = 0.0
-	cacherefs = 0
-	cachemisses = 0
-
-	input_file = gzip.open(file_name, "r")
-
-	while (True):
-
-		# Keep reading until finished:
-		logline = input_file.readline().decode("ascii")
-
-		if (logline == ""):
-			break
-		#end_if
-
-		iteration += 1
-		if (iteration % 1000 == 0):
-			#break
-			#print("Iteration:  ", iteration)
-			pass
-		#end_if
-
-		if ("SQL_START" in logline):
-			starttime += float(logline[33:48])
-		#end_if
-
-		if ("SQL_END" in logline):
-			endtime += float(logline[33:48])
-		#end_if
-
-		if ("CACHE_REFS" in logline):
-			cacherefs = int(logline[83:])
-		#end_if
-
-		if ("CACHE_MISSES" in logline):
-			cachemisses = int(logline[85:])
-		#end_if
-
-		'''
-		if ("Cycle data" in logline):
-			cycles = float(logline[79:])
-		#end_if
-		'''
-
-	#end_while
-
-	#print("iterations:  %d" % (iteration))
-
-	#print(starttime)
-	#print(endtime)
-	#print("Latency:  ", endtime - starttime)
-	print(cacherefs)
-	print(cachemisses)
-
-	input_file.close()
-
-	return (endtime - starttime) * 1000.0, cacherefs, cachemisses
 
 #end_def
 
@@ -470,7 +425,7 @@ def get_energy(file_name):
 	#start = 7.0  # fixed
 	#stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
 	start = 15.0
-	stop = 70.0
+	stop = 45.0
 	#start = 8.0
 	#stop = start + 150.0
 	iteration = 0  # reset counter
@@ -802,6 +757,44 @@ def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
 #end_def
 
 
+def bargraph_graphdata(graphdata_list_list, benchname):
+
+	# graphdata_list_list = []
+	# benchname = ""
+	graphdata_list = []
+	graphcount = 0
+	color_list = []
+	ticklabel_list = []
+
+	graphcount = len(graphdata_list_list)
+
+	color_list.append("red")
+	for i in range(graphcount - 1):
+		color_list.append("blue")
+	#end_for
+
+	fix, ax = plt.subplots()
+	offset_list = np.arange(0, graphcount)
+
+	for i, graphdata_list, color, label in zip(range(graphcount), graphdata_list_list, color_list, label_list):
+		ax.bar(i, float(graphdata_list[1]) / float(graphdata_list[0]), color = color)
+		ticklabel_list.append(label)
+	#end_for
+
+	ax.axis([-.5, graphcount - .5, 0, .16])
+	ax.set_xticks(offset_list)
+	ax.set_xticklabels(ticklabel_list)
+	ax.set_title("Frame Jank Per CPU Policy, :30s FB Interaction", fontsize = 12, fontweight = "bold")
+	ax.set_xlabel("Governor Policy", fontsize = 12, fontweight = "bold")
+	ax.set_ylabel("Frame Jank (0,1)", fontsize = 12, fontweight = "bold")
+
+	plt.show()
+
+	return
+
+#end_def
+
+
 def bargraph_energy(energy_list, benchname):
 
 	# energy_list = []
@@ -885,6 +878,8 @@ def main():
 
 	timetotal_list_list = []
 	timetotal_list = []
+	graphdata_list_list = []
+	graphdata_list = []
 
 	path = sys.argv[1]
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
@@ -904,18 +899,20 @@ def main():
 	for governor in governors:
 
 		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
-		benchtime, interacttime, timetotal_list = process_loglines(filename)
+		benchtime, interacttime, timetotal_list, graphdata_list = process_loglines(filename)
 		print(filename + " : " + str(benchtime))
 
 		benchtime_list.append(benchtime)
 		interacttime_list.append(interacttime)
 
 		timetotal_list_list.append(timetotal_list)
+		graphdata_list_list.append(graphdata_list)
 
 	#end_for
 
 	#bargraph_percore(timetotal_list_list, benchname)
-	bargraph_sorted_bigsmall(timetotal_list_list, benchtime_list, benchname)
+	#bargraph_sorted_bigsmall(timetotal_list_list, benchtime_list, benchname)
+	bargraph_graphdata(graphdata_list_list, benchname)
 
 	#return
 
