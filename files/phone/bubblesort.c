@@ -333,10 +333,10 @@ int main(int argc, char** argv) {
 	snprintf(iobuff, iosize, "PARAMS:  Sortsize:  %d  Sparsity:  %d  Core:  %d  Test:  %d  Loop:  %d  Type:  %d  Conf1:  %d  Conf2:  %d\n", sortsize, sparse, coreno, testtype, loopcount, type, config_1, config_2);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_START\", \"thread\":0}\n");  // legacy flag
+//	perf_init(type, config_1, config_2, &perf_1_fd, &perf_2_fd);
+	snprintf(iobuff, iosize, "FLAG123 Start App\n");
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-	perf_init(type, config_1, config_2, &perf_1_fd, &perf_2_fd);
 
 	if (testtype == 1) {
 		sort(sortbuff, sortsize, sparse);
@@ -348,6 +348,7 @@ int main(int argc, char** argv) {
 		randomwrite(sortbuff, sortsize, sparse, loopcount);
 	}
 
+/*
 	perf_finish(perf_1_fd, perf_2_fd, &result_1, &result_2);
 	snprintf(iobuff, iosize, "CACHE_REFS:  %llu\n", result_1);
 	result = write(trace_fd, iobuff, iosize);
@@ -355,7 +356,8 @@ int main(int argc, char** argv) {
 	snprintf(iobuff, iosize, "CACHE_MISSES:  %llu\n", result_2);
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
-	snprintf(iobuff, iosize, "{\"EVENT\":\"SQL_END\", \"thread\":0}\n");  // legacy flag
+*/
+	snprintf(iobuff, iosize, "FLAG123 End App\n");
 	result = write(trace_fd, iobuff, iosize);
 	errtrap("write");
 
