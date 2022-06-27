@@ -757,16 +757,16 @@ def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
 #end_def
 
 
-def bargraph_graphdata(graphdata_list_list, benchname):
+def bargraph_graphdata(jank_list, benchname):
 
-	# graphdata_list_list = []
+	# jank_list = []
 	# benchname = ""
-	graphdata_list = []
+	jank = 0.0
 	graphcount = 0
 	color_list = []
 	ticklabel_list = []
 
-	graphcount = len(graphdata_list_list)
+	graphcount = len(jank_list)
 
 	color_list.append("red")
 	for i in range(graphcount - 1):
@@ -776,8 +776,8 @@ def bargraph_graphdata(graphdata_list_list, benchname):
 	fix, ax = plt.subplots()
 	offset_list = np.arange(0, graphcount)
 
-	for i, graphdata_list, color, label in zip(range(graphcount), graphdata_list_list, color_list, label_list):
-		ax.bar(i, float(graphdata_list[1]) / float(graphdata_list[0]), color = color)
+	for i, jank, color, label in zip(range(graphcount), jank_list, color_list, label_list):
+		ax.bar(i, jank, color = color)
 		ticklabel_list.append(label)
 	#end_for
 
@@ -867,19 +867,20 @@ def main():
 	workload = ""
 	governor = ""
 	benchtime = 0.0
-	benchtime_list = []
+	#benchtime_list = []
 	energy = 0.0
 	energy_list = []
 	delay = ""
 	saturation = ""
 	benchname = ""
-	interacttime_list = []
+	#interacttime_list = []
 	interacttime = 0
 
-	timetotal_list_list = []
+	#timetotal_list_list = []
 	timetotal_list = []
-	graphdata_list_list = []
-	graphdata_list = []
+	#graphdata_list_list = []
+	#graphdata_list = []
+	jank_list = []
 
 	path = sys.argv[1]
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
@@ -902,17 +903,20 @@ def main():
 		benchtime, interacttime, timetotal_list, graphdata_list = process_loglines(filename)
 		print(filename + " : " + str(benchtime))
 
-		benchtime_list.append(benchtime)
-		interacttime_list.append(interacttime)
+		#benchtime_list.append(benchtime)
+		#interacttime_list.append(interacttime)
 
-		timetotal_list_list.append(timetotal_list)
-		graphdata_list_list.append(graphdata_list)
+		#timetotal_list_list.append(timetotal_list)
+		#graphdata_list_list.append(graphdata_list)
+
+		jank_list.append(float(graphdata_list[1]) / float(graphdata_list[0]))
 
 	#end_for
 
 	#bargraph_percore(timetotal_list_list, benchname)
 	#bargraph_sorted_bigsmall(timetotal_list_list, benchtime_list, benchname)
-	bargraph_graphdata(graphdata_list_list, benchname)
+	#bargraph_graphdata(graphdata_list_list, benchname)
+	bargraph_graphdata(jank_list, benchname)
 
 	#return
 
