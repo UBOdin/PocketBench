@@ -28,6 +28,10 @@ def mean_margin(data_list):
 	margin = 0.0
 
 	n = len(data_list)
+	# Handle corner case (run size of 1):
+	if (n == 1):
+		return data_list[0], 0
+	#end_if
 	mean = statistics.mean(data_list)
 	stdev = statistics.stdev(data_list) # stdev() or pstdev()
 	margin = zstar * (stdev / math.sqrt(n))
@@ -757,31 +761,34 @@ def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
 #end_def
 
 
-def bargraph_graphdata(jank_list, benchname):
+def bargraph_graphdata(jank_mean_list, jank_err_list, benchname):
 
-	# jank_list = []
+	# jank_mean_list = []
+	# jank_err_list = []
 	# benchname = ""
-	jank = 0.0
-	graphcount = 0
+	jank_mean = 0.0
+	jank_err = 0.0
+	barcount = 0
+	offset_list = []
 	color_list = []
 	ticklabel_list = []
 
-	graphcount = len(jank_list)
-
+	barcount = len(jank_mean_list)
+	offset_list = np.arange(0, barcount)
 	color_list.append("red")
-	for i in range(graphcount - 1):
+	for i in range(barcount - 1):
 		color_list.append("blue")
 	#end_for
 
 	fix, ax = plt.subplots()
-	offset_list = np.arange(0, graphcount)
 
-	for i, jank, color, label in zip(range(graphcount), jank_list, color_list, label_list):
-		ax.bar(i, jank, color = color)
+	for offset, jank_mean, jank_err, color, label in zip(offset_list, jank_mean_list, jank_err_list, color_list, label_list):
+		ax.bar(offset, jank_mean, color = color)
+		ax.errorbar(offset, jank_mean, color = "black", yerr = jank_err, elinewidth = 2, capsize = 10, capthick = 2)
 		ticklabel_list.append(label)
 	#end_for
 
-	ax.axis([-.5, graphcount - .5, 0, .16])
+	ax.axis([-.5, barcount - .5, 0, .16])
 	ax.set_xticks(offset_list)
 	ax.set_xticklabels(ticklabel_list)
 	ax.set_title("Frame Jank Per CPU Policy, :30s FB Interaction", fontsize = 12, fontweight = "bold")
@@ -795,55 +802,41 @@ def bargraph_graphdata(jank_list, benchname):
 #end_def
 
 
-def bargraph_energy(energy_list, benchname):
+def bargraph_energy(energy_mean_list, energy_err_list, benchname):
 
-	# energy_list = []
+	# energy_mean_list = []
+	# energy_err_list = []
 	# benchname = ""
-	energy = 0.0
-	clusterlen = 0
-	width = 0
-	#color_list = ["b", "r", "g", "y", "orange"]
-	#color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
+	energy_mean = 0.0
+	energy_err = 0.0
+	barcount = 0
+	offset_list = []
 	color_list = []
-	color = ""
-	label = ""
 	ticklabel_list = []
-	output_file = ""  # file obj
 
-	clusterlen = len(energy_list)
-	width = 1
-	offset_list = np.arange(0, clusterlen)
-
+	barcount = len(energy_mean_list)
+	offset_list = np.arange(0, barcount)
 	color_list.append("red")
-	for i in range(clusterlen - 1):
+	for i in range(barcount - 1):
 		color_list.append("blue")
 	#end_for
 
 	fig, ax = plt.subplots()
 
-	#ticklabel_list.append("")
-
-	for energy, offset, color, label in zip(energy_list, offset_list, color_list, label_list):
-
-		ax.bar(offset, energy, width = width, color = color)
-
-		offset_list += width
-
-		#ticklabel_list.append(label + "\n" + str(int(energy)))
+	for offset, energy_mean, energy_err, color, label in zip(offset_list, energy_mean_list, energy_err_list, color_list, label_list):
+		ax.bar(offset, energy_mean, color = color)
+		ax.errorbar(offset, energy_mean, color = "black", yerr = energy_err, elinewidth = 2, capsize = 10, capthick = 2)
 		ticklabel_list.append(label)
-
 	#end_for
 
-	print(ticklabel_list)
-	#'''
-	ax.set_xticks(np.arange(0, offset_list[0]) * 2, False)
+	#ax.set_xticks(np.arange(0, offset_list[0]) * 2, False)
+	ax.set_xticks(offset_list)
 	ax.set_xticklabels(ticklabel_list)
 	tick_list = ax.get_xticklabels()
 	for i in range(len(tick_list)):
 		tick_list[i].set_rotation(-45)
 		tick_list[i].set_ha("left")
 	#end_for
-	#'''
 
 	ax.set_title("Net Energy for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor", fontsize = 16, fontweight = "bold")
@@ -867,20 +860,25 @@ def main():
 	workload = ""
 	governor = ""
 	benchtime = 0.0
-	#benchtime_list = []
 	energy = 0.0
 	energy_list = []
 	delay = ""
 	saturation = ""
 	benchname = ""
-	#interacttime_list = []
 	interacttime = 0
 
-	#timetotal_list_list = []
 	timetotal_list = []
-	#graphdata_list_list = []
-	#graphdata_list = []
 	jank_list = []
+	jank_mean = 0.0
+	jank_mean_list = []
+	jank_err = 0.0
+	jank_err_list = []
+	energy_list = []
+	energy_mean = 0.0
+	energy_mean_list = []
+	energy_err = 0.0
+	energy_err_list = []
+	runcount = 0
 
 	path = sys.argv[1]
 	#benchname = " Youtube (150s video playback) (with kernel trace)"
@@ -895,33 +893,26 @@ def main():
 	workload = "A"
 	delay = "0ms"
 
-	#'''
-	benchtime_list = []
+	runcount = 5
+
+	'''
 	for governor in governors:
-
-		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.gz"
-		benchtime, interacttime, timetotal_list, graphdata_list = process_loglines(filename)
-		print(filename + " : " + str(benchtime))
-
-		#benchtime_list.append(benchtime)
-		#interacttime_list.append(interacttime)
-
-		#timetotal_list_list.append(timetotal_list)
-		#graphdata_list_list.append(graphdata_list)
-
-		jank_list.append(float(graphdata_list[1]) / float(graphdata_list[0]))
-
+		jank_list = []
+		for run in range(runcount):
+			filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".gz"
+			benchtime, interacttime, timetotal_list, graphdata_list = process_loglines(filename)
+			print(filename + " : " + str(benchtime))
+			jank_list.append(float(graphdata_list[1]) / float(graphdata_list[0]))
+		#end_for
+		jank_mean, jank_err = mean_margin(jank_list)
+		jank_mean_list.append(jank_mean)
+		jank_err_list.append(jank_err)
 	#end_for
 
-	#bargraph_percore(timetotal_list_list, benchname)
-	#bargraph_sorted_bigsmall(timetotal_list_list, benchtime_list, benchname)
-	#bargraph_graphdata(graphdata_list_list, benchname)
-	bargraph_graphdata(jank_list, benchname)
+	#bargraph_graphdata(jank_list, benchname)
+	bargraph_graphdata(jank_mean_list, jank_err_list, benchname)
+	'''
 
-	#return
-
-	#return
-	#'''
 
 	# Get energy data:
 
@@ -929,18 +920,20 @@ def main():
 	workload = "A"
 	delay = "0ms"
 
-	energy_list = []
 	for governor in governors:
-
-		filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_0.csv"
-		energy = get_energy(filename)
-		print(filename + " : " + str(energy))
-
-		energy_list.append(energy)
-
+		energy_list = []
+		for run in range(runcount):
+			filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".csv"
+			energy = get_energy(filename)
+			print(filename + " : " + str(energy))
+			energy_list.append(energy)
+		#end_for
+		energy_mean, energy_err = mean_margin(energy_list)
+		energy_mean_list.append(energy_mean)
+		energy_err_list.append(energy_err)
 	#end_for
 
-	bargraph_energy(energy_list, benchname)
+	bargraph_energy(energy_mean_list, energy_err_list, benchname)
 
 	return
 
