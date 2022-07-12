@@ -428,8 +428,8 @@ def get_energy(file_name):
 
 	#start = 7.0  # fixed
 	#stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
-	start = 15.0
-	stop = 45.0
+	start = 08.0 #15.0
+	stop = 48.0 #45.0
 	#start = 8.0
 	#stop = start + 150.0
 	iteration = 0  # reset counter
@@ -788,12 +788,12 @@ def bargraph_graphdata(jank_mean_list, jank_err_list, benchname):
 		ticklabel_list.append(label)
 	#end_for
 
-	ax.axis([-.5, barcount - .5, 0, .16])
+	ax.axis([-.5, barcount - .5, 0, .10])
 	ax.set_xticks(offset_list)
 	ax.set_xticklabels(ticklabel_list)
-	ax.set_title("Frame Jank Per CPU Policy, :30s FB Interaction", fontsize = 12, fontweight = "bold")
+	ax.set_title("Frame Jank Per CPU Policy, ~:24s FB Interaction (10 Runs, 90% Confidence)", fontsize = 12, fontweight = "bold")
 	ax.set_xlabel("Governor Policy", fontsize = 12, fontweight = "bold")
-	ax.set_ylabel("Frame Jank (0,1)", fontsize = 12, fontweight = "bold")
+	ax.set_ylabel("Frame Jank Proportion (0,1)", fontsize = 12, fontweight = "bold")
 
 	plt.show()
 
@@ -838,9 +838,9 @@ def bargraph_energy(energy_mean_list, energy_err_list, benchname):
 		tick_list[i].set_ha("left")
 	#end_for
 
-	ax.set_title("Net Energy for different CPU governors:  " + benchname, fontsize = 20, fontweight = "bold")
-	ax.set_xlabel("Governor", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Net energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
+	ax.set_title("Total Energy per CPU Policy, Fixed :40s (~24s Facebook Interaction) (10 Runs, 90% Confidence)", fontsize = 20, fontweight = "bold")
+	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total Energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
 	plt.show()
@@ -893,9 +893,9 @@ def main():
 	workload = "A"
 	delay = "0ms"
 
-	runcount = 5
+	runcount = 10
 
-	'''
+	#'''
 	for governor in governors:
 		jank_list = []
 		for run in range(runcount):
@@ -911,7 +911,7 @@ def main():
 
 	#bargraph_graphdata(jank_list, benchname)
 	bargraph_graphdata(jank_mean_list, jank_err_list, benchname)
-	'''
+	#'''
 
 
 	# Get energy data:
