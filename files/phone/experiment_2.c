@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -32,6 +33,24 @@ static void errlog() {
 }
 
 
+long gettime_us() {
+
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+
+	return now.tv_sec * 1000000 + now.tv_usec;
+
+}
+
+
+long total_time(struct timeval start, struct timeval end) {
+
+	return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
+
+}
+
+
 int main(int argc, char** argv) {
 
 	printf("Hello World\n");
@@ -51,6 +70,9 @@ int main(int argc, char** argv) {
 	long long innercount;
 	long long sum;
 	long sleep_us;
+
+	long timestart_us;
+	long timenow_us;
 
 	struct timespec interval;
 
@@ -111,22 +133,34 @@ int main(int argc, char** argv) {
 
 	sum = 0;
 	innercount = 20;
+	timestart_us = gettime_us();
 	for (long long i = 0; i < batchcount; i++) {
-		for (long long j = 0; j < loopcount / batchcount; j++) {
+
+		for (long long j = 0; j < loopcount / (batchcount * 2); j++) {
 			for (long long k = 0; k < innercount; k++) {
 				sum = sum + i + j + k;
 			}
 		}
-		if (sleep_us > 0) {
-			interval.tv_sec = 0;
-			interval.tv_nsec = sleep_us * 1000;
-			result = nanosleep(&interval, NULL);
-			if (result == -1) {
-				errlog();
-				return 7;
-			}
+
+		interval.tv_sec = 0;
+//		interval.tv_nsec = 30 * 1000 * 1000;
+		interval.tv_nsec = 15 * 1000 * 1000;
+		result = nanosleep(&interval, NULL);
+		if (result == -1) {
+			errlog();
+			return 7;
 		}
+
+		timenow_us = gettime_us();
+		if (timenow_us - timestart_us > 20 * 1000 * 1000) {
+//printf("Broke on time.  Batchiter:  %lld\n", i);
+//goto breakpoint;
+			break;
+		}
+
 	}
+//printf("Looped out\n");
+//    breakpoint:
 
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
