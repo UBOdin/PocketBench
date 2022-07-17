@@ -425,11 +425,12 @@ def get_energy(file_name):
 
 	# Facebook:  15s - 45s (double check)
 	# Temple Run:  15s - 70s
+	# microbench (do nothing or sleep for 20s):  5s - 35s
 
 	#start = 7.0  # fixed
 	#stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
-	start = 08.0 #15.0
-	stop = 48.0 #45.0
+	start = 5.0 #08.0 #15.0
+	stop = 35.0 #48.0 #45.0
 	#start = 8.0
 	#stop = start + 150.0
 	iteration = 0  # reset counter
@@ -822,6 +823,7 @@ def bargraph_energy(energy_mean_list, energy_err_list, benchname):
 	#end_for
 
 	fig, ax = plt.subplots()
+	fig.set_size_inches(8, 4)
 
 	for offset, energy_mean, energy_err, color, label in zip(offset_list, energy_mean_list, energy_err_list, color_list, label_list):
 		ax.bar(offset, energy_mean, color = color)
@@ -837,13 +839,17 @@ def bargraph_energy(energy_mean_list, energy_err_list, benchname):
 		tick_list[i].set_rotation(-45)
 		tick_list[i].set_ha("left")
 	#end_for
+	ax.axis([-.5, barcount - .5, 0, 2000])
 
-	ax.set_title("Total Energy per CPU Policy, Fixed :40s (~24s Facebook Interaction) (10 Runs, 90% Confidence)", fontsize = 20, fontweight = "bold")
+	#ax.set_title("Total Energy per CPU Policy, Fixed :40s (~24s Facebook Interaction) (10 Runs, 90% Confidence)", fontsize = 20, fontweight = "bold")
+	ax.set_title("Total Energy per CPU Policy, Fixed :30s\n (Single Task Sleeping) (3 Runs, 90% Confidence)", fontsize = 20, fontweight = "bold")
 	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Total Energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
 
 	plt.tight_layout()
 	plt.show()
+
+	#fig.savefig("figure123.pdf", bbox_inches = "tight")
 
 	return
 
@@ -893,9 +899,9 @@ def main():
 	workload = "A"
 	delay = "0ms"
 
-	runcount = 10
+	runcount = 3
 
-	#'''
+	'''
 	for governor in governors:
 		jank_list = []
 		for run in range(runcount):
@@ -911,7 +917,7 @@ def main():
 
 	#bargraph_graphdata(jank_list, benchname)
 	bargraph_graphdata(jank_mean_list, jank_err_list, benchname)
-	#'''
+	'''
 
 
 	# Get energy data:
