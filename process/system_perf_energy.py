@@ -856,6 +856,66 @@ def bargraph_energy(energy_mean_list, energy_err_list, benchname):
 #end_def
 
 
+def lineplot_energy(energy_mean_list_list, energy_err_list_list):
+
+	# energy_mean_list_list = []
+	# energy_err_list_list = []
+	energy_mean_list = []
+	energy_err_list = []
+	energy_mean = 0.0
+	energy_err = 0.0
+	xcount = 0
+	offset = 0
+	color_list = []
+
+	xcount = len(energy_mean_list_list[0])
+	offset_list = np.arange(0, xcount)
+	color_list = ["blue", "red", "green"]
+	legendlabel_list = ["thread sleeping", "thread busy ~50%", "thread busy 100%"]
+
+	fig, ax = plt.subplots()
+	#fig.set_size_inches(8, 4)
+
+	# Get per-CPU saturation level clusters of runs:
+	for energy_mean_list, energy_err_list, color, legendlabel in zip(energy_mean_list_list, energy_err_list_list, color_list, legendlabel_list):
+
+		ax.plot(offset_list, energy_mean_list, color = color, marker = ".", markersize = 12, label = legendlabel)
+		ax.errorbar(offset_list, energy_mean_list, yerr = energy_err_list)
+
+	#end_for
+
+	print(label_list)
+	print(label_list[:-1])
+
+	ax.set_xticks(offset_list)
+	ax.set_xticklabels(label_list[:-1])
+	tick_list = ax.get_xticklabels()
+
+	print(len(tick_list))
+
+	for i in range(len(tick_list)):
+		tick_list[i].set_rotation(-45)
+		tick_list[i].set_ha("left")
+	#end_for
+	#ax.axis([-.5, xcount - .5, 0, 2000])
+
+	ax.set_title("Total Energy per CPU Policy, :30s Process\n (3 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
+	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total Energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
+
+	plt.legend(loc = "upper center")
+	plt.show()
+
+	fig.savefig("figure123.pdf", bbox_inches = "tight")
+
+	#print(energy_mean_list_list)
+	#print(energy_err_list_list)
+
+	return
+
+#end_def
+
+
 def main():
 
 	path = ""
@@ -869,6 +929,7 @@ def main():
 	energy = 0.0
 	energy_list = []
 	delay = ""
+	saturation_list = []
 	saturation = ""
 	benchname = ""
 	interacttime = 0
@@ -882,8 +943,10 @@ def main():
 	energy_list = []
 	energy_mean = 0.0
 	energy_mean_list = []
+	energy_mean_list_list = []
 	energy_err = 0.0
 	energy_err_list = []
+	energy_err_list_list = []
 	runcount = 0
 
 	path = sys.argv[1]
@@ -919,27 +982,39 @@ def main():
 	bargraph_graphdata(jank_mean_list, jank_err_list, benchname)
 	'''
 
+	# Get energy data for several runs each of for different governor policies AND for different CPU saturation levels:
 
-	# Get energy data:
-
+	saturation_list = ["sleep", "mixed", "saturated"]
 	prefix = "/monsoon_SQL_"
 	workload = "A"
 	delay = "0ms"
 
-	for governor in governors:
-		energy_list = []
-		for run in range(runcount):
-			filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".csv"
-			energy = get_energy(filename)
-			print(filename + " : " + str(energy))
-			energy_list.append(energy)
-		#end_for
-		energy_mean, energy_err = mean_margin(energy_list)
-		energy_mean_list.append(energy_mean)
-		energy_err_list.append(energy_err)
-	#end_for
+	#'''
+	for saturation in saturation_list:
+		energy_mean_list = []
+		energy_err_list = []
 
-	bargraph_energy(energy_mean_list, energy_err_list, benchname)
+		for governor in governors:
+			energy_list = []
+			for run in range(runcount):
+				filename = path + "/bench_fixtime_" + saturation + "/" + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".csv"
+				energy = get_energy(filename)
+				print(filename + " : " + str(energy))
+				energy_list.append(energy)
+			#end_for
+			energy_mean, energy_err = mean_margin(energy_list)
+			energy_mean_list.append(energy_mean)
+			energy_err_list.append(energy_err)
+		#end_for
+
+		energy_mean_list_list.append(energy_mean_list)
+		energy_err_list_list.append(energy_err_list)
+
+	#end_for
+	#'''
+
+	#bargraph_energy(energy_mean_list, energy_err_list, benchname)
+	lineplot_energy(energy_mean_list_list, energy_err_list_list)
 
 	return
 
