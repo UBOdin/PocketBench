@@ -80,25 +80,16 @@ def process_loglines(file_name):  #, trace_list_list):
 
 	input_file = gzip.open(file_name, "r")
 
-	for i in range(8):
-		freq_list.append(300000)
-		idle_list.append(-1)
-		timestart_list.append(-1)
-		timetotal_list.append(0)
-		cycle_list.append(0)
-	#end_for
-
 	while (True):
 
 		# Keep reading until finished:
 		logline = input_file.readline().decode("ascii")
 
 		if (logline == ""):
-			print("Never hit endmark")
-			print(file_name)
-			print(iteration)
-			print(logline)
-			sys.exit(1)
+			#print(file_name)
+			#print(iteration)
+			#print(logline)
+			#sys.exit(1)
 			break
 		#end_if
 
@@ -155,244 +146,60 @@ def process_loglines(file_name):  #, trace_list_list):
 		'''
 
 		if (eventtype == "tracing_mark_write"):
-			if (startflag == False):
-				if ("SQL_START" in logline):
-				#if ("FLAG123 Start App" in logline):
-					startflag = True
-					trace_list = [iteration, time, "start", cpu, freq]
-					trace_list_list.append(trace_list)
-					starttime = time
-				#end_if
-			#'''
-			else:
-				if ("SQL_END" in logline):
-				#if ("FLAG123 End App" in logline):
-					trace_list = [iteration, time, "end", cpu, freq]
-					trace_list_list.append(trace_list)
-					endtime = time
-					break
-				#end_if
-				if ("FLAG123 Start App" in logline):
-					startinteracttime = time
-				#end_if
-				if ("FLAG123 End App" in logline):
-					endinteracttime = time
-				#end_if
-			#end_if
-			#'''
-		#end_if
 
-		'''
-		if ((startflag == True) and (time > starttime + 35.0)):
-			print("Exit logline:  " + str(iteration))
-			break
-		#end_if
-		'''
-
-		if (startflag == False):
-			continue
-		#end_if
-
-		# N.b. for the cpu_frequency event, the cpu field is the CPU# on which the governor
-		# runs.  It is *not* necessarily the *target* CPU# for which the speed is set.
-		if (eventtype == "cpu_frequency"):
-
-			index = logline.find(" ", datastart)
-			if (index == -1):
-				print("Invalid speed delimiter")
-				sys.exit(1)
+			if ("Start FB" in logline):
+				starttime = time
 			#end_if
 
-			if (logline[index + 1:index + 8] != "cpu_id="):
-				print("Invalid run cpu parameter")
-				sys.exit(1)
-			#end_if
-			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
-
-			if (logline[datastart:datastart + 6] != "state="):
-				print("Invalid speed parameter")
-				sys.exit(1)
-			#end_if
-			freq = int(logline[datastart + 6:index])
-
-			freq_list[target_cpu] = freq
-
-			'''
-			if (target_cpu == bench_cpu):
-				trace_list = [iteration, time, "speed", target_cpu, freq]
-				trace_list_list.append(trace_list)
-			#end_if
-			'''
-
-		#end_if
-
-		if (eventtype == "cpu_idle"):
-
-			index = logline.find(" ", datastart)
-			if (index == -1):
-				print("Invalid index delimiter")
-				sys.exit(1)
+			if ("End FB" in logline):
+				endtime = time
 			#end_if
 
-			if (logline[index + 1:index + 8] != "cpu_id="):
-				print("Invalid idle cpu parameter")
-				sys.exit(1)
-			#end_if
-			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
-
-			if (logline[datastart:datastart + 6] != "state="):
-				print("Invalid idle parameter")
-				sys.exit(1)
-			#end_if
-			sleepstate = int(logline[datastart + 6:index])
-			if (sleepstate == 4294967295):
-				sleepstate = -1
-				idletime += time
-				idlecount += 1
-				offcount += 1
-
-				if (timestart_list[target_cpu] != -1):
-					assert timestart_list[target_cpu] != 0
-					timedelta = time - timestart_list[target_cpu]
-					timestart_list[target_cpu] = 0
-
-					timetotal_list[target_cpu] += timedelta
-
-					cycle_list[target_cpu] += (timedelta * freq_list[target_cpu])
-
-					#print("%d  %f  %f  %d  %f" % (iteration, time, timedelta, freq_list[target_cpu], timedelta * freq_list[target_cpu]))
-
-				#end_if
-
-			else:
-				idletime -= time
-				oncount += 1
-
-				# Start time delta, *if* cpu is moving off idle
-				# (not if it is moving from one non-idle to another non-idle
-				if (idle_list[target_cpu] == -1):
-					if (timestart_list[target_cpu] != -1):
-						assert timestart_list[target_cpu] == 0, "ERROR " + str(iteration) + "\n" + logline
-					#end_if
-					timestart_list[target_cpu] = time
-				#end_if
-
-				#end_if
-
-			#end_if
-			idle_list[target_cpu] = sleepstate
-
-			# Test hypo:
-			if (cpu != target_cpu):
-				print("cpu mismatch")
-				sys.exit(1)
+			if ("IDLE DATA" in logline):
+				idledata_list = logline[79:-1].split(" ")
+				print("IDLE")
+				print(idledata_list)
+				#break
 			#end_if
 
-			#freq_list[target_cpu] = freq
-
-			'''
-			if (target_cpu == bench_cpu):
-				trace_list = [iteration, time, "idle", target_cpu, sleepstate]
-				trace_list_list.append(trace_list)
+			if ("GFX DATA" in logline):
+				graphdata_list = logline[80:-1].split(" ")
+				print("GRAPH")
+				print(graphdata_list)
+				#break
 			#end_if
-			'''
 
-		#end_if
-
-		#end_if
-
-	#end_while
-
-	#print("iterations:  %d" % (iteration))
-
-	# Continue reading tracefile to extract summary GFX data (injected into trace after run):
-	while (True):
-
-		# Keep reading until finished:
-		logline = input_file.readline().decode("ascii")
-
-		if (logline == ""):
-			print("Never hit endmark")
-			print(file_name)
-			print(iteration)
-			print(logline)
-			sys.exit(1)
-			break
-		#end_if
-
-		if ("GFX DATA" in logline):
-			graphdata_list = logline[80:-1].split(" ")
-			print("GRAPH")
-			print(graphdata_list)
-			break
 		#end_if
 
 	#end_while
 
 	input_file.close()
 
-	print("")
-	print("Idle time:  %f" % (idletime))
-	print("Idle count:  %d" % (idlecount))
-	print(starttime)
-	print(endtime)
-	print("Latency:  ", endtime - starttime)
-	print(offcount)
-	print(oncount)
+	if (len(idledata_list) != 8 * 3 * 2):
+		print("Unexpected length")
+		sys.exit(1)
+	#end
 
-	print(timetotal_list)
-	print(cycle_list)
-
-	'''
-	for e in trace_list_list:
-		print(e)
-	#end_for
-	'''
-
-	#print("EARLY exit")
-	#sys.exit(0)
-
-	timetotal = 0
-	cycletotal = 0
-	for time in timetotal_list:
-		timetotal += time
+	idlefloat_list = []
+	for e in idledata_list:
+		idlefloat_list.append(float(e) / 1000000)
 	#end_for
 
-	if ("schedutil" in file_name):
-		for cycle in cycle_list:
-			cycletotal += cycle
-		#end_for
-	#end_if
+	newidle_list = []
+	runtime_list = []
+	for i in range(8):
+		idlestart = idlefloat_list[i * 3] = idlefloat_list[i * 3 + 1] + idlefloat_list[i * 3 + 2]
+		idleend = idlefloat_list[i * 3 + 24] = idlefloat_list[i * 3 + 25] + idlefloat_list[i * 3 + 26]
+		idledelta = idleend - idlestart
+		newidle_list.append(idledelta)
+		runtime_list.append(endtime - starttime - idledelta)
+	#end_for
 
-	if ("userspace" in file_name):
-		for i in range(0, 4):
-			cycletotal += timetotal_list[i] * freq_list[0]
-			cycle_list[i] = timetotal_list[i] * freq_list[0]
-		#end_for
-		for i in range(4, 8):
-			cycletotal += timetotal_list[i] * freq_list[4]
-			cycle_list[i] = timetotal_list[i] * freq_list[4]
-		#end_for
-	#end_if
+	print(endtime - starttime)
+	print(newidle_list)
+	print(runtime_list)
 
-	if ("performance" in file_name):
-		for i in range(0, 4):
-			cycletotal += timetotal_list[i] * 1900800
-			cycle_list[i] = timetotal_list[i] * 1900800
-		#end_for
-		for i in range(4, 8):
-			cycletotal += timetotal_list[i] * 2457600
-			cycle_list[i] = timetotal_list[i] * 2457600
-		#end_for
-	#end_if
-
-	print("PROCESSED FILE:  " + file_name)
-	print("WALLCLOCK TIME:  " + str(endtime - starttime))
-	print("TEST RUNNER TIME:  " + str(endinteracttime - startinteracttime))
-
-	#return timetotal, cycletotal, timetotal_list
-	return endtime - starttime, endinteracttime - startinteracttime, timetotal_list, graphdata_list
-
+	return endtime - starttime, runtime_list, graphdata_list
 
 #end_def
 
@@ -723,7 +530,7 @@ def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
 		ticklabel_list.append(timetotal_list[10])
 	#end_for
 
-	#ax_list[0].axis([-.5, graphcount - .5, 0, 1])
+	ax_list[0].axis([-.5, graphcount - .5, 0, 1])
 	ax_list[0].set_xticks(offset_list)
 	ax_list[0].set_xticklabels(ticklabel_list)
 	ax_list[0].set_title("Little Cores (Total of 4)", fontsize = 12, fontweight = "bold")
@@ -744,7 +551,7 @@ def bargraph_sorted_bigsmall(timetotal_list_list, ubertime_list, benchname):
 		ticklabel_list.append(timetotal_list[10])
 	#end_for
 
-	#ax_list[1].axis([-.5, graphcount - .5, 0, 1])
+	ax_list[1].axis([-.5, graphcount - .5, 0, 1])
 	ax_list[1].set_xticks(offset_list)
 	ax_list[1].set_xticklabels(ticklabel_list)
 	ax_list[1].set_title("Big Cores (Total of 4)", fontsize = 12, fontweight = "bold")
@@ -926,6 +733,9 @@ def main():
 	workload = ""
 	governor = ""
 	benchtime = 0.0
+	benchtime_list = []
+	runtime_list = []
+	runtime_list_list = []
 	energy = 0.0
 	energy_list = []
 	delay = ""
@@ -962,15 +772,17 @@ def main():
 	workload = "A"
 	delay = "0ms"
 
-	runcount = 3
+	runcount = 1
 
-	'''
+	#'''
 	for governor in governors:
 		jank_list = []
 		for run in range(runcount):
 			filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".gz"
-			benchtime, interacttime, timetotal_list, graphdata_list = process_loglines(filename)
-			print(filename + " : " + str(benchtime))
+			print(filename)
+			benchtime, runtime_list, graphdata_list = process_loglines(filename)
+			benchtime_list.append(benchtime)
+			runtime_list_list.append(runtime_list)
 			jank_list.append(float(graphdata_list[1]) / float(graphdata_list[0]))
 		#end_for
 		jank_mean, jank_err = mean_margin(jank_list)
@@ -978,9 +790,11 @@ def main():
 		jank_err_list.append(jank_err)
 	#end_for
 
-	#bargraph_graphdata(jank_list, benchname)
+	bargraph_sorted_bigsmall(runtime_list_list, benchtime_list, benchname)
 	bargraph_graphdata(jank_mean_list, jank_err_list, benchname)
-	'''
+	#'''
+
+	return
 
 	# Get energy data for several runs each of for different governor policies AND for different CPU saturation levels:
 
