@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
 
+from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
 import math
@@ -157,14 +158,16 @@ def process_loglines(file_name):  #, trace_list_list):
 			#end_if
 
 			if ("IDLE DATA" in logline):
-				idledata_list = logline[79:-1].split(" ")
+				#idledata_list = logline[79:-1].split(" ")
+				idledata_list = logline.split("IDLE DATA  ")[1].split(" ")
 				print("IDLE")
 				print(idledata_list)
 				#break
 			#end_if
 
 			if ("GFX DATA" in logline):
-				graphdata_list = logline[80:-1].split(" ")
+				#graphdata_list = logline[80:-1].split(" ")
+				graphdata_list = logline.split("GFX DATA:   ")[1].split(" ")
 				print("GRAPH")
 				print(graphdata_list)
 				#break
@@ -630,16 +633,6 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 
 	fix, ax = plt.subplots()
 
-	'''
-	for timeprop_mean_list, jank_mean_list, load in zip(timeprop_mean_list_list, jank_mean_list_list, load_list):
-
-		for timeprop_mean, jank_mean, governor in zip(timeprop_mean_list, jank_mean_list, label_list):
-
-			pass
-		#end_for
-
-	#end_for
-	'''
 
 	size_list = [10, 40, 70]
 	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
@@ -648,19 +641,28 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 		timeprop_perload_list = []
 		jank_perload_list = []
 		for load, j in zip(load_list, range(len(load_list))):
-
-			timeprop_perload_list.append(timeprop_mean_list_list[j][i])
-			jank_perload_list.append(jank_mean_list_list[j][i])
-
-			ax.plot(timeprop_perload_list, jank_perload_list, color = color)
-			for timeprop, jank, size in zip(timeprop_perload_list, jank_perload_list, size_list):
-				ax.scatter(timeprop, jank, marker = "o", s = size, color = color)
-			#end_for
-
+			timeprop_perload_list.append(100.0 - timeprop_mean_list_list[j][i] * 100.0)
+			jank_perload_list.append(jank_mean_list_list[j][i] * 100.0)
 		#end_for
+
+		ax.plot(timeprop_perload_list, jank_perload_list, color = color)
+		for timeprop, jank, size in zip(timeprop_perload_list, jank_perload_list, size_list):
+			ax.scatter(timeprop, jank, marker = "o", s = size, color = color)
+		#end_for
+
+		#handle_list.append(Line2D([], [], marker = "o", color = "black", label = "Workload A", linewidth = 0))
 
 	#end_for
 
+	handle_list = []
+	for color, governor in zip(color_list, label_list):
+		handle_list.append(Patch(color = color, label = governor))
+	#end_for
+	bgload_list = ["none", "50%", "75%"]
+	labelsize_list = [3, 5, 7]
+	for labelsize, bgload in zip(labelsize_list, bgload_list):
+		handle_list.append(Line2D([], [], marker = "o", markersize = labelsize, color = "black", label = bgload, linewidth = 0))
+	#end_for
 
 	'''
 		ax.scatter()
@@ -673,14 +675,17 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 	#end_for
 	'''
 
-	'''
-	ax.axis([-.5, barcount - .5, 0, .10])
-	ax.set_xticks(offset_list)
-	ax.set_xticklabels(ticklabel_list)
-	ax.set_title("Frame Jank Per CPU Policy, ~:24s FB Interaction (10 Runs, 90% Confidence)", fontsize = 12, fontweight = "bold")
-	ax.set_xlabel("Governor Policy", fontsize = 12, fontweight = "bold")
-	ax.set_ylabel("Frame Jank Proportion (0,1)", fontsize = 12, fontweight = "bold")
-	'''
+	#'''
+	ax.axis([0, 60.0, 0, 20.0])
+	#ax.set_xticks(offset_list)
+	#ax.set_xticklabels(ticklabel_list)
+	ax.set_title("Frame Jank - Idle Relation,\nPer CPU Policy, ~:24s FB Interaction (3 runs each)", fontsize = 12, fontweight = "bold")
+	ax.set_xlabel("CPU Idle %", fontsize = 12, fontweight = "bold")
+	ax.set_ylabel("Frame Jank %", fontsize = 12, fontweight = "bold")
+
+	#plt.legend()
+	ax.legend(handles = handle_list, loc = "upper right") #, ncol = 2)
+	#'''
 
 	plt.show()
 
@@ -856,7 +861,7 @@ def main():
 	workload = "A"
 	delay = "0ms"
 
-	runcount = 1
+	runcount = 3
 
 	load_list = ["normal", "50", "75"]
 
