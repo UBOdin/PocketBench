@@ -16,7 +16,8 @@ import statistics
 
 
 #label_list = ["interactive", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
-label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+#label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
+label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance"]
 
 
 def mean_margin(data_list):
@@ -610,6 +611,84 @@ def bargraph_graphdata(jank_mean_list, jank_err_list, benchname):
 #end_def
 
 
+def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_mean_list_list, jank_err_list_list):
+
+	# timeprop_mean_list_list = []
+	# timeprop_err_list_list = []
+	# jank_mean_list_list = []
+	# jank_err_list_list = []
+	timeprop_mean_list = []
+	timeprop_mean = 0.0
+	timeprop_err_list = []
+	timeprop_err = 0.0
+	jank_mean_list = []
+	jank_mean = 0.0
+	jank_err_list = []
+	jank_err = 0.0
+
+	load_list = ["normal", "50", "75"]
+
+	fix, ax = plt.subplots()
+
+	'''
+	for timeprop_mean_list, jank_mean_list, load in zip(timeprop_mean_list_list, jank_mean_list_list, load_list):
+
+		for timeprop_mean, jank_mean, governor in zip(timeprop_mean_list, jank_mean_list, label_list):
+
+			pass
+		#end_for
+
+	#end_for
+	'''
+
+	size_list = [10, 40, 70]
+	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
+	for governor, i, color in zip(label_list, range(len(label_list)), color_list):
+
+		timeprop_perload_list = []
+		jank_perload_list = []
+		for load, j in zip(load_list, range(len(load_list))):
+
+			timeprop_perload_list.append(timeprop_mean_list_list[j][i])
+			jank_perload_list.append(jank_mean_list_list[j][i])
+
+			ax.plot(timeprop_perload_list, jank_perload_list, color = color)
+			for timeprop, jank, size in zip(timeprop_perload_list, jank_perload_list, size_list):
+				ax.scatter(timeprop, jank, marker = "o", s = size, color = color)
+			#end_for
+
+		#end_for
+
+	#end_for
+
+
+	'''
+		ax.scatter()
+
+		#ax.bar(offset, jank_mean, color = color)
+		#ax.errorbar(offset, jank_mean, color = "black", yerr = jank_err, elinewidth = 2, capsize = 10, capthick = 2)
+
+		pass
+
+	#end_for
+	'''
+
+	'''
+	ax.axis([-.5, barcount - .5, 0, .10])
+	ax.set_xticks(offset_list)
+	ax.set_xticklabels(ticklabel_list)
+	ax.set_title("Frame Jank Per CPU Policy, ~:24s FB Interaction (10 Runs, 90% Confidence)", fontsize = 12, fontweight = "bold")
+	ax.set_xlabel("Governor Policy", fontsize = 12, fontweight = "bold")
+	ax.set_ylabel("Frame Jank Proportion (0,1)", fontsize = 12, fontweight = "bold")
+	'''
+
+	plt.show()
+
+	return
+
+#end_def
+
+
 def bargraph_energy(energy_mean_list, energy_err_list, benchname):
 
 	# energy_mean_list = []
@@ -734,8 +813,6 @@ def main():
 	governor = ""
 	benchtime = 0.0
 	benchtime_list = []
-	runtime_list = []
-	runtime_list_list = []
 	energy = 0.0
 	energy_list = []
 	delay = ""
@@ -744,12 +821,19 @@ def main():
 	benchname = ""
 	interacttime = 0
 
-	timetotal_list = []
+	timeprop_mean = 0.0
+	timeprop_mean_list = []
+	timeprop_mean_list_list = []
+	timeprop_err = 0.0
+	timeprop_err_list = []
+	timeprop_err_list_list = []
 	jank_list = []
 	jank_mean = 0.0
 	jank_mean_list = []
+	jank_mean_list_list = []
 	jank_err = 0.0
 	jank_err_list = []
+	jank_err_list_list = []
 	energy_list = []
 	energy_mean = 0.0
 	energy_mean_list = []
@@ -774,24 +858,60 @@ def main():
 
 	runcount = 1
 
+	load_list = ["normal", "50", "75"]
+
 	#'''
-	for governor in governors:
-		jank_list = []
-		for run in range(runcount):
-			filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".gz"
-			print(filename)
-			benchtime, runtime_list, graphdata_list = process_loglines(filename)
-			benchtime_list.append(benchtime)
-			runtime_list_list.append(runtime_list)
-			jank_list.append(float(graphdata_list[1]) / float(graphdata_list[0]))
+	for load in load_list:
+		coretime_list_list = []
+		benchtime_list = []
+		timeprop_mean_list = []
+		timeprop_err_list = []
+		jank_mean_list = []
+		jank_err_list = []
+		for governor in governors:
+			timeprop_list = []
+			jank_list = []
+			for run in range(runcount):
+				filename = path + "fb_" + load + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".gz"
+				print(filename)
+				benchtime, coretime_list, graphdata_list = process_loglines(filename)
+				# Collect per-core data for sorted per-core graph for only 1 run:
+				if (run == 0):
+					benchtime_list.append(benchtime)
+					coretime_list_list.append(coretime_list)
+				#end_if
+				# Calculate average proportion run/idle time (combine big/small cores):
+				coretimetotal = 0.0
+				for coretime in coretime_list:
+					coretimetotal += coretime
+				#end_for
+				timeprop = coretimetotal / (benchtime * len(coretime_list))
+				print("Runtime prop:  %f" % (timeprop))
+				print(coretime_list)
+				print(coretimetotal)
+				timeprop_list.append(timeprop)
+				jank_list.append(float(graphdata_list[1]) / float(graphdata_list[0]))
+			#end_for
+			timeprop_mean, timeprop_err = mean_margin(timeprop_list)
+			timeprop_mean_list.append(timeprop_mean)
+			timeprop_err_list.append(timeprop_err)
+			jank_mean, jank_err = mean_margin(jank_list)
+			jank_mean_list.append(jank_mean)
+			jank_err_list.append(jank_err)
 		#end_for
-		jank_mean, jank_err = mean_margin(jank_list)
-		jank_mean_list.append(jank_mean)
-		jank_err_list.append(jank_err)
+		timeprop_mean_list_list.append(timeprop_mean_list)
+		timeprop_err_list_list.append(timeprop_err_list)
+		jank_mean_list_list.append(jank_mean_list)
+		jank_err_list_list.append(jank_err_list)
+		# Plot per-core graph for only 1 load level:
+		'''
+		bargraph_sorted_bigsmall(coretime_list_list, benchtime_list, benchname)
+		bargraph_graphdata(jank_mean_list, jank_err_list, benchname)
+		'''
+
 	#end_for
 
-	bargraph_sorted_bigsmall(runtime_list_list, benchtime_list, benchname)
-	bargraph_graphdata(jank_mean_list, jank_err_list, benchname)
+	scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_mean_list_list, jank_err_list_list)
 	#'''
 
 	return
