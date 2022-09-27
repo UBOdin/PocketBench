@@ -629,13 +629,14 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 	jank_err_list = []
 	jank_err = 0.0
 
-	load_list = ["normal", "50", "75"]
+	load_list = ["normal", "35", "45", "60", "65"]
 
 	fix, ax = plt.subplots()
 
 
-	size_list = [10, 40, 70]
-	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
+	size_list = [10, 40, 70, 100, 130]
+	#color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
+	color_list = ["red", "1.0", "0.9", "0.8", "0.7", "0.6", "0.5", "0.4", "0.3"]
 	for governor, i, color in zip(label_list, range(len(label_list)), color_list):
 
 		timeprop_perload_list = []
@@ -654,12 +655,14 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 
 	#end_for
 
+	ax.plot([0, 100], [3.5, 3.5], color = "blue")
+
 	handle_list = []
 	for color, governor in zip(color_list, label_list):
 		handle_list.append(Patch(color = color, label = governor))
 	#end_for
-	bgload_list = ["none", "50%", "75%"]
-	labelsize_list = [3, 5, 7]
+	bgload_list = ["No load", "35% bg load", "45% bg load", "60% bg load", "65% bg load"]
+	labelsize_list = [3, 5, 7, 9, 11]
 	for labelsize, bgload in zip(labelsize_list, bgload_list):
 		handle_list.append(Line2D([], [], marker = "o", markersize = labelsize, color = "black", label = bgload, linewidth = 0))
 	#end_for
@@ -679,7 +682,7 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 	ax.axis([0, 60.0, 0, 20.0])
 	#ax.set_xticks(offset_list)
 	#ax.set_xticklabels(ticklabel_list)
-	ax.set_title("Frame Jank - Idle Relation,\nPer CPU Policy, ~:24s FB Interaction (3 runs each)", fontsize = 12, fontweight = "bold")
+	ax.set_title("Frame Jank - Idle Relation,\nPer CPU Policy, run with different background loads, ~:24s FB Interaction (3 runs each)", fontsize = 12, fontweight = "bold")
 	ax.set_xlabel("CPU Idle %", fontsize = 12, fontweight = "bold")
 	ax.set_ylabel("Frame Jank %", fontsize = 12, fontweight = "bold")
 
@@ -863,7 +866,7 @@ def main():
 
 	runcount = 3
 
-	load_list = ["normal", "50", "75"]
+	load_list = ["normal", "35", "45", "60", "65"]
 
 	#'''
 	for load in load_list:
