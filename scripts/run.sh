@@ -136,6 +136,8 @@ fi
 adb shell "echo ${meter_time} > /data/finish.pipe"
 
 # pull script log and tracing log:
+adb pull /data/graphlog.txt
+cat graphlog.txt
 adb pull /data/phonelog.txt
 cat phonelog.txt
 adb pull /data/trace.log
