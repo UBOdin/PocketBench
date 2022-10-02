@@ -3,10 +3,10 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	echo $1 > $trace_dir/events/power/cpu_idle/enable
+	#echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -69,7 +69,8 @@ trace_dir=/sys/kernel/debug/tracing
 trace_log=/sys/kernel/debug/tracing/trace_marker
 errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
-graphfile="data/graphlog.txt"
+graphfile="/data/graphlog.txt"
+idlefile="/data/idledata.txt"
 userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 #device="nexus6"
 device="pixel2"
@@ -142,16 +143,35 @@ if [ "$userapp" = "1" ]; then
 else
 	pkgname="com.facebook.katana"
 	pkgtest="com.example.test.MetaTest"
+	#pkgname= TDB
 	#pkgtest="com.example.test.TempleTest"
-	#pkgtest="com.exmaple.test.CalcTest"
+	#pkgname="com.google.android.calculator"
+	#pkgtest="com.example.test.CalcTest"
+
 	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	#/data/compute.exe 10000 1 7 2 10000000
 	#/data/compute.exe 10000 4096 7 1 0
 	#/data/compute.exe 10000 1 7 1 0
+	#/data/compute.exe 400000000 1000 0
+	/data/forker.exe 400000000 1000 0 &
 	dumpsys gfxinfo $pkgname reset > /dev/null
+
+	idlecmd="cat $cpu_dir/cpu*/cpuidle/state*/time"
+	idledata=$($idlecmd)
+	for x in $idledata; do
+		idleconcat="$idleconcat $x"
+	done
+
 	am instrument -w -e class $pkgtest com.example.test.test
 	result="$?"
+
+	idledata=$($idlecmd)
+	for x in $idledata; do
+		idleconcat="$idleconcat $x"
+	done
+	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
+
 	dumpsys gfxinfo $pkgname > $graphfile
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
@@ -171,7 +191,7 @@ toggle_events 0
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 
 # Crunch gfxinfo data and inject into ftrace:
-if [ "0" == "0" ]; then
+if [ "1" == "1" ]; then
 	# Gross kludge -- hardcoded index map:
 	index_arr=(0 0 0 0 0 0 3 2 0 0 0 0 3 4 4 4 5 4)
 	i=0
