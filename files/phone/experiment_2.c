@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 	long long batchcount;
 	long long innercount;
 	long long sum;
-	long sleep_us;
+	long sleep_ms;
 
 	long timestart_us;
 	long timenow_us;
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 		_Exit(1);
 	}
 	batchcount = atoi(argv[2]);
-	sleep_us = atoi(argv[3]);
+	sleep_ms = atoi(argv[3]);
 
 	// Enable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_RESET, 0);
@@ -143,30 +143,28 @@ int main(int argc, char** argv) {
 		}
 
 		interval.tv_sec = 0;
-//		interval.tv_nsec = 30 * 1000 * 1000;
-		interval.tv_nsec = 15 * 1000 * 1000;
-		result = nanosleep(&interval, NULL);
-		if (result == -1) {
-			errlog();
-			return 7;
+		interval.tv_nsec = sleep_ms * 1000 * 1000;
+
+		if (sleep_ms > 0) {
+			result = nanosleep(&interval, NULL);
+			if (result == -1) {
+				errlog();
+				return 7;
+			}
 		}
 
 		timenow_us = gettime_us();
-		if (timenow_us - timestart_us > 20 * 1000 * 1000) {
-//printf("Broke on time.  Batchiter:  %lld\n", i);
-//goto breakpoint;
+		if (timenow_us - timestart_us > 50 * 1000 * 1000) {
 			break;
 		}
 
 	}
-//printf("Looped out\n");
-//    breakpoint:
 
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
 
 //printf("Degrees:  %f\n", degree);
-	PRINTLOG("SQL_experiment_2:  loopcount:  %lld  batchcount:  %lld  sleep_us:  %ld  sum:  %lld", loopcount, batchcount, sleep_us, sum);
+	PRINTLOG("SQL_experiment_2:  loopcount:  %lld  batchcount:  %lld  sleep_ms:  %ld  sum:  %lld", loopcount, batchcount, sleep_ms, sum);
 	PRINTLOG("SQL_END");
 
 	// Collect results:
