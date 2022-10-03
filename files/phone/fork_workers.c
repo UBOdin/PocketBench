@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define THREADCOUNT 8 
+#define THREADMAX 16
 
 
 #define errtrap(error) (__errtrap(result, error, __LINE__))
@@ -36,14 +36,21 @@ int main(int argc, char** argv) {
 
 	int result;
 	char binpath[] = "/data/compute.exe";
-	int pidpool[THREADCOUNT];
+	int threadcount;
+	int pidpool[THREADMAX];
 	int wstatus;
 
-	for (int i = 0; i < THREADCOUNT; i++) {
+	threadcount = atoi(argv[1]);
+	if (threadcount > THREADMAX) {
+			__android_log_print(ANDROID_LOG_VERBOSE, "FORK_WORKERS", "Error:  workers > MAX\n");
+			_exit(133);
+	}
+
+	for (int i = 0; i < threadcount; i++) {
 		result = fork();
 		errtrap("fork");
 		if (result == 0) {
-			result = execv(binpath, argv);
+			result = execv(binpath, argv + 2);
 			errtrap("execv");
 			_exit(99);  // Never gets here
 		}
@@ -53,7 +60,7 @@ int main(int argc, char** argv) {
 //printf("Forked thread %d\n", result);
 	}
 
-	for (int i = 0; i < THREADCOUNT; i++) {
+	for (int i = 0; i < threadcount; i++) {
 		result = waitpid(pidpool[i], &wstatus, 0);
 		errtrap("waitpid");
 
