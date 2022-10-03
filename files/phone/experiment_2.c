@@ -134,7 +134,10 @@ int main(int argc, char** argv) {
 	sum = 0;
 	innercount = 20;
 	timestart_us = gettime_us();
-	for (long long i = 0; i < batchcount; i++) {
+//	for (long long i = 0; i < batchcount; i++) {
+	long long i = 0;
+	while (1) {
+		i++;
 
 		for (long long j = 0; j < loopcount / (batchcount * 2); j++) {
 			for (long long k = 0; k < innercount; k++) {
@@ -155,10 +158,14 @@ int main(int argc, char** argv) {
 
 		timenow_us = gettime_us();
 		if (timenow_us - timestart_us > 50 * 1000 * 1000) {
+//printf("Broke on time.  Batchiter:  %lld\n", i);
+//goto breakpoint;
 			break;
 		}
 
 	}
+//printf("Looped out\n");
+//    breakpoint:
 
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
