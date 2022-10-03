@@ -149,27 +149,27 @@ def process_loglines(file_name):  #, trace_list_list):
 
 		if (eventtype == "tracing_mark_write"):
 
-			if ("Start FB" in logline):
+			#if ("Start FB" in logline):
+			if ("SQL_START" in logline):
 				starttime = time
 			#end_if
 
-			if ("End FB" in logline):
+			#if ("End FB" in logline):
+			if ("SQL_END" in logline):
 				endtime = time
 			#end_if
 
 			if ("IDLE DATA" in logline):
-				#idledata_list = logline[79:-1].split(" ")
 				idledata_list = logline.split("IDLE DATA  ")[1].split(" ")
-				print("IDLE")
-				print(idledata_list)
+				#print("IDLE")
+				#print(idledata_list)
 				#break
 			#end_if
 
 			if ("GFX DATA" in logline):
-				#graphdata_list = logline[80:-1].split(" ")
 				graphdata_list = logline.split("GFX DATA:   ")[1].split(" ")
-				print("GRAPH")
-				print(graphdata_list)
+				#print("GRAPH")
+				#print(graphdata_list)
 				#break
 			#end_if
 
@@ -192,16 +192,25 @@ def process_loglines(file_name):  #, trace_list_list):
 	newidle_list = []
 	runtime_list = []
 	for i in range(8):
-		idlestart = idlefloat_list[i * 3] = idlefloat_list[i * 3 + 1] + idlefloat_list[i * 3 + 2]
-		idleend = idlefloat_list[i * 3 + 24] = idlefloat_list[i * 3 + 25] + idlefloat_list[i * 3 + 26]
+		idlestart = idlefloat_list[i * 3] + idlefloat_list[i * 3 + 1] + idlefloat_list[i * 3 + 2]
+		idleend = idlefloat_list[i * 3 + 24] + idlefloat_list[i * 3 + 25] + idlefloat_list[i * 3 + 26]
 		idledelta = idleend - idlestart
 		newidle_list.append(idledelta)
 		runtime_list.append(endtime - starttime - idledelta)
+		#print("%d  %f  %f  %f  %f  %f  %f" % (i, idlestart, idleend, idledelta, endtime, starttime, endtime - starttime))
 	#end_for
 
-	print(endtime - starttime)
-	print(newidle_list)
+	'''
+	print(idledata_list)
+	print(idlefloat_list)
 	print(runtime_list)
+
+	print("Early exit")
+	sys.exit(0)
+	'''
+	#print(endtime - starttime)
+	#print(newidle_list)
+	#print(runtime_list)
 
 	return endtime - starttime, runtime_list, graphdata_list
 
@@ -641,10 +650,16 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 
 		timeprop_perload_list = []
 		jank_perload_list = []
-		for load, j in zip(load_list, range(len(load_list))):
+		for j in range(len(load_list)):
 			timeprop_perload_list.append(100.0 - timeprop_mean_list_list[j][i] * 100.0)
+
+			print("%d %d %d" % (j, 100.0 - timeprop_mean_list_list[j][i] * 100.0, timeprop_mean_list_list[j][i] * 100.0))
+
 			jank_perload_list.append(jank_mean_list_list[j][i] * 100.0)
 		#end_for
+
+		print("TIMEPROP PERLOAD LIST")
+		print(timeprop_perload_list)
 
 		ax.plot(timeprop_perload_list, jank_perload_list, color = color)
 		for timeprop, jank, size in zip(timeprop_perload_list, jank_perload_list, size_list):
@@ -679,7 +694,7 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 	'''
 
 	#'''
-	ax.axis([0, 60.0, 0, 20.0])
+	ax.axis([0, 100.0, 0, 20.0])
 	#ax.set_xticks(offset_list)
 	#ax.set_xticklabels(ticklabel_list)
 	ax.set_title("Frame Jank - Idle Relation,\nPer CPU Policy, run with different background loads, ~:24s FB Interaction (3 runs each)", fontsize = 12, fontweight = "bold")
@@ -894,9 +909,9 @@ def main():
 					coretimetotal += coretime
 				#end_for
 				timeprop = coretimetotal / (benchtime * len(coretime_list))
-				print("Runtime prop:  %f" % (timeprop))
-				print(coretime_list)
-				print(coretimetotal)
+				#print("Runtime prop:  %f" % (timeprop))
+				#print(coretime_list)
+				#print(coretimetotal)
 				timeprop_list.append(timeprop)
 				jank_list.append(float(graphdata_list[1]) / float(graphdata_list[0]))
 			#end_for
@@ -918,6 +933,9 @@ def main():
 		'''
 
 	#end_for
+
+	print("time prop mean list list")
+	print(timeprop_mean_list_list)
 
 	scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_mean_list_list, jank_err_list_list)
 	#'''
