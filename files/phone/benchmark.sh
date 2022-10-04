@@ -154,7 +154,14 @@ else
 	#/data/compute.exe 10000 4096 7 1 0
 	#/data/compute.exe 10000 1 7 1 0
 	#/data/compute.exe 400000000 1000 0
-	/data/forker.exe 400000000 1000 0 &
+	#/data/forker.exe 400000000 1000 0 &
+	bgdelay="50"
+	bgthreads="8"
+	if [ "$bgdelay" != "none" ]; then
+		/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
+		bgpid="$!"
+	fi
+
 	dumpsys gfxinfo $pkgname reset > /dev/null
 
 	idlecmd="cat $cpu_dir/cpu*/cpuidle/state*/time"
@@ -183,6 +190,21 @@ else
 	echo "Microbenchmark result:  ${?}" >> $logfile
 	am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	sleep 5
+	input tap 100 100
+
+	# Verify the background workers exited cleanly:
+	if [ "$bgdelay" != "none" ]; then
+		wait $bgpid
+		result="$?"
+		echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
+		if [ "$result" != "0" ]; then
+			toggle_events 0
+			set_governor "$default"
+			error_exit "ERR on background threads"
+		fi
+	else
+		echo "Background result:  (N/A)" >> $trace_log
+	fi
 
 fi
 
