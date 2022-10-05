@@ -59,7 +59,7 @@ def command(string_array):
 	print(string_array)
 
 	# Parameter validity check:
-	if ((database not in databases) or (workload not in workloads) or (governor not in governors) or (delay not in delays)):
+	if ((database not in databases) or (workload not in workloads) or (governor not in governors)):  # or (delay not in delays)):
 		print("Invalid benchmark request")
 		return 1
 	#end_if
@@ -140,20 +140,21 @@ def main():
 				#workload_list = ["sql a", "sql f"]
 				workload_list = ["sql a"]
 
+				#governor_list = ["schedutil x", "userspace 70", "performance x"]
 				governor_list = ["schedutil x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
 				#governor_list = ["interactive x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
 
 
 
 				#delay_list = ["0ms", "lognormal"]
-				delay_list = ["0ms"]
+				#delay_list = ["0ms"]
+				delay_list = ["normal", "50", "20", "5", "2", "0"]
 
 				threads_list = ["1"]
 
-				#run_count = 3
-				run_count = 1
+				run_count = 3
 
-				skip_count = 0 
+				skip_count = 0
 
 				iteration = 0
 
