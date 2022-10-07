@@ -75,9 +75,15 @@ userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbench
 #device="nexus6"
 device="pixel2"
 
+governor=$1
+frequency=$2
+bgdelay=$3
+wakeport=$4
+echo "Starting phone script with parameters:  governor $governor, frequency $frequency, bgdelay $bgdelay, wakeport $wakeport" > $logfile
+
+
 rm $errfile
 rm $logfile
-echo "Starting phone script with parameters:  $1, $2, $3" > $logfile
 
 # SELinux is a pain:
 setenforce 0
@@ -100,9 +106,6 @@ echo 3 > /proc/sys/vm/drop_caches
 
 # TODO:  Sanity check for supported $device strings
 
-governor=$1
-frequency=$2
-wakeport=$3
 if [ "$device" = "nexus6" ]; then
 	default="interactive"
 	cpus="0 1 2 3"
@@ -155,9 +158,8 @@ else
 	#/data/compute.exe 10000 1 7 1 0
 	#/data/compute.exe 400000000 1000 0
 	#/data/forker.exe 400000000 1000 0 &
-	bgdelay="50"
 	bgthreads="8"
-	if [ "$bgdelay" != "none" ]; then
+	if [ "$bgdelay" != "normal" ]; then
 		/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
 		bgpid="$!"
 	fi
@@ -193,7 +195,7 @@ else
 	input tap 100 100
 
 	# Verify the background workers exited cleanly:
-	if [ "$bgdelay" != "none" ]; then
+	if [ "$bgdelay" != "normal" ]; then
 		wait $bgpid
 		result="$?"
 		echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
@@ -203,7 +205,7 @@ else
 			error_exit "ERR on background threads"
 		fi
 	else
-		echo "Background result:  (N/A)" >> $trace_log
+		echo "Background threads:  (normal; N/A)" >> $trace_log
 	fi
 
 fi

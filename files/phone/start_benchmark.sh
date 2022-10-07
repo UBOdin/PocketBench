@@ -16,7 +16,7 @@ rm /data/finish.pipe
 mknod /data/finish.pipe p
 
 # Launch main benchmark script in the background:
-nohup sh /data/benchmark.sh $1 $2 $3 > /data/output.out &
+nohup sh /data/benchmark.sh $1 $2 $3 $4 > /data/output.out &
 
 # Save main script pid for later sanity check:
 printf "Returned pid:\n$!\n" > /data/start.txt
