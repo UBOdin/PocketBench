@@ -240,7 +240,11 @@ if [ "1" == "1" ]; then
 	done < $graphfile
 	# Short sanitycheck:
 	if [ ${line_arr[1]} != "Frame" ]; then
-		error_exit "ERR on frame data"
+		error_exit "ERR on frame data 1"
+	fi
+	output_arr=($output)
+	if [ "${#output_arr[*]}" != "8" ]; then
+		error_exit "ERR on frame data 2"
 	fi
 	printf "GFX DATA:  %s" "$output" >> $trace_log
 fi
