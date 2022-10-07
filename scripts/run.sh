@@ -38,7 +38,7 @@ else
 fi
 
 echo "Starting phone script"
-adb shell sh /data/start_benchmark.sh $4 $cpuspeed $wakeport &
+adb shell sh /data/start_benchmark.sh $4 $cpuspeed $6 $wakeport &
 #adb shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
 
 if [ "$meter" = "1" ]; then
