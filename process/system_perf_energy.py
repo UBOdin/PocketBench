@@ -18,7 +18,8 @@ import statistics
 
 #label_list = ["interactive", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
 #label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance", "powersave"]
-label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance"]
+#label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance"]
+label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "fixed 100%"]
 
 
 def mean_margin(data_list):
@@ -150,12 +151,12 @@ def process_loglines(file_name):  #, trace_list_list):
 		if (eventtype == "tracing_mark_write"):
 
 			#if ("Start FB" in logline):
-			if ("SQL_START" in logline):
+			if ("\"SQL_START\"" in logline):
 				starttime = time
 			#end_if
 
 			#if ("End FB" in logline):
-			if ("SQL_END" in logline):
+			if ("\"SQL_END\"" in logline):
 				endtime = time
 			#end_if
 
@@ -197,7 +198,7 @@ def process_loglines(file_name):  #, trace_list_list):
 		idledelta = idleend - idlestart
 		newidle_list.append(idledelta)
 		runtime_list.append(endtime - starttime - idledelta)
-		#print("%d  %f  %f  %f  %f  %f  %f" % (i, idlestart, idleend, idledelta, endtime, starttime, endtime - starttime))
+		print("%d  %f  %f  %f  %f  %f  %f" % (i, idlestart, idleend, idledelta, endtime, starttime, endtime - starttime))
 	#end_for
 
 	'''
@@ -638,31 +639,37 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 	jank_err_list = []
 	jank_err = 0.0
 
-	load_list = ["normal", "35", "45", "60", "65"]
+	delay_list = ["normal", "50", "20", "5", "2", "0"]
 
 	fix, ax = plt.subplots()
 
 
 	size_list = [10, 40, 70, 100, 130]
+	size_list = []
+	size = 10
+	for e in range(len(delay_list)):
+		size_list.append(size)
+		size += 30
+	#end_for
+
 	#color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
 	color_list = ["red", "1.0", "0.9", "0.8", "0.7", "0.6", "0.5", "0.4", "0.3"]
 	for governor, i, color in zip(label_list, range(len(label_list)), color_list):
 
-		timeprop_perload_list = []
-		jank_perload_list = []
-		for j in range(len(load_list)):
-			timeprop_perload_list.append(100.0 - timeprop_mean_list_list[j][i] * 100.0)
-
+		timeprop_perdelay_list = []
+		jank_perdelay_list = []
+		for j in range(len(delay_list)):
+			#timeprop_perdelay_list.append(100.0 - timeprop_mean_list_list[j][i] * 100.0)
+			timeprop_perdelay_list.append(timeprop_mean_list_list[j][i] * 100.0)
 			print("%d %d %d" % (j, 100.0 - timeprop_mean_list_list[j][i] * 100.0, timeprop_mean_list_list[j][i] * 100.0))
-
-			jank_perload_list.append(jank_mean_list_list[j][i] * 100.0)
+			jank_perdelay_list.append(jank_mean_list_list[j][i] * 100.0)
 		#end_for
 
 		print("TIMEPROP PERLOAD LIST")
-		print(timeprop_perload_list)
+		print(timeprop_perdelay_list)
 
-		ax.plot(timeprop_perload_list, jank_perload_list, color = color)
-		for timeprop, jank, size in zip(timeprop_perload_list, jank_perload_list, size_list):
+		ax.plot(timeprop_perdelay_list, jank_perdelay_list, color = color)
+		for timeprop, jank, size in zip(timeprop_perdelay_list, jank_perdelay_list, size_list):
 			ax.scatter(timeprop, jank, marker = "o", s = size, color = color)
 		#end_for
 
@@ -676,9 +683,19 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 	for color, governor in zip(color_list, label_list):
 		handle_list.append(Patch(color = color, label = governor))
 	#end_for
-	bgload_list = ["No load", "35% bg load", "45% bg load", "60% bg load", "65% bg load"]
-	labelsize_list = [3, 5, 7, 9, 11]
-	for labelsize, bgload in zip(labelsize_list, bgload_list):
+	bgdelay_list = []
+	labelsize_list = []
+	labelsize = 3
+	for delay, i in zip(delay_list, range(len(delay_list))):
+		if (i == 0):
+			bgdelay_list.append("Normal no bg loads")
+		else:
+			bgdelay_list.append(delay + "ms sleep on bg loads")
+		#end_if
+		labelsize_list.append(labelsize)
+		labelsize += 2
+	#end_for
+	for labelsize, bgload in zip(labelsize_list, bgdelay_list):
 		handle_list.append(Line2D([], [], marker = "o", markersize = labelsize, color = "black", label = bgload, linewidth = 0))
 	#end_for
 
@@ -694,15 +711,16 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 	'''
 
 	#'''
-	ax.axis([0, 100.0, 0, 20.0])
+	ax.axis([0, 100.0, 0, 30.0])
+	ax.tick_params(labelsize = 16)
 	#ax.set_xticks(offset_list)
 	#ax.set_xticklabels(ticklabel_list)
-	ax.set_title("Frame Jank - Idle Relation,\nPer CPU Policy, run with different background loads, ~:24s FB Interaction (3 runs each)", fontsize = 12, fontweight = "bold")
-	ax.set_xlabel("CPU Idle %", fontsize = 12, fontweight = "bold")
-	ax.set_ylabel("Frame Jank %", fontsize = 12, fontweight = "bold")
+	ax.set_title("Frame Jank - Runtime Relation,\nPer CPU Policy, run with different background loads, ~:24s FB Interaction (5 runs each)", fontsize = 16, fontweight = "bold")
+	ax.set_xlabel("CPU Busy %", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Frame Jank %", fontsize = 16, fontweight = "bold")
 
 	#plt.legend()
-	ax.legend(handles = handle_list, loc = "upper right") #, ncol = 2)
+	ax.legend(handles = handle_list, loc = "upper left", fontsize = 16) #, ncol = 2)
 	#'''
 
 	plt.show()
@@ -877,14 +895,15 @@ def main():
 	governors = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	prefix = "/micro_SQL_"
 	workload = "A"
-	delay = "0ms"
+	#delay = "0ms"
 
-	runcount = 3
+	runcount = 5
 
-	load_list = ["normal", "35", "45", "60", "65"]
+	#load_list = ["normal", "35", "45", "60", "65"]
+	delay_list = ["normal", "50", "20", "5", "2", "0"]
 
 	#'''
-	for load in load_list:
+	for delay in delay_list:
 		coretime_list_list = []
 		benchtime_list = []
 		timeprop_mean_list = []
@@ -895,7 +914,8 @@ def main():
 			timeprop_list = []
 			jank_list = []
 			for run in range(runcount):
-				filename = path + "fb_" + load + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".gz"
+				#filename = path + "fb_" + load + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".gz"
+				filename = path + prefix + workload + "_" + delay + "_" + governor + "_1_" + str(run) + ".gz"
 				print(filename)
 				benchtime, coretime_list, graphdata_list = process_loglines(filename)
 				# Collect per-core data for sorted per-core graph for only 1 run:
