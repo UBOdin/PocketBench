@@ -3,7 +3,7 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
 	#echo $1 > $trace_dir/events/power/cpu_idle/enable
@@ -71,9 +71,9 @@ errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
 graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
-userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 #device="nexus6"
 device="pixel2"
+experiment="microbench"
 
 governor=$1
 frequency=$2
@@ -94,11 +94,7 @@ echo -1 > /proc/sys/kernel/perf_event_paranoid
 printf "Getpid:\n$$\n" >> /data/start.pipe
 
 input tap 100 100
-if [ "$userapp" = "1" ]; then
-	sleep 30
-else
-	sleep 20
-fi
+sleep 20
 input tap 100 100
 
 sync
@@ -136,33 +132,35 @@ rm /data/results.pipe
 mknod /data/results.pipe p
 chmod 777 /data/results.pipe
 
-#am kill-all
-if [ "$userapp" = "1" ]; then
-	am start -n com.example.benchmark_withjson/com.example.benchmark_withjson.MainActivity
-	# Block until app completes run and outputs exit info:
-	echo "Start blocking on benchmark app signal" >> $logfile
-	result="$(cat /data/results.pipe)"
-	echo "$result" >> $logfile
-else
+
+echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
+#echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
+
+bgthreads="8"
+if [ "$bgdelay" != "normal" ]; then
+	/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
+	bgpid="$!"
+fi
+
+if [ "$experiment" = "microbench" ]; then
+
+	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
+	#/data/compute.exe 10000 1 7 2 10000000
+	#/data/compute.exe 10000 4096 7 1 0
+	#/data/compute.exe 10000 1 7 1 0
+	/data/compute.exe 400000000 1000 0
+	#/data/forker.exe 400000000 1000 0 &
+	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
+
+fi
+if [ "$experiment" = "uiautomator" ]; then
+
 	pkgname="com.facebook.katana"
 	pkgtest="com.example.test.MetaTest"
 	#pkgname= TDB
 	#pkgtest="com.example.test.TempleTest"
 	#pkgname="com.google.android.calculator"
 	#pkgtest="com.example.test.CalcTest"
-
-	echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
-	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
-	#/data/compute.exe 10000 1 7 2 10000000
-	#/data/compute.exe 10000 4096 7 1 0
-	#/data/compute.exe 10000 1 7 1 0
-	#/data/compute.exe 400000000 1000 0
-	#/data/forker.exe 400000000 1000 0 &
-	bgthreads="8"
-	if [ "$bgdelay" != "normal" ]; then
-		/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
-		bgpid="$!"
-	fi
 
 	dumpsys gfxinfo $pkgname reset > /dev/null
 
@@ -172,8 +170,10 @@ else
 		idleconcat="$idleconcat $x"
 	done
 
+	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	am instrument -w -e class $pkgtest com.example.test.test
 	result="$?"
+	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
 	idledata=$($idlecmd)
 	for x in $idledata; do
@@ -182,7 +182,7 @@ else
 	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
 
 	dumpsys gfxinfo $pkgname > $graphfile
-	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
+	#echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
 	if [ "$result" != "0" ]; then
 		toggle_events 0
@@ -194,21 +194,22 @@ else
 	sleep 5
 	input tap 100 100
 
-	# Verify the background workers exited cleanly:
-	if [ "$bgdelay" != "normal" ]; then
-		wait $bgpid
-		result="$?"
-		echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
-		if [ "$result" != "0" ]; then
-			toggle_events 0
-			set_governor "$default"
-			error_exit "ERR on background threads"
-		fi
-	else
-		echo "Background threads:  (normal; N/A)" >> $trace_log
-	fi
-
 fi
+
+# Verify the background workers exited cleanly:
+if [ "$bgdelay" != "normal" ]; then
+	wait $bgpid
+	result="$?"
+	echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
+	if [ "$result" != "0" ]; then
+		toggle_events 0
+		set_governor "$default"
+		error_exit "ERR on background threads"
+	fi
+else
+	echo "Background threads:  (normal; N/A)" >> $trace_log
+fi
+
 
 toggle_events 0
 
