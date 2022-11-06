@@ -216,7 +216,7 @@ toggle_events 0
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 
 # Crunch gfxinfo data and inject into ftrace:
-if [ "1" == "1" ]; then
+if [ "$experiment" == "uiautomator" ]; then
 	# Gross kludge -- hardcoded index map:
 	index_arr=(0 0 0 0 0 0 3 2 0 0 0 0 3 4 4 4 5 4)
 	i=0
