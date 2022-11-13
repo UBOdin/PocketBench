@@ -42,6 +42,8 @@ def get_energy(file_name):
 	# Skip first line:
 	logline = input_file.readline()
 
+	iteration = 0
+
 	while (True):
 
 		# Keep reading until finished:
@@ -50,6 +52,15 @@ def get_energy(file_name):
 		if (logline == ""):
 			break
 		#end_if
+
+		#'''
+		iteration += 1
+		if (iteration % 1000 == 0):
+			#break
+			#print("Iteration:  ", iteration)
+			pass
+		#end_if
+		#'''
 
 		logline_list = logline.split(",")
 		# Sanity
@@ -69,7 +80,7 @@ def get_energy(file_name):
 			print(file_name)
 			print(iteration)
 
-			#sys.exit(1)
+			sys.exit(1)
 		#end_if
 
 		amps_total += amps
@@ -105,7 +116,7 @@ def get_energy(file_name):
 	print(bucketitercount)
 	print(bucketmax)
 
-	mampspertick = 25
+	mampspertick = 100
 	ytick_list = np.arange(0, bucketmax * 1.1, (bucketitertotal * mampspertick))
 	ylabel_list = []
 	for e in range(len(ytick_list)):
