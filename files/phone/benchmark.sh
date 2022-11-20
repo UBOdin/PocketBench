@@ -16,13 +16,13 @@ set_governor() {
 	for i in $cpus; do
 
 		echo "1" > $cpu_dir/cpu$i/online
-		echo "$1" > $cpu_dir/cpu$i/cpufreq/scaling_governor
+		echo "$governor" > $cpu_dir/cpu$i/cpufreq/scaling_governor
 		result=$?  # Sanity check for supported governor
 		if [ "$result" != "0" ]; then
 			error_exit "ERR Invalid governor"
 		fi
 		# Speed is only valid for the userspace governor:
-		if [ "$1" = "userspace" ]; then
+		if [ "$governor" = "userspace" ]; then
 			if [ "$device" = "nexus6" ]; then
 				echo "$frequency" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed
 			else
@@ -79,11 +79,11 @@ governor=$1
 frequency=$2
 bgdelay=$3
 wakeport=$4
-echo "Starting phone script with parameters:  governor $governor, frequency $frequency, bgdelay $bgdelay, wakeport $wakeport" > $logfile
-
 
 rm $errfile
 rm $logfile
+
+echo "Starting phone script with parameters:  governor $governor, frequency $frequency, bgdelay $bgdelay, wakeport $wakeport" > $logfile
 
 # SELinux is a pain:
 setenforce 0
@@ -136,10 +136,20 @@ chmod 777 /data/results.pipe
 echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 #echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 
-bgthreads="8"
+bgthreads="1"
 if [ "$bgdelay" != "normal" ]; then
-	/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
+	#/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
+
+	oscspeeds=$(echo $frequency | tr "-" " ")
+	# Sanity
+	#if [ "$governor" != "userspace" ]; then
+	#	error_exit "Must be userspace"
+	#fi
+	echo "Oscillate speeds:  $oscspeeds" >> $trace_log
+	sh /data/oscillate.sh $oscspeeds &
 	bgpid="$!"
+	sleep 1
+
 fi
 
 if [ "$experiment" = "microbench" ]; then
@@ -148,7 +158,13 @@ if [ "$experiment" = "microbench" ]; then
 	#/data/compute.exe 10000 1 7 2 10000000
 	#/data/compute.exe 10000 4096 7 1 0
 	#/data/compute.exe 10000 1 7 1 0
-	/data/compute.exe 400000000 1000 0
+	#/data/compute.exe 400000000 1000 0
+
+	/data/compute.exe 400000000 1000 0 &
+	micropid="$!"
+	taskset -p 80 $micropid  # Pin to core 7 (Big)
+	wait $micropid
+
 	#/data/forker.exe 400000000 1000 0 &
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
@@ -182,7 +198,6 @@ if [ "$experiment" = "uiautomator" ]; then
 	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
 
 	dumpsys gfxinfo $pkgname > $graphfile
-	#echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
 	if [ "$result" != "0" ]; then
 		toggle_events 0
@@ -198,8 +213,12 @@ fi
 
 # Verify the background workers exited cleanly:
 if [ "$bgdelay" != "normal" ]; then
-	wait $bgpid
+	#wait $bgpid
+
+	kill -9 $bgpid
 	result="$?"
+	set_governor "$default"
+
 	echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
 	if [ "$result" != "0" ]; then
 		toggle_events 0
