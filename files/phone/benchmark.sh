@@ -134,25 +134,15 @@ chmod 777 /data/results.pipe
 
 
 echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
-#echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 
-bgthreads="1"
-if [ "$bgdelay" != "normal" ]; then
-	#/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
+if [ "$experiment" = "microbench" ]; then
 
+	# Start background task to oscillate CPU frequencies:
 	oscspeeds=$(echo $frequency | tr "-" " ")
-	# Sanity
-	#if [ "$governor" != "userspace" ]; then
-	#	error_exit "Must be userspace"
-	#fi
 	echo "Oscillate speeds:  $oscspeeds" >> $trace_log
 	sh /data/oscillate.sh $oscspeeds &
 	bgpid="$!"
 	sleep 1
-
-fi
-
-if [ "$experiment" = "microbench" ]; then
 
 	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	#/data/compute.exe 10000 1 7 2 10000000
@@ -160,6 +150,7 @@ if [ "$experiment" = "microbench" ]; then
 	#/data/compute.exe 10000 1 7 1 0
 	#/data/compute.exe 400000000 1000 0
 
+	# Run microbenchmark pinned to a core:
 	/data/compute.exe 400000000 1000 0 &
 	micropid="$!"
 	taskset -p 80 $micropid  # Pin to core 7 (Big)
@@ -168,8 +159,18 @@ if [ "$experiment" = "microbench" ]; then
 	#/data/forker.exe 400000000 1000 0 &
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
+	kill -9 $bgpid
+	set_governor "$default"
+
 fi
 if [ "$experiment" = "uiautomator" ]; then
+
+	# Start background task loads:
+	bgthreads="1"
+	if [ "$bgdelay" != "normal" ]; then
+		/data/forker.exe $bgthreads /data/compute.exe 400000000 1000 $bgdelay &
+		bgpid="$!"
+	fi
 
 	pkgname="com.facebook.katana"
 	pkgtest="com.example.test.MetaTest"
@@ -209,24 +210,19 @@ if [ "$experiment" = "uiautomator" ]; then
 	sleep 5
 	input tap 100 100
 
-fi
-
-# Verify the background workers exited cleanly:
-if [ "$bgdelay" != "normal" ]; then
-	#wait $bgpid
-
-	kill -9 $bgpid
-	result="$?"
-	set_governor "$default"
-
-	echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
-	if [ "$result" != "0" ]; then
-		toggle_events 0
-		set_governor "$default"
-		error_exit "ERR on background threads"
+	# Verify the background workers exited cleanly:
+	if [ "$bgdelay" != "normal" ]; then
+		wait $bgpid
+		echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
+		if [ "$result" != "0" ]; then
+			toggle_events 0
+			set_governor "$default"
+			error_exit "ERR on background threads"
+		fi
+	else
+		echo "Background threads:  (normal; N/A)" >> $trace_log
 	fi
-else
-	echo "Background threads:  (normal; N/A)" >> $trace_log
+
 fi
 
 
