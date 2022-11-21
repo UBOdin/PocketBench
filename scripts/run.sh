@@ -1,41 +1,20 @@
 #!/bin/bash
 # run benchmark
 
-wakeport="2017"  # Phone-client wifi wakeup port
 # $2 = DB (sql); $3 = workload (A, B, C etc.); $4 = governor (schedutil etc.); $5 = speed; $6 = delay (lognormal etc.); $7 = threadcount (1); $8 = runcount
-if [ "$6" = "lognormal" ]; then
-	delay="log"
-else
-	delay="$6"
-fi
+
+governor="$4"
 cpuspeed="$(echo $5 | cut -d ":" -f2)"
 filespeed="$(echo $5 | cut -d ":" -f1)"
-timestamp="$(date +%Y%m%d%H%M%S)"
-#filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_$timestamp"
-filesuffix="${2}_${3}_${delay}_${4}_${filespeed}_${7}_${8}"
+background="$6"
+threadcount="$7"
+runcount="$8"
+wakeport="2017"  # Phone-client wifi wakeup port
 meter="0"  # boolean -- whether using Monsoon meter
-userapp="0"  # boolean -- whether running an AOSP app (1) or a native microbenchmark (0)
 
-if [ "$userapp" = "1" ]; then
-	filename="YCSB_${filesuffix}"
+filesuffix="${background}_${governor}_${filespeed}_${threadcount}_${runcount}"
+filename="micro_${filesuffix}"
 
-	printf "Rebooting and running benchmark\n"
-
-	adb reboot
-	adb wait-for-device
-	sleep 10
-	printf "Rebooted\n"
-	adb root
-	adb wait-for-device
-	sleep 10
-	printf "Rooted\n"
-
-	adb shell sh /data/preBenchmark.sh $2 $3 $4 $cpuspeed $6 $7 #create database
-
-	sleep 15 # Let phone settle before starting script:
-else
-	filename="micro_${filesuffix}"
-fi
 
 echo "Starting phone script"
 adb shell sh /data/start_benchmark.sh $4 $cpuspeed $6 $wakeport &
