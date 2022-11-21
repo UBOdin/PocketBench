@@ -3,12 +3,12 @@
 
 # $2 = DB (sql); $3 = workload (A, B, C etc.); $4 = governor (schedutil etc.); $5 = speed; $6 = delay (lognormal etc.); $7 = threadcount (1); $8 = runcount
 
-governor="$4"
-cpuspeed="$(echo $5 | cut -d ":" -f2)"
-filespeed="$(echo $5 | cut -d ":" -f1)"
-background="$6"
-threadcount="$7"
-runcount="$8"
+governor="$1"
+cpuspeed="$(echo $2 | cut -d ":" -f2)"
+filespeed="$(echo $2 | cut -d ":" -f1)"
+background="$3"
+threadcount="$4"
+runcount="$5"
 wakeport="2017"  # Phone-client wifi wakeup port
 meter="0"  # boolean -- whether using Monsoon meter
 
