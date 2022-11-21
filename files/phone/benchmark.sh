@@ -149,14 +149,7 @@ if [ "$experiment" = "microbench" ]; then
 	#/data/compute.exe 10000 4096 7 1 0
 	#/data/compute.exe 10000 1 7 1 0
 	#/data/compute.exe 400000000 1000 0
-
-	# Run microbenchmark pinned to a core:
-	/data/compute.exe 400000000 1000 0 &
-	micropid="$!"
-	taskset -p 80 $micropid  # Pin to core 7 (Big)
-	wait $micropid
-
-	#/data/forker.exe 400000000 1000 0 &
+	taskset 80 /data/compute.exe 400000000 1000 0  # Run microbench pinned to a core
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
 	kill -9 $bgpid
