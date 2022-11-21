@@ -1,8 +1,6 @@
 #!/bin/bash
 # run benchmark
 
-# $2 = DB (sql); $3 = workload (A, B, C etc.); $4 = governor (schedutil etc.); $5 = speed; $6 = delay (lognormal etc.); $7 = threadcount (1); $8 = runcount
-
 governor="$1"
 cpuspeed="$(echo $2 | cut -d ":" -f2)"
 filespeed="$(echo $2 | cut -d ":" -f1)"
@@ -17,8 +15,7 @@ filename="micro_${filesuffix}"
 
 
 echo "Starting phone script"
-adb shell sh /data/start_benchmark.sh $4 $cpuspeed $6 $wakeport &
-#adb shell sh /data/benchmark.sh $4 $cpuspeed $wakeport
+adb shell sh /data/start_benchmark.sh $governor $cpuspeed $background $wakeport &
 
 if [ "$meter" = "1" ]; then
 	sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
