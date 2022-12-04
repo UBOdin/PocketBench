@@ -17,23 +17,7 @@
 
 #define PRINTLOG(...) output_len = snprintf( output_buff, OUTPUT_SIZE, __VA_ARGS__ ); \
 	result = write(trace_fd, output_buff, output_len); \
-	errtrap("write"); \
-//	if (result == -1) { \
-//		errlog(); \
-//		return 6; \
-	}
-
-
-/*
-static void errlog() {
-
-	__android_log_print(ANDROID_LOG_VERBOSE, "PocketData", "Error:  %d %s\n", errno, strerror(errno));
-//printf("Error:  %d %s\n", errno, strerror(errno));
-
-	return;
-
-}
-*/
+	errtrap("write");
 
 
 #define errtrap(error) (__errtrap(result, error, __LINE__))
@@ -58,15 +42,6 @@ long gettime_us() {
 	return now.tv_sec * 1000000 + now.tv_usec;
 
 }
-
-
-/*
-long total_time(struct timeval start, struct timeval end) {
-
-	return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
-
-}
-*/
 
 
 int main(int argc, char** argv) {
@@ -116,19 +91,11 @@ int main(int argc, char** argv) {
 	// Open perf fd:
 	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, -1, 0);
 	errtrap("syscall");
-//	if (result == -1) {
-//		errlog();
-//		return -2;
-//	}
 	perf_cycles_fd = result;
 
 	// Open handle to ftrace to save output:
 	result = open(trace_filename, O_WRONLY);
 	errtrap("open");
-//	if (result == -1) {
-//		errlog();
-//		return 4;
-//	}
 	trace_fd = result;
 
 	// Open handle to sysfs to set CPU speed:
@@ -175,10 +142,6 @@ int main(int argc, char** argv) {
 		if (sleep_ms > 0) {
 			result = nanosleep(&interval, NULL);
 			errtrap("nanosleep");
-//			if (result == -1) {
-//				errlog();
-//				return 7;
-//			}
 		}
 
 
@@ -188,17 +151,12 @@ int main(int argc, char** argv) {
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
 
-//printf("Degrees:  %f\n", degree);
 	PRINTLOG("SQL_experiment_2:  loopcount:  %lld  batchcount:  %lld  sleep_ms:  %ld  sum:  %lld", loopcount, batchcount, sleep_ms, sum);
 	PRINTLOG("SQL_END");
 
 	// Collect results:
 	result = read(perf_cycles_fd, perf_buff, PERFBUFF_SIZE);
 	errtrap("read");
-//	if (result == -1) {
-//		errlog();
-//		return -3;
-//	}
 
 	// Sanity (should be collecting 1 item):
 	if (((unsigned long*)perf_buff)[0] != 1) {
