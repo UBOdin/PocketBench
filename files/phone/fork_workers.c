@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 		result = fork();
 		errtrap("fork");
 		if (result == 0) {
-			result = execv(binpath, argv + 2);
+			result = execv((const char*)argv[2], argv + 2);
 			errtrap("execv");
 			_exit(99);  // Never gets here
 		}
