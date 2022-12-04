@@ -81,6 +81,7 @@ def process_loglines(file_name):  #, trace_list_list):
 	endinteracttime = 0.0
 	graphdata_list = []
 	runtime_list = []
+	perfcycles = 0
 
 	input_file = gzip.open(file_name, "r")
 
@@ -175,6 +176,10 @@ def process_loglines(file_name):  #, trace_list_list):
 				#break
 			#end_if
 
+			if ("Cycle data" in logline):
+				perfcycles = int(logline.split("Cycle data:  ")[1])
+			#end_if
+
 		#end_if
 
 	#end_while
@@ -216,7 +221,7 @@ def process_loglines(file_name):  #, trace_list_list):
 	#print(newidle_list)
 	#print(runtime_list)
 
-	return endtime - starttime, runtime_list, graphdata_list
+	return endtime - starttime, runtime_list, graphdata_list, perfcycles
 
 #end_def
 
@@ -303,7 +308,7 @@ def get_energy(file_name, start, stop):
 			print(file_name)
 			print(iteration)
 
-			#sys.exit(1)
+			sys.exit(1)
 		#end_if
 
 		'''
@@ -399,37 +404,106 @@ def bargraph_energy(energy_list):
 #end_def
 
 
-def crossplot_benchtime_energy(benchtime_list, energy_list):
+def crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list):
 
-	# benchtime_list = []
-	# energy_list = []
+	# benchtime_mean_list = []
+	# benchtime_err_list = []
+	# cycles_mean_list = []
+	# cycles_err_list = []
 
 	benchtime = 0
-	benchtime_barcount = len(benchtime_list)
+	benchtime_barcount = len(benchtime_mean_list)
+	cycles = 0
+	cycles_barcount = len(cycles_mean_list)
+	if (benchtime_barcount != cycles_barcount):
+		print("Unmatched counts")
+		sys.exit(1)
+	#end_if
+
+	nplots = 2
+	fig, ax_list = plt.subplots(nplots, 1)
+
+	label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
+	color_list = ["red", "blue", "green", "orange", "brown"]
+
+	for benchtime_mean, benchtime_err, cycles_mean, cycles_err, label, color in zip(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list, label_list, color_list):
+		print("%f  %f" % (benchtime_mean, cycles_mean))
+		for i in range(nplots):
+			ax_list[i].scatter(benchtime_mean, cycles_mean, s = 100, color = color, label = label)
+			ax_list[i].errorbar(benchtime_mean, cycles_mean, xerr = benchtime_err, color = color)
+			ax_list[i].errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
+		#end_for
+	#end_for
+
+	ax_list[0].axis([0, 10, 0, 20])
+	ax_list[0].tick_params(labelsize = 16)
+	#ax_list[0].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
+	ax_list[0].legend(loc = "center left", fontsize = 16)
+
+	#'''
+	ax_list[1].axis([7.2, 7.8, 17.6, 17.8])
+	ax_list[1].tick_params(labelsize = 16)
+	ax_list[1].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds", fontsize = 16, fontweight = "bold")
+	#ax_list[1].legend(loc = "center left", fontsize = 16)
+	#'''
+
+	plt.show()
+
+	return
+
+#end_def
+
+def crossplot_benchtime_energy(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list):
+
+	# benchtime_mean_list = []
+	# benchtime_err_list = []
+	# energy_mean_list = []
+	# energy_err_list = []
+
+	benchtime = 0
+	benchtime_barcount = len(benchtime_mean_list)
 	energy = 0
-	energy_barcount = len(energy_list)
+	energy_barcount = len(energy_mean_list)
 	if (benchtime_barcount != energy_barcount):
 		print("Unmatched counts")
 		sys.exit(1)
 	#end_if
 
-	fig, ax = plt.subplots()
+	nplots = 2
+	fig, ax_list = plt.subplots(1, nplots) #nplots, 1)
 
-	label_list = ["identical frequencies", "oscillating frequencies"]
-	color_list = ["red", "blue"]
+	#label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
+	#color_list = ["red", "blue", "green", "orange", "brown"]
+	label_list = ["oscillating speed", "steady mean speed", "low speed", "high speed"]
+	color_list = ["blue", "green", "orange", "brown"]
 
-	for benchtime, energy, label, color in zip(benchtime_list, energy_list, label_list, color_list):
-		print("%f  %f" % (benchtime, energy))
-		ax.scatter(benchtime, energy, s = 100, color = color, label = label)
+	for benchtime_mean, benchtime_err, energy_mean, energy_err, label, color in zip(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list, label_list, color_list):
+		print("%f  %f" % (benchtime_mean, energy_mean))
+		for i in range(nplots):
+			ax_list[i].scatter(benchtime_mean, energy_mean, s = 100, color = color, label = label)
+			ax_list[i].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, color = color)
+			ax_list[i].errorbar(benchtime_mean, energy_mean, yerr = energy_err, color = color)
+		#end_for
 	#end_for
 
-	ax.axis([0, 10, 0, 2000])
-	ax.tick_params(labelsize = 16)
-	ax.set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Energy, $uAh$", fontsize = 16, fontweight = "bold")
-	ax.set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds", fontsize = 16, fontweight = "bold")
+	ax_list[0].axis([0, 10, 0, 2000])
+	ax_list[0].tick_params(labelsize = 16)
+	ax_list[0].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("Energy, $uAh$", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
+	ax_list[0].legend(loc = "center left", fontsize = 16)
 
-	plt.legend(loc = "center left", fontsize = 16)
+	ax_list[1].axis([7.2, 7.8, 1050, 1150])
+	ax_list[1].tick_params(labelsize = 16)
+	ax_list[1].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_ylabel("Energy, $uAh$", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
+	#ax_list[1].legend(loc = "center left", fontsize = 16)
+
 	plt.show()
 
 	return
@@ -454,35 +528,45 @@ def main():
 	coretime_list = []
 	graphdata_list = []
 
+	cycles = 0
+	cycles_list = []
+	cycles_mean = 0
+	cycles_err = 0
+	cycles_mean_list = []
+	cycles_err_list = []
+
 	#governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	#governor_list = ["schedutil_none", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
-	governor_list = ["steady_userspace_20", "oscillate_userspace_20"]
-	runcount = 10
-	#benchtimeprefix = "/micro_SQL_A_normal_"
-	#energyprefix = "/monsoon_SQL_A_normal_"
-	benchtimeprefix = "/micro_SQL_A_"
-	energyprefix = "/monsoon_SQL_A_"
+	governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
+	#governor_list = ["userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
+	benchtimeprefix = "/micro_oscill_"
+	energyprefix = "/monsoon_oscill_"
 
-	workload = "A"
-	#delay = "0ms"
 	path = sys.argv[1]
 
 
 	for governor in governor_list:
 		benchtime_list = []
+		cycles_list = []
 		energy_list = []
-		for run in range(20):
+		for run in range(0, 1): #5, 10): #runcount):
 			filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
-			benchtime, coretime_list, graphdata_list = process_loglines(filename)
+			benchtime, coretime_list, graphdata_list, cycles = process_loglines(filename)
 			benchtime_list.append(benchtime)
+			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
 			filename = path + energyprefix + governor + "_1_" + str(run) + ".csv"
-			energy = get_energy(filename, 8.0, 14.0 + benchtime)
+			#energy = get_energy(filename, 8.0, 14.0 + benchtime)
+			energy = 0
 			energy_list.append(energy)
-			print("%f  %f" % (benchtime, energy))
+			print("%f  %f  %d" % (benchtime, energy, cycles))
 		#end_for
 		benchtime_mean, benchtime_err = mean_margin(benchtime_list)
 		benchtime_mean_list.append(benchtime_mean)
 		benchtime_err_list.append(benchtime_err)
+
+		cycles_mean, cycles_err = mean_margin(cycles_list)
+		cycles_mean_list.append(cycles_mean)
+		cycles_err_list.append(cycles_err)
 
 		energy_mean, energy_err = mean_margin(energy_list)
 		energy_mean_list.append(energy_mean)
@@ -492,8 +576,9 @@ def main():
 	print(benchtime_mean_list)
 
 	bargraph_benchtime(benchtime_mean_list)
-	bargraph_energy(energy_mean_list)
-	crossplot_benchtime_energy(benchtime_mean_list, energy_mean_list)
+	#bargraph_energy(energy_mean_list)
+	#crossplot_benchtime_energy(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list)
+	crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list)
 
 	return
 
