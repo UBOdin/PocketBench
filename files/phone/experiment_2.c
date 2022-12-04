@@ -17,17 +17,33 @@
 
 #define PRINTLOG(...) output_len = snprintf( output_buff, OUTPUT_SIZE, __VA_ARGS__ ); \
 	result = write(trace_fd, output_buff, output_len); \
-	if (result == -1) { \
-		errlog(); \
-		return 6; \
+	errtrap("write"); \
+//	if (result == -1) { \
+//		errlog(); \
+//		return 6; \
 	}
 
 
+/*
 static void errlog() {
 
 	__android_log_print(ANDROID_LOG_VERBOSE, "PocketData", "Error:  %d %s\n", errno, strerror(errno));
 //printf("Error:  %d %s\n", errno, strerror(errno));
 
+	return;
+
+}
+*/
+
+
+#define errtrap(error) (__errtrap(result, error, __LINE__))
+void __errtrap(int result, const char* error, int line) {
+
+	if (result == -1) {
+		printf("Error in %s() on line %d:  %s\n", error, line, strerror(errno));
+		__android_log_print(ANDROID_LOG_VERBOSE, "Microbench", "Error:  %d %s\n", errno, strerror(errno));
+		_exit(errno);
+	}
 	return;
 
 }
@@ -44,11 +60,13 @@ long gettime_us() {
 }
 
 
+/*
 long total_time(struct timeval start, struct timeval end) {
 
 	return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
 
 }
+*/
 
 
 int main(int argc, char** argv) {
@@ -64,6 +82,8 @@ int main(int argc, char** argv) {
 	int perf_cycles_fd;
 	char perf_buff[PERFBUFF_SIZE];
 	unsigned long cycles;
+	int speed_fd;
+	char speed_filename[] = "/sys/devices/system/cpu/cpufreq/policy4/scaling_setspeed";
 
 	long long loopcount;
 	long long batchcount;
@@ -95,20 +115,25 @@ int main(int argc, char** argv) {
 
 	// Open perf fd:
 	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, -1, 0);
-	if (result == -1) {
-		errlog();
-		return -2;
-	}
+	errtrap("syscall");
+//	if (result == -1) {
+//		errlog();
+//		return -2;
+//	}
 	perf_cycles_fd = result;
 
-//printf("Experiment 2\n");
 	// Open handle to ftrace to save output:
 	result = open(trace_filename, O_WRONLY);
-	if (result == -1) {
-		errlog();
-		return 4;
-	}
+	errtrap("open");
+//	if (result == -1) {
+//		errlog();
+//		return 4;
+//	}
 	trace_fd = result;
+
+	// Open handle to sysfs to set CPU speed:
+	result = open(speed_filename, O_RDWR);
+
 
 	memset(&output_buff, 0, sizeof(output_buff));
 
@@ -136,7 +161,6 @@ int main(int argc, char** argv) {
 	timestart_us = gettime_us();
 	long long i = 0;
 	for (i = 0; i < batchcount; i++) {
-//	while (1) {
 		i++;
 
 		for (long long j = 0; j < loopcount / (batchcount * 2); j++) {
@@ -150,25 +174,16 @@ int main(int argc, char** argv) {
 
 		if (sleep_ms > 0) {
 			result = nanosleep(&interval, NULL);
-			if (result == -1) {
-				errlog();
-				return 7;
-			}
+			errtrap("nanosleep");
+//			if (result == -1) {
+//				errlog();
+//				return 7;
+//			}
 		}
 
-/*
-		timenow_us = gettime_us();
-		if (timenow_us - timestart_us > 20 * 1000 * 1000) {
-//printf("Broke on time.  Batchiter:  %lld\n", i);
-//goto breakpoint;
-			break;
-		}
-*/
 
 	}
-printf("Iter count:  %lld\n", i);
-//printf("Looped out\n");
-//    breakpoint:
+	printf("Iter count:  %lld\n", i);
 
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
@@ -179,10 +194,11 @@ printf("Iter count:  %lld\n", i);
 
 	// Collect results:
 	result = read(perf_cycles_fd, perf_buff, PERFBUFF_SIZE);
-	if (result == -1) {
-		errlog();
-		return -3;
-	}
+	errtrap("read");
+//	if (result == -1) {
+//		errlog();
+//		return -3;
+//	}
 
 	// Sanity (should be collecting 1 item):
 	if (((unsigned long*)perf_buff)[0] != 1) {
