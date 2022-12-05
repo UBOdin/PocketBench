@@ -138,22 +138,26 @@ echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 if [ "$experiment" = "microbench" ]; then
 
 	# Start background task to oscillate CPU frequencies:
-	oscspeeds=$(echo $frequency | tr "-" " ")
-	echo "Oscillate speeds:  $oscspeeds" >> $trace_log
-	sh /data/oscillate.sh $oscspeeds &
-	bgpid="$!"
-	sleep 1
+	if [ "$bgdelay" = "oscill" ]; then
+		oscspeeds=$(echo $frequency | tr "-" " ")
+		echo "Oscillate speeds:  $oscspeeds" >> $trace_log
+		sh /data/oscillate.sh $oscspeeds &
+		bgpid="$!"
+		sleep 1
+	fi
 
 	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	#/data/compute.exe 10000 1 7 2 10000000
 	#/data/compute.exe 10000 4096 7 1 0
 	#/data/compute.exe 10000 1 7 1 0
-	#/data/compute.exe 400000000 1000 0
-	taskset 80 /data/compute.exe 400000000 1000 0  # Run microbench pinned to a core
+	#/data/compute.exe 200000000 1000 0
+	taskset 80 /data/compute.exe 200000000 1000 0  # Run microbench pinned to a core
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
-	kill -9 $bgpid
-	set_governor "$default"
+	if [ "$bgdelay" = "oscill" ]; then
+		kill -9 $bgpid
+		set_governor "$default"
+	fi
 
 fi
 if [ "$experiment" = "uiautomator" ]; then
