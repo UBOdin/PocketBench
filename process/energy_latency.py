@@ -82,6 +82,9 @@ def process_loglines(file_name):  #, trace_list_list):
 	graphdata_list = []
 	runtime_list = []
 	perfcycles = 0
+	inbench = False
+	eventtime_list = []
+	frequency_list = []
 
 	input_file = gzip.open(file_name, "r")
 
@@ -153,13 +156,15 @@ def process_loglines(file_name):  #, trace_list_list):
 		if (eventtype == "tracing_mark_write"):
 
 			#if ("Start FB" in logline):
-			if ("\"SQL_START\"" in logline):
+			if ("SQL_START" in logline):
 				starttime = time
+				inbench = True
 			#end_if
 
 			#if ("End FB" in logline):
-			if ("\"SQL_END\"" in logline):
+			if ("SQL_END" in logline):
 				endtime = time
+				inbench = False
 			#end_if
 
 			if ("IDLE DATA" in logline):
@@ -182,7 +187,20 @@ def process_loglines(file_name):  #, trace_list_list):
 
 		#end_if
 
+		if (eventtype == "cpu_frequency"):
+				temp_list = logline.split("state=")[1].split(" ")
+				#print(temp_list)
+				if ((inbench == True) and (temp_list[1]) == "cpu_id=7\n"):
+					#print(temp_list[0])
+					eventtime_list.append(time)
+					frequency_list.append(int(temp_list[0]))
+				#end_if
+		#end_if
+
 	#end_while
+
+	eventtime_list.append(starttime)
+	eventtime_list.append(endtime)
 
 	input_file.close()
 
@@ -221,7 +239,7 @@ def process_loglines(file_name):  #, trace_list_list):
 	#print(newidle_list)
 	#print(runtime_list)
 
-	return endtime - starttime, runtime_list, graphdata_list, perfcycles
+	return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, frequency_list
 
 #end_def
 
@@ -423,7 +441,8 @@ def crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_m
 	nplots = 2
 	fig, ax_list = plt.subplots(nplots, 1)
 
-	label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
+	#label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
+	label_list = ["schedutil", "70-70", "70-100", "100-100"]
 	color_list = ["red", "blue", "green", "orange", "brown"]
 
 	for benchtime_mean, benchtime_err, cycles_mean, cycles_err, label, color in zip(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list, label_list, color_list):
@@ -435,19 +454,23 @@ def crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_m
 		#end_for
 	#end_for
 
-	ax_list[0].axis([0, 10, 0, 20])
+	#ax_list[0].axis([0, 10, 0, 20])
+	ax_list[0].axis([0, 12, 0, 20])
+	#ax_list[0].axis([0, 30, 0, 25])
 	ax_list[0].tick_params(labelsize = 16)
 	#ax_list[0].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
 	ax_list[0].set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_title("Runtime and Cycles for Fixed Compute,\n5ms delay (5 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
 	ax_list[0].legend(loc = "center left", fontsize = 16)
 
 	#'''
-	ax_list[1].axis([7.2, 7.8, 17.6, 17.8])
+	#ax_list[1].axis([7.2, 7.8, 17.6, 17.8])
+	ax_list[1].axis([7.0, 11.0, 17.6, 17.8])
+	#ax_list[1].axis([10.0, 30.0, 15.0, 20.0])
 	ax_list[1].tick_params(labelsize = 16)
 	ax_list[1].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
 	ax_list[1].set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
-	#ax_list[1].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds", fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_title("Runtime and Cycles for Fixed Compute,\nVarying CPU Speeds", fontsize = 16, fontweight = "bold")
 	#ax_list[1].legend(loc = "center left", fontsize = 16)
 	#'''
 
@@ -511,6 +534,65 @@ def crossplot_benchtime_energy(benchtime_mean_list, benchtime_err_list, energy_m
 #end_def
 
 
+def lineplot_frequency_time(eventtime_list, frequency_list):
+
+	# eventtime_list = []
+	# frequency_list = []
+	time = 0.0
+	freq = 0
+
+	print(len(eventtime_list))
+	print(len(frequency_list))
+
+	if (len(eventtime_list) != len(frequency_list) + 2):
+		print("Mismatched lengths")
+		sys.exit(1)
+	#end_if
+
+
+	fix, ax_list = plt.subplots(2, 1)
+
+	#'''
+	steptime_list = []
+	stepfreq_list = []
+	starttime = eventtime_list[-2]
+	prevfreq = frequency_list[0]
+	for time, freq in zip(eventtime_list, frequency_list):
+		#ax.scatter(time / (1000 * 1000) - starttime, freq / (1000 * 1000), color = "black")
+		steptime_list.append(time - starttime)
+		stepfreq_list.append(prevfreq / (1000 * 1000))
+		steptime_list.append(time - starttime)
+		stepfreq_list.append(freq / (1000 * 1000))
+		prevfreq = freq
+	#end_for
+	#ax.scatter(eventtime_list[-1] / (1000 * 1000))
+	#'''
+	steptime_list.append(eventtime_list[-1] - starttime)
+	stepfreq_list.append(prevfreq / (1000 * 1000))
+
+	ax_list[0].plot(steptime_list, stepfreq_list)
+	ax_list[0].axis([0, 8.0, 0, 3.0])
+	#ax_list[0].axis([0, 30.0, 0, 3.0])
+	ax_list[0].tick_params(labelsize = 16)
+	#ax_list[0].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("Frequency, billions", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_title("CPU speed for Fixed Compute (5ms delay)", fontsize = 16, fontweight = "bold")
+
+	ax_list[1].plot(steptime_list, stepfreq_list)
+	ax_list[1].axis([0, 0.2, 0, 3.0])
+	#ax_list[1].axis([0, 0.2, 0, 3.0])
+	ax_list[1].tick_params(labelsize = 16)
+	ax_list[1].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("Frequency, billions", fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
+
+	plt.show()
+
+	return
+
+#end_def
+
+
 def main():
 
 	benchtime = 0
@@ -537,10 +619,13 @@ def main():
 
 	#governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	#governor_list = ["schedutil_none", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
-	governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
+	#governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
 	#governor_list = ["userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
-	benchtimeprefix = "/micro_oscill_"
-	energyprefix = "/monsoon_oscill_"
+	governor_list = ["schedutil_none", "userspace_70-70", "userspace_70-100", "userspace_100-100"]
+	#benchtimeprefix = "/micro_oscill_"
+	benchtimeprefix = "/micro_0_"
+	#energyprefix = "/monsoon_oscill_"
+	energyprefix = "/monsoon_0_"
 
 	path = sys.argv[1]
 
@@ -549,16 +634,17 @@ def main():
 		benchtime_list = []
 		cycles_list = []
 		energy_list = []
-		for run in range(0, 1): #5, 10): #runcount):
+		for run in range(0, 5): #5, 10): #runcount):
 			filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
-			benchtime, coretime_list, graphdata_list, cycles = process_loglines(filename)
+			print(filename)
+			print("%f  %f  %d" % (benchtime, energy, cycles))
+			benchtime, coretime_list, graphdata_list, cycles, _, _ = process_loglines(filename)
 			benchtime_list.append(benchtime)
 			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
 			filename = path + energyprefix + governor + "_1_" + str(run) + ".csv"
 			#energy = get_energy(filename, 8.0, 14.0 + benchtime)
 			energy = 0
 			energy_list.append(energy)
-			print("%f  %f  %d" % (benchtime, energy, cycles))
 		#end_for
 		benchtime_mean, benchtime_err = mean_margin(benchtime_list)
 		benchtime_mean_list.append(benchtime_mean)
@@ -579,6 +665,14 @@ def main():
 	#bargraph_energy(energy_mean_list)
 	#crossplot_benchtime_energy(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list)
 	crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list)
+
+
+	governor = "schedutil_none"
+	run = 0
+	filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
+	_, _, _, _, eventtime_list, frequency_list = process_loglines(filename)
+
+	lineplot_frequency_time(eventtime_list, frequency_list)
 
 	return
 
