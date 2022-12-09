@@ -19,6 +19,12 @@
 	result = write(trace_fd, output_buff, output_len); \
 	errtrap("write");
 
+#define SETSPEED(...) if (lospeed[0] != '0') { \
+	output_len = snprintf( output_buff, OUTPUT_SIZE, __VA_ARGS__ ); \
+	result = write(speed_fd, output_buff, output_len); \
+	errtrap("write"); \
+	}
+
 
 #define errtrap(error) (__errtrap(result, error, __LINE__))
 void __errtrap(int result, const char* error, int line) {
@@ -59,6 +65,8 @@ int main(int argc, char** argv) {
 	unsigned long cycles;
 	int speed_fd;
 	char speed_filename[] = "/sys/devices/system/cpu/cpufreq/policy4/scaling_setspeed";
+	char* lospeed;
+	char* hispeed;
 
 	long long loopcount;
 	long long batchcount;
@@ -100,13 +108,14 @@ int main(int argc, char** argv) {
 
 	// Open handle to sysfs to set CPU speed:
 	result = open(speed_filename, O_RDWR);
-
+	errtrap("open");
+	speed_fd = result;
 
 	memset(&output_buff, 0, sizeof(output_buff));
 
 	PRINTLOG("SQL_START");
 
-	if (argc != 4) {
+	if (argc != 6) {
 		printf("Err:  Incorrect params\n");
 		_Exit(1);
 	}
@@ -118,6 +127,8 @@ int main(int argc, char** argv) {
 	}
 	batchcount = atoi(argv[2]);
 	sleep_ms = atoi(argv[3]);
+	lospeed = argv[4];
+	hispeed = argv[5];
 
 	// Enable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_RESET, 0);
@@ -127,8 +138,12 @@ int main(int argc, char** argv) {
 	innercount = 20;
 	timestart_us = gettime_us();
 	long long i = 0;
-	for (i = 0; i < batchcount; i++) {
-		i++;
+	SETSPEED("%s\n", hispeed);
+	while (1) {
+
+		if (i >= batchcount) {
+			break;
+		}
 
 		for (long long j = 0; j < loopcount / (batchcount * 2); j++) {
 			for (long long k = 0; k < innercount; k++) {
@@ -138,14 +153,16 @@ int main(int argc, char** argv) {
 
 		interval.tv_sec = 0;
 		interval.tv_nsec = sleep_ms * 1000 * 1000;
-
 		if (sleep_ms > 0) {
+			SETSPEED("%s\n", lospeed);
 			result = nanosleep(&interval, NULL);
+			SETSPEED("%s\n", hispeed);
 			errtrap("nanosleep");
 		}
 
-
+		i++;
 	}
+	SETSPEED("%s\n", lospeed);
 	printf("Iter count:  %lld\n", i);
 
 	// Disable collection:
