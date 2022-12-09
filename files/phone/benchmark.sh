@@ -148,16 +148,8 @@ if [ "$experiment" = "microbench" ]; then
 
 	# N.b. SQL_START and SQL_END events are written inside microbenchmark
 
-	#/data/compute.exe 10000 1 7 2 10000000
-	#/data/compute.exe 10000 4096 7 1 0
-	#/data/compute.exe 10000 1 7 1 0
-	#/data/compute.exe 200000000 1000 0
-	#taskset 80 /data/compute.exe 200000000 1000 $bgdelay  # Run microbench pinned to a core
-	#result="$?"
-
-	freq_big_lo="$(echo $frequency | cut -d "-" -f2)"
-	freq_big_hi="$(echo $frequency | cut -d "-" -f4)"
-	taskset 80 /data/compute.exe 200000000 1000 $bgdelay $freq_big_lo $freq_big_hi  # Run microbench pinned to a core
+	#/data/compute.exe 200000000 1000 $bgdelay
+	taskset 80 /data/compute.exe 200000000 1000 $bgdelay  # Run microbench pinned to a core
 	result="$?"
 
 	if [ "$bgdelay" = "oscill" ]; then
