@@ -64,9 +64,6 @@ int main(int argc, char** argv) {
 	long long sum;
 	long sleep_ms;
 
-	long timestart_us;
-	long timenow_us;
-
 	struct timespec interval;
 
 	// Initialize HW performance monitoring structure:
@@ -119,7 +116,6 @@ int main(int argc, char** argv) {
 
 	sum = 0;
 	innercount = 20;
-	timestart_us = gettime_us();
 	long long i = 0;
 	while (1) {
 
@@ -127,7 +123,7 @@ int main(int argc, char** argv) {
 			break;
 		}
 
-		for (long long j = 0; j < loopcount / (batchcount * 2); j++) {
+		for (long long j = 0; j < loopcount / batchcount; j++) {
 			for (long long k = 0; k < innercount; k++) {
 				sum = sum + i + j + k;
 			}
