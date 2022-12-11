@@ -149,7 +149,10 @@ if [ "$experiment" = "microbench" ]; then
 	# N.b. SQL_START and SQL_END events are written inside microbenchmark
 
 	#/data/compute.exe 200000000 1000 $bgdelay
-	taskset 80 /data/compute.exe 200000000 1000 $bgdelay  # Run microbench pinned to a core
+	#taskset 80 /data/compute.exe 200000000 1000 $bgdelay  # Run microbench pinned to a core
+	batchcount="$(echo $bgdelay | cut -d "-" -f1)"
+	sleepiter="$(echo $bgdelay | cut -d "-" -f2)"
+	taskset 80 /data/compute.exe 200000000 $batchcount $sleepiter
 	result="$?"
 
 	if [ "$bgdelay" = "oscill" ]; then
