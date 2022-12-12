@@ -550,7 +550,7 @@ def lineplot_frequency_time(eventtime_list, frequency_list):
 	#end_if
 
 
-	fix, ax_list = plt.subplots(2, 1)
+	fig, ax_list = plt.subplots(2, 1)
 
 	#'''
 	steptime_list = []
@@ -571,7 +571,7 @@ def lineplot_frequency_time(eventtime_list, frequency_list):
 	stepfreq_list.append(prevfreq / (1000 * 1000))
 
 	ax_list[0].plot(steptime_list, stepfreq_list)
-	ax_list[0].axis([0, 8.0, 0, 3.0])
+	ax_list[0].axis([0, 60.0, 0, 3.0])
 	#ax_list[0].axis([0, 30.0, 0, 3.0])
 	ax_list[0].tick_params(labelsize = 16)
 	#ax_list[0].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
@@ -629,7 +629,7 @@ def main():
 
 	path = sys.argv[1]
 
-
+	'''
 	for governor in governor_list:
 		benchtime_list = []
 		cycles_list = []
@@ -665,15 +665,57 @@ def main():
 	#bargraph_energy(energy_mean_list)
 	#crossplot_benchtime_energy(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list)
 	crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list)
+	'''
 
-
-	governor = "schedutil_none"
+	'''
+	benchtimeprefix = "/micro_"
+	governor = "4000-8_schedutil_none"
 	run = 0
 	filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
 	_, _, _, _, eventtime_list, frequency_list = process_loglines(filename)
 
 	lineplot_frequency_time(eventtime_list, frequency_list)
+	'''
 
+	benchtimeprefix = "/micro_"
+	governor = "_schedutil_none"
+	run = 0
+	batch_list = ["500", "1000", "2000", "4000"]
+	sleep_list = ["0", "1", "2", "4", "8"]
+
+	fig, ax_list = plt.subplots(len(sleep_list), len(batch_list))
+
+	for x, batch in enumerate(batch_list):
+		for y, sleep in enumerate(sleep_list):
+			filename = path + benchtimeprefix + batch + "-" + sleep + governor + "_1_" + str(run) + ".gz"
+			_, _, _, _, eventtime_list, frequency_list = process_loglines(filename)
+			print(filename)
+
+
+			steptime_list = []
+			stepfreq_list = []
+			starttime = eventtime_list[-2]
+			prevfreq = frequency_list[0]
+			for time, freq in zip(eventtime_list, frequency_list):
+				#ax.scatter(time / (1000 * 1000) - starttime, freq / (1000 * 1000), color = "black")
+				steptime_list.append(time - starttime)
+				stepfreq_list.append(prevfreq / (1000 * 1000))
+				steptime_list.append(time - starttime)
+				stepfreq_list.append(freq / (1000 * 1000))
+				prevfreq = freq
+			#end_for
+			#ax.scatter(eventtime_list[-1] / (1000 * 1000))
+			#'''
+			steptime_list.append(eventtime_list[-1] - starttime)
+			stepfreq_list.append(prevfreq / (1000 * 1000))
+
+			ax_list[y, x].plot(steptime_list, stepfreq_list)
+			ax_list[y, x].axis([0, 60.0, 0, 3.0])
+
+		#end_for
+	#end_for
+
+	plt.show()
 	return
 
 #end_def
