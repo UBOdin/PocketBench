@@ -53,6 +53,8 @@ send_wakeup() {
 
 error_exit() {
 
+	toggle_events 0
+	set_governor "$default"
 	echo "$1" >> $logfile
 	echo "ERR" > $errfile
 	send_wakeup
@@ -177,12 +179,9 @@ if [ "$experiment" = "microbench" ]; then
 
 	if [ "$bgdelay" = "oscill" ]; then
 		kill -9 $bgpid
-		set_governor "$default"
 	fi
 
 	if [ "$result" != "0" ]; then
-		toggle_events 0
-		set_governor "$default"
 		error_exit "ERR on microbench 1"
 	fi
 
@@ -225,8 +224,6 @@ if [ "$experiment" = "uiautomator" ]; then
 	dumpsys gfxinfo $pkgname > $graphfile
 
 	if [ "$result" != "0" ]; then
-		toggle_events 0
-		set_governor "$default"
 		error_exit "ERR on microbench"
 	fi
 	echo "Microbenchmark result:  ${?}" >> $logfile
@@ -239,23 +236,13 @@ if [ "$experiment" = "uiautomator" ]; then
 		wait $bgpid
 		echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
 		if [ "$result" != "0" ]; then
-			toggle_events 0
-			set_governor "$default"
 			error_exit "ERR on background threads"
 		fi
 	else
 		echo "Background threads:  (normal; N/A)" >> $trace_log
 	fi
 
-fi
-
-
-toggle_events 0
-
-echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
-
-# Crunch gfxinfo data and inject into ftrace:
-if [ "$experiment" = "uiautomator" ]; then
+	# Crunch gfxinfo data and inject into ftrace:
 	# Gross kludge -- hardcoded index map:
 	index_arr=(0 0 0 0 0 0 3 2 0 0 0 0 3 4 4 4 5 4)
 	i=0
@@ -289,20 +276,14 @@ if [ "$experiment" = "uiautomator" ]; then
 	printf "GFX DATA:  %s" "$output" >> $trace_log
 fi
 
+toggle_events 0
+set_governor "$default"
 
-# Trap for on-app error:
-if [ "$result" == "ERR" ]; then
-	set_governor "$default"
-	error_exit "ERR on benchmark app"
-fi
 echo "Received benchmark app finished signal" >> $logfile
-
+echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 printf "Governor used:  %s\n" "$governor" >> $trace_log
 cat $cpu_dir/cpu0/cpufreq/scaling_setspeed >> $trace_log
 cat $cpu_dir/cpu4/cpufreq/scaling_setspeed >> $trace_log
-
-# Reset CPU governors:
-set_governor "$default"
 
 # Sanity check that we are still on battery:
 dumpsys battery > /data/power.txt
