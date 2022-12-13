@@ -149,11 +149,31 @@ if [ "$experiment" = "microbench" ]; then
 	# N.b. SQL_START and SQL_END events are written inside microbenchmark
 
 	#/data/compute.exe 200000000 1000 $bgdelay
-	#taskset 80 /data/compute.exe 200000000 1000 $bgdelay  # Run microbench pinned to a core
+	#taskset $cpumask /data/compute.exe 200000000 1000 $bgdelay  # Run microbench pinned to a core
 	batchcount="$(echo $bgdelay | cut -d "-" -f1)"
-	sleepiter="$(echo $bgdelay | cut -d "-" -f2)"
-	taskset 80 /data/compute.exe 200000000 $batchcount $sleepiter
+	sleepinter="$(echo $bgdelay | cut -d "-" -f2)"
+	cpumask="$(echo $bgdelay | cut -d "-" -f3)"
+	proccount="$(echo $bgdelay | cut -d "-" -f4)"
+	#loopcount="4000000"
+	loopcount="100000000"
+	#loopcount="30000000"
+
+	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
+
+	idlecmd="cat $cpu_dir/cpu*/cpuidle/state*/time"
+	idledata=$($idlecmd)
+	for x in $idledata; do
+		idleconcat="$idleconcat $x"
+	done
+
+	/data/forker.exe $proccount /system/bin/taskset $cpumask /data/compute.exe $loopcount $batchcount $sleepinter
 	result="$?"
+
+	idledata=$($idlecmd)
+	for x in $idledata; do
+		idleconcat="$idleconcat $x"
+	done
+	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
 
 	if [ "$bgdelay" = "oscill" ]; then
 		kill -9 $bgpid
