@@ -1,11 +1,13 @@
 
 #include <android/log.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
+#define OUTPUT_SIZE 256
 #define THREADMAX 128
 
 #define PRINTLOG(...) output_len = snprintf( output_buff, OUTPUT_SIZE, __VA_ARGS__ ); \
@@ -32,6 +34,10 @@ int main(int argc, char** argv) {
 	int threadcount;
 	int pidpool[THREADMAX];
 	int wstatus;
+	int trace_fd;
+	char trace_filename[] = "/sys/kernel/debug/tracing/trace_marker";
+	char output_buff[OUTPUT_SIZE];
+	int output_len;
 
 	threadcount = atoi(argv[1]);
 	if (threadcount > THREADMAX) {
@@ -48,6 +54,12 @@ int main(int argc, char** argv) {
 	if (argv[3][1] == 'e') {
 		distribute_little = 1;
 	}
+
+	// Open handle to ftrace to save output:
+	result = open(trace_filename, O_WRONLY);
+	errtrap("open");
+	trace_fd = result;
+	PRINTLOG("FORK_START");
 
 	for (int i = 0; i < threadcount; i++) {
 
@@ -94,6 +106,9 @@ int main(int argc, char** argv) {
 			_exit(122);
 		}
 	}
+
+	PRINTLOG("FORK_END");
+	close(trace_fd);
 
 	_exit(0);
 
