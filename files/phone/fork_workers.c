@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define THREADMAX 16
+#define THREADMAX 128
 
 
 #define errtrap(error) (__errtrap(result, error, __LINE__))
@@ -35,7 +35,6 @@ void errlog() {
 int main(int argc, char** argv) {
 
 	int result;
-	char binpath[] = "/data/compute.exe";
 	int threadcount;
 	int pidpool[THREADMAX];
 	int wstatus;
@@ -46,7 +45,37 @@ int main(int argc, char** argv) {
 			_exit(133);
 	}
 
+
+	int distribute_big = 0;
+	if (argv[3][0] == 'e') {
+		distribute_big = 1;
+	}
+	int distribute_little = 0;
+	if (argv[3][1] == 'e') {
+		distribute_little = 1;
+	}
+
 	for (int i = 0; i < threadcount; i++) {
+
+		char newval;
+		if (i == 0) {
+			newval = '8';
+		}
+		if (i == 1) {
+			newval = '4';
+		}
+		if (i == 2) {
+			newval = '2';
+		}
+		if (distribute_big == 1) {
+//			printf("Replaced 'e' with '%c' in big cores\n", newval);
+			argv[3][0] = newval;
+		}
+		if (distribute_little == 1) {
+//			printf("Replaced 'e' with '%c' in little cores\n", newval);
+			argv[3][1] = newval;
+		}
+
 		result = fork();
 		errtrap("fork");
 		if (result == 0) {
