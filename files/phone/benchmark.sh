@@ -15,17 +15,24 @@ set_governor() {
 	# Turn on all CPUs and set governor as selected:
 	for i in $cpus; do
 
-		echo "1" > $cpu_dir/cpu$i/online
-		echo "$governor" > $cpu_dir/cpu$i/cpufreq/scaling_governor
-		result=$?  # Sanity check for supported governor
-		if [ "$result" != "0" ]; then
-			error_exit "ERR Invalid governor"
-		fi
-		# Speed is only valid for the userspace governor:
-		if [ "$governor" = "userspace" ]; then
-			if [ "$device" = "nexus6" ]; then
+		if [ "$device" = "nexus6" ]; then
+			echo "1" > $cpu_dir/cpu$i/online
+			echo "$governor" > $cpu_dir/cpu$i/cpufreq/scaling_governor
+			result=$?  # Sanity check for supported governor
+			if [ "$result" != "0" ]; then
+				error_exit "ERR Invalid governor"
+			fi
+			if [ "$governor" = "userspace" ]; then
 				echo "$frequency" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed
-			else
+			fi
+		else
+			#echo "1" > $cpu_dir/cpu$i/online
+			echo "$governor" > $cpu_dir/cpufreq/policy$i/scaling_governor
+			result=$?  # Sanity check for supported governor
+			if [ "$result" != "0" ]; then
+				error_exit "ERR Invalid governor"
+			fi
+			if [ "$governor" = "userspace" ]; then
 				# Extract the specific big-little speeds from the uber-parameter:
 				freq_little="$(echo $frequency | cut -d "-" -f1)"
 				freq_big="$(echo $frequency | cut -d "-" -f2)"
@@ -33,7 +40,6 @@ set_governor() {
 				echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
 			fi
 		fi
-		#cat $cpu_dir/cpu$i/cpufreq/scaling_setspeed >> $logfile
 
 	done
 
@@ -54,7 +60,7 @@ send_wakeup() {
 error_exit() {
 
 	toggle_events 0
-	set_governor "$default"
+	set_governor "$default"  # FIXME:  infinite loop if this fails
 	echo "$1" >> $logfile
 	echo "ERR" > $errfile
 	send_wakeup
