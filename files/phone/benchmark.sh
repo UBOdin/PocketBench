@@ -12,36 +12,32 @@ toggle_events() {
 
 set_governor() {
 
-	# Turn on all CPUs and set governor as selected:
-	for i in $cpus; do
-
-		if [ "$device" = "nexus6" ]; then
+	if [ "$device" = "nexus6" ]; then
+		# Turn on all CPUs and set governor as selected:
+		for i in $cpus; do
 			echo "1" > $cpu_dir/cpu$i/online
 			echo "$governor" > $cpu_dir/cpu$i/cpufreq/scaling_governor
-			result=$?  # Sanity check for supported governor
-			if [ "$result" != "0" ]; then
-				error_exit "ERR Invalid governor"
-			fi
+			errtrap $? "ERR Invalid governor"
 			if [ "$governor" = "userspace" ]; then
 				echo "$frequency" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed
 			fi
-		else
-			#echo "1" > $cpu_dir/cpu$i/online
+		done
+	else
+		#for i in $cpu; do
+		#	echo "1" > $cpu_dir/cpu$i/online
+		#done
+		for i in "0 4"; do
 			echo "$governor" > $cpu_dir/cpufreq/policy$i/scaling_governor
-			result=$?  # Sanity check for supported governor
-			if [ "$result" != "0" ]; then
-				error_exit "ERR Invalid governor"
-			fi
-			if [ "$governor" = "userspace" ]; then
-				# Extract the specific big-little speeds from the uber-parameter:
-				freq_little="$(echo $frequency | cut -d "-" -f1)"
-				freq_big="$(echo $frequency | cut -d "-" -f2)"
-				echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
-				echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
-			fi
+			errtrap $? "ERR Invalid governor"
+		done
+		if [ "$governor" = "userspace" ]; then
+			# Extract the specific big-little speeds from the uber-parameter:
+			freq_little="$(echo $frequency | cut -d "-" -f1)"
+			freq_big="$(echo $frequency | cut -d "-" -f2)"
+			echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
+			echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
 		fi
-
-	done
+	fi
 
 }
 
@@ -66,6 +62,15 @@ error_exit() {
 	send_wakeup
 	echo foo > /sys/power/wake_unlock
 	exit 1
+
+}
+
+errtrap() {
+
+	if [ "$1" = "0" ]; then
+		return
+	fi
+	error_exit $2
 
 }
 
@@ -115,15 +120,13 @@ if [ "$device" = "nexus6" ]; then
 	cpus="0 1 2 3"
 else
 	default="schedutil"
-	cpus="0 4" # List of cpu core groups (0-3 and 4-7 for Pixel 2)
+	cpus="0 1 2 3 4 5 6 7 8"
 fi
 
 # Sanity check that all CPUs are on (at least for Nexus 6, they should be -- not necessarily for Nexus 5):
 for i in $cpus; do
 	result="$(cat $cpu_dir/cpu$i/online)"
-	if [ "$result" != "1" ]; then
-		error_exit "ERR CPUs not all on"
-	fi
+	errtrap $result "ERR CPUs not all on"
 done
 
 # Set governor as selected:
@@ -187,9 +190,7 @@ if [ "$experiment" = "microbench" ]; then
 		kill -9 $bgpid
 	fi
 
-	if [ "$result" != "0" ]; then
-		error_exit "ERR on microbench 1"
-	fi
+	errtrap $result "ERR on microbench 1"
 
 fi
 if [ "$experiment" = "uiautomator" ]; then
@@ -229,9 +230,7 @@ if [ "$experiment" = "uiautomator" ]; then
 
 	dumpsys gfxinfo $pkgname > $graphfile
 
-	if [ "$result" != "0" ]; then
-		error_exit "ERR on microbench"
-	fi
+	errtrap $result "ERR on uiautomator"
 	echo "Microbenchmark result:  ${?}" >> $logfile
 	am start -a android.intent.action.MAIN -c android.intent.category.HOME
 	sleep 5
@@ -240,10 +239,9 @@ if [ "$experiment" = "uiautomator" ]; then
 	# Verify the background workers exited cleanly:
 	if [ "$bgdelay" != "normal" ]; then
 		wait $bgpid
+		result="$?"
 		echo "Background threads:  $bgthreads  Delay:  $bgdelay  Result:  $result" >> $trace_log
-		if [ "$result" != "0" ]; then
-			error_exit "ERR on background threads"
-		fi
+		errtrap $result "ERR on background threads"
 	else
 		echo "Background threads:  (normal; N/A)" >> $trace_log
 	fi
