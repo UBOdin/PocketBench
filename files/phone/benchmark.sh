@@ -26,7 +26,8 @@ set_governor() {
 		#for i in $cpu; do
 		#	echo "1" > $cpu_dir/cpu$i/online
 		#done
-		for i in "0 4"; do
+		clusters="0 4"
+		for i in $clusters; do
 			echo "$governor" > $cpu_dir/cpufreq/policy$i/scaling_governor
 			errtrap $? "ERR Invalid governor"
 		done
@@ -120,7 +121,7 @@ if [ "$device" = "nexus6" ]; then
 	cpus="0 1 2 3"
 else
 	default="schedutil"
-	cpus="0 1 2 3 4 5 6 7 8"
+	cpus="0 1 2 3 4 5 6 7"
 fi
 
 # Sanity check that all CPUs are on (at least for Nexus 6, they should be -- not necessarily for Nexus 5):
