@@ -12,6 +12,7 @@ toggle_events() {
 
 set_governor() {
 
+	local governor="$1"
 	if [ "$device" = "nexus6" ]; then
 		# Turn on all CPUs and set governor as selected:
 		for i in $cpus; do
@@ -71,7 +72,7 @@ errtrap() {
 	if [ "$1" = "0" ]; then
 		return
 	fi
-	error_exit $2
+	error_exit "$2"
 
 }
 
@@ -127,7 +128,9 @@ fi
 # Sanity check that all CPUs are on (at least for Nexus 6, they should be -- not necessarily for Nexus 5):
 for i in $cpus; do
 	result="$(cat $cpu_dir/cpu$i/online)"
-	errtrap $result "ERR CPUs not all on"
+	if [ "$result" != "1" ]; then
+		error_exit "ERR CPUs not all on"
+	fi
 done
 
 # Set governor as selected:
