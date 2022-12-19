@@ -133,21 +133,19 @@ for i in $cpus; do
 	fi
 done
 
-# Set governor as selected:
-set_governor "$governor"
-
-# Turn on tracing:
-echo 150000 > $trace_dir/buffer_size_kb
-toggle_events 1
-echo 1 > $trace_dir/tracing_on
-echo $(date +"Phone time 1:  %H:%M:%S.%N") >> $trace_log
-
 # Set up IPC pipe to retrieve end-of-run info from app:
 rm /data/results.pipe
 mknod /data/results.pipe p
 chmod 777 /data/results.pipe
 
+# Set governor as selected:
+set_governor "$governor"
+toggle_events 1
 
+# Turn on tracing:
+echo 150000 > $trace_dir/buffer_size_kb
+echo 1 > $trace_dir/tracing_on
+echo $(date +"Phone time 1:  %H:%M:%S.%N") >> $trace_log
 echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 
 if [ "$experiment" = "microbench" ]; then
@@ -284,14 +282,14 @@ if [ "$experiment" = "uiautomator" ]; then
 	printf "GFX DATA:  %s" "$output" >> $trace_log
 fi
 
-toggle_events 0
-set_governor "$default"
-
 echo "Received benchmark app finished signal" >> $logfile
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 printf "Governor used:  %s\n" "$governor" >> $trace_log
 cat $cpu_dir/cpu0/cpufreq/scaling_setspeed >> $trace_log
 cat $cpu_dir/cpu4/cpufreq/scaling_setspeed >> $trace_log
+
+toggle_events 0
+set_governor "$default"
 
 # Sanity check that we are still on battery:
 dumpsys battery > /data/power.txt
