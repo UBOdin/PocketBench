@@ -760,8 +760,7 @@ def u_curve():
 	#energyprefix = "/monsoon_2000-0-f0-"
 
 
-	#governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
-	governor_list = ["schedutil_none", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
+	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
 
 
 	path = sys.argv[1]
@@ -785,7 +784,7 @@ def u_curve():
 				benchtime_list.append(benchtime)
 				cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
 				filename = path + energyprefix + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
-				energy = get_energy(filename, 5.0, 49.0) #benchtime + 10.0)
+				energy = get_energy(filename, 5.0, benchtime + 10.0)
 				energy_list.append(energy)
 				print("%f  %f" % (benchtime, energy))
 			#end_for
@@ -809,7 +808,6 @@ def u_curve():
 		energy_err_list_list.append(energy_err_list)
 	#end_for
 
-
 	fig, ax = plt.subplots()
 
 	plotcount = 0
@@ -820,12 +818,12 @@ def u_curve():
 	plotcount = len(energy_mean_list_list[0])
 	print("plotcount:  " + str(plotcount))
 	offset_list = np.arange(1.0, plotcount + 1.0, 1.0)
-	'''
+	#'''
 	color_list.append("red")
 	for i in range(plotcount - 1):
 		color_list.append("blue")
 	#end_for
-	'''
+	#'''
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	#label_list = ""
 
@@ -835,8 +833,7 @@ def u_curve():
 		ax.errorbar(offset_list, energy_mean_list, yerr = energy_err_list, color = color)  #elinewidth = 2, capsize = 10, capthick = 2
 	#end_for
 
-	#xlabel_list = ["schedutil", "fix 30", "fix 40", "fix 50", "fix 60", "fix 70", "fix 80", "fix 90", "fix 100"]
-	xlabel_list = ["schedutil", "fix 50", "fix 60", "fix 70", "fix 80", "fix 90", "fix 100"]
+	xlabel_list = ["schedutil", "fix 30", "fix 40", "fix 50", "fix 60", "fix 70", "fix 80", "fix 90", "fix 100"]
 	ax.set_xticks(offset_list, False)
 	ax.set_xticklabels([])
 	ax.set_xticklabels(xlabel_list)
@@ -855,6 +852,52 @@ def u_curve():
 
 	#plt.tight_layout()
 	plt.subplots_adjust(bottom = 0.15)
+	plt.show()
+	plt.close("all")
+
+	nplots = 2
+	if (nplots == 1):
+		fig, ax = plt.subplots()
+		ax_list = []
+		ax_list.append(ax)
+	else:
+		fig, ax_list = plt.subplots(1, nplots)
+	#end_if
+
+	annotate_list = ["def", "30", "40", "50", "60", "70", "80", "90", "100"]
+
+	for i, (benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list, color) in enumerate(zip(benchtime_mean_list_list, benchtime_err_list_list, energy_mean_list_list, energy_err_list_list, color_list)):
+		for j in range(nplots):
+			ax_list[j].scatter(benchtime_mean_list[0], energy_mean_list[0], s = 50, color = color, marker = "s", label = "CPUs:  " + str(i + 1))
+			ax_list[j].scatter(benchtime_mean_list[1:], energy_mean_list[1:], s = 50, color = color)
+			ax_list[j].errorbar(benchtime_mean_list[1:], energy_mean_list[1:], xerr = benchtime_err_list[1:], yerr = energy_err_list[1:], color = color)  #elinewidth = 2, capsize = 10, capthick = 2
+			if (j != 0):
+				for benchtime_mean, energy_mean, annotate in zip(benchtime_mean_list, energy_mean_list, annotate_list):
+					ax_list[j].annotate(annotate, xy = (benchtime_mean + .015, energy_mean + 10), fontsize = 16)
+				#end_for
+			#end_if
+		#end_for
+	#end_for
+
+	ax_list[0].tick_params(labelsize = 16)
+	ax_list[0].axis([0, 70, 0, 2000])
+	#ax_list[0].set_title("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list[0].legend(loc = "upper right", fontsize = 16)
+
+	#'''
+	ax_list[1].tick_params(labelsize = 16)
+	#ax_list[1].axis([0, 24, 0, 2000])
+	#ax_list[1].set_title("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list[1].legend(loc = "lower right", fontsize = 16)
+	#'''
+
+	fig.suptitle("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count\n(Little CPUs) (5 runs)", fontsize = 16, fontweight = "bold")
+	#fig.delaxes(ax_list[1])
+	#plt.tight_layout()
 	plt.show()
 
 	return
