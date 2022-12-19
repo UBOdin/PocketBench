@@ -38,6 +38,12 @@ int main(int argc, char** argv) {
 	char trace_filename[] = "/sys/kernel/debug/tracing/trace_marker";
 	char output_buff[OUTPUT_SIZE];
 	int output_len;
+	int distribute_big;
+	int distribute_little;
+	long long loopcount;
+	char newarg_buff[OUTPUT_SIZE];
+
+	memset(&output_buff, 0, sizeof(output_buff));
 
 	threadcount = atoi(argv[1]);
 	if (threadcount > THREADMAX) {
@@ -45,15 +51,19 @@ int main(int argc, char** argv) {
 			_exit(133);
 	}
 
-
-	int distribute_big = 0;
-	if (argv[3][0] == 'e') {
+	distribute_big = 0;
+	if ((argv[3][0] == 'c') || (argv[3][0] == 'e') || (argv[3][0] == 'f')) {
 		distribute_big = 1;
 	}
-	int distribute_little = 0;
-	if (argv[3][1] == 'e') {
+	distribute_little = 0;
+	if ((argv[3][1] == 'c') || (argv[3][1] == 'e') || (argv[3][1] == 'f')) {
 		distribute_little = 1;
 	}
+
+	memset(&newarg_buff, 0, sizeof(newarg_buff));
+	loopcount = atoi(argv[5]);
+	snprintf(newarg_buff, OUTPUT_SIZE, "%lld", loopcount / threadcount);
+	argv[5] = newarg_buff;
 
 	// Open handle to ftrace to save output:
 	result = open(trace_filename, O_WRONLY);
@@ -73,12 +83,13 @@ int main(int argc, char** argv) {
 		if (i == 2) {
 			newval = '2';
 		}
+		if (i == 3) {
+			newval = '1';
+		}
 		if (distribute_big == 1) {
-//			printf("Replaced 'e' with '%c' in big cores\n", newval);
 			argv[3][0] = newval;
 		}
 		if (distribute_little == 1) {
-//			printf("Replaced 'e' with '%c' in little cores\n", newval);
 			argv[3][1] = newval;
 		}
 
