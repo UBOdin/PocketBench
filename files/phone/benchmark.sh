@@ -76,6 +76,16 @@ errtrap() {
 
 }
 
+get_idledata() {
+
+	idlecmd="cat $cpu_dir/cpu*/cpuidle/state*/time"
+	idledata=$($idlecmd)
+	for x in $idledata; do
+		idleconcat="$idleconcat $x"
+	done
+
+}
+
 
 echo foo > /sys/power/wake_lock
 
@@ -173,19 +183,10 @@ if [ "$experiment" = "microbench" ]; then
 
 	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
 
-	idlecmd="cat $cpu_dir/cpu*/cpuidle/state*/time"
-	idledata=$($idlecmd)
-	for x in $idledata; do
-		idleconcat="$idleconcat $x"
-	done
-
+	get_idledata
 	/data/forker.exe $proccount /system/bin/taskset $cpumask /data/compute.exe $loopcount $batchcount $sleepinter
 	result="$?"
-
-	idledata=$($idlecmd)
-	for x in $idledata; do
-		idleconcat="$idleconcat $x"
-	done
+	get_idledata
 	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
 
 	if [ "$bgdelay" = "oscill" ]; then
@@ -212,22 +213,14 @@ if [ "$experiment" = "uiautomator" ]; then
 	#pkgtest="com.example.test.CalcTest"
 
 	dumpsys gfxinfo $pkgname reset > /dev/null
-
-	idlecmd="cat $cpu_dir/cpu*/cpuidle/state*/time"
-	idledata=$($idlecmd)
-	for x in $idledata; do
-		idleconcat="$idleconcat $x"
-	done
+	get_idledata
 
 	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
 	am instrument -w -e class $pkgtest com.example.test.test
 	result="$?"
 	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
 
-	idledata=$($idlecmd)
-	for x in $idledata; do
-		idleconcat="$idleconcat $x"
-	done
+	get_idledata
 	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
 
 	dumpsys gfxinfo $pkgname > $graphfile
