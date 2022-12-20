@@ -204,12 +204,13 @@ def process_loglines(file_name):  #, trace_list_list):
 
 	input_file.close()
 
-	'''
+	#'''
 	if (len(idledata_list) != 8 * 3 * 2):
 		print("Unexpected length")
 		sys.exit(1)
 	#end
 
+	'''
 	idlefloat_list = []
 	for e in idledata_list:
 		idlefloat_list.append(float(e) / 1000000)
@@ -229,10 +230,10 @@ def process_loglines(file_name):  #, trace_list_list):
 	print(idledata_list)
 	print(idlefloat_list)
 	print(runtime_list)
-
-	print("Early exit")
-	sys.exit(0)
 	'''
+	#print("Early exit")
+	#sys.exit(0)
+	#'''
 	#print(endtime - starttime)
 	#print(newidle_list)
 	#print(runtime_list)
@@ -501,34 +502,70 @@ def crossplot_benchtime_energy(benchtime_mean_list, benchtime_err_list, energy_m
 
 	#label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
 	#color_list = ["red", "blue", "green", "orange", "brown"]
-	label_list = ["oscillating speed", "steady mean speed", "low speed", "high speed"]
+	#label_list = ["oscillating speed", "steady mean speed", "low speed", "high speed"]
+	label_list = ["3 CPUs 70%", "3 CPUs 23%", "1 CPU 70%", "1 CPU 23%"]
 	color_list = ["blue", "green", "orange", "brown"]
 
-	for benchtime_mean, benchtime_err, energy_mean, energy_err, label, color in zip(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list, label_list, color_list):
+	'''
+	for i, (benchtime_mean, benchtime_err, energy_mean, energy_err, label, color) in enumerate(zip(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list, label_list, color_list)):
 		print("%f  %f" % (benchtime_mean, energy_mean))
-		for i in range(nplots):
-			ax_list[i].scatter(benchtime_mean, energy_mean, s = 100, color = color, label = label)
-			ax_list[i].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, color = color)
-			ax_list[i].errorbar(benchtime_mean, energy_mean, yerr = energy_err, color = color)
-		#end_for
+		if (i < 4):
+			ax_list[0].scatter(benchtime_mean, energy_mean, s = 100, color = color, label = label)
+			ax_list[0].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, color = color)
+			ax_list[0].errorbar(benchtime_mean, energy_mean, yerr = energy_err, color = color)
+		else:
+			ax_list[1].scatter(benchtime_mean, energy_mean, s = 100, color = color, label = label)
+			ax_list[1].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, color = color)
+			ax_list[1].errorbar(benchtime_mean, energy_mean, yerr = energy_err, color = color)
+		#end_if
+	#end_for
+	'''
+
+	for i in range(4):
+
+		color = color_list[i]
+		label = label_list[i]
+
+		benchtime_mean = benchtime_mean_list[i]
+		benchtime_err = benchtime_err_list[i]
+		energy_mean = energy_mean_list[i]
+		energy_err = energy_err_list[i]
+		ax_list[0].scatter(benchtime_mean, energy_mean, s = 100, color = color, label = label)
+		ax_list[0].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, color = color)
+		ax_list[0].errorbar(benchtime_mean, energy_mean, yerr = energy_err, color = color)
+
+		benchtime_mean = benchtime_mean_list[i + 4]
+		benchtime_err = benchtime_err_list[i + 4]
+		energy_mean = energy_mean_list[i + 4]
+		energy_err = energy_err_list[i + 4]
+		ax_list[1].scatter(benchtime_mean, energy_mean, s = 100, color = color, label = label)
+		ax_list[1].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, color = color)
+		ax_list[1].errorbar(benchtime_mean, energy_mean, yerr = energy_err, color = color)
+
 	#end_for
 
-	'''
-	ax_list[0].axis([0, 10, 0, 2000])
+
+	#'''
+	#ax_list[0].axis([0, 10, 0, 2000])
+	ax_list[0].axis([0, 100, 0, 1500])
 	ax_list[0].tick_params(labelsize = 16)
 	ax_list[0].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
 	ax_list[0].set_ylabel("Energy, $uAh$", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
-	ax_list[0].legend(loc = "center left", fontsize = 16)
+	#ax_list[0].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
+	ax_list[0].legend(loc = "lower right", fontsize = 16)
 
-	ax_list[1].axis([7.2, 7.8, 1050, 1150])
+	#ax_list[1].axis([7.2, 7.8, 1050, 1150])
+	ax_list[1].axis([0, 100, 0, 1500])
 	ax_list[1].tick_params(labelsize = 16)
 	ax_list[1].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
 	#ax_list[1].set_ylabel("Energy, $uAh$", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
-	#ax_list[1].legend(loc = "center left", fontsize = 16)
-	'''
+	#ax_list[1].set_title("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds (10 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
+	ax_list[1].legend(loc = "lower right", fontsize = 16)
+	#'''
 
+	fig.suptitle("Runtime and Energy for Fixed Compute,\nVarying CPU Speeds and CPU count (5 runs)", fontsize = 16, fontweight = "bold")
 	plt.show()
 
 	return
@@ -620,9 +657,12 @@ def main():
 	cycles_err_list = []
 
 	#governor_list = ["80-3_userspace_70", "e0-3_userspace_23", "80-3_userspace_23", "e0-3_userspace_70"]
-	governor_list = ["e0-3_userspace_70", "e0-3_userspace_23", "80-3_userspace_70", "80-3_userspace_23"]
+	#governor_list = ["e0-3_userspace_70", "e0-3_userspace_23", "80-3_userspace_70", "80-3_userspace_23"]
 	#governor_list = ["08-3_userspace_70", "0e-3_userspace_23", "0e-3_userspace_70", "08-3_userspace_23"]
 	#governor_list = ["0e-3_userspace_70", "0e-3_userspace_23", "08-3_userspace_70", "08-3_userspace_23"]
+	#governor_list = ["e0-3_userspace_70", "e0-3_userspace_23", "80-3_userspace_70", "80-3_userspace_23", "0e-3_userspace_70", "0e-3_userspace_23", "08-3_userspace_70", "08-3_userspace_23"]
+	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
+
 	benchtimeprefix = "/micro_2000-0-"
 	energyprefix = "/monsoon_2000-0-"
 
@@ -633,14 +673,14 @@ def main():
 		benchtime_list = []
 		cycles_list = []
 		energy_list = []
-		for run in range(0, 5): #5, 10): #runcount):
-			filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
+		for run in range(0, 1):
+			filename = path + benchtimeprefix + "f0-1_" + governor + "_1_" + str(run) + ".gz"
 			print(filename)
 			benchtime, coretime_list, graphdata_list, cycles, _, _ = process_loglines(filename)
 			benchtime_list.append(benchtime)
 			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
 			filename = path + energyprefix + governor + "_1_" + str(run) + ".csv"
-			energy = get_energy(filename, 5.0, benchtime + 15.0)
+			energy = 0 #get_energy(filename, 5.0, benchtime + 15.0)
 			energy_list.append(energy)
 			print("%f  %f" % (benchtime, energy))
 		#end_for
@@ -657,8 +697,10 @@ def main():
 		energy_err_list.append(energy_err)
 	#end_for
 
-	#print("Early exit")
-	#sys.exit(0)
+	'''
+	print("Early exit")
+	sys.exit(0)
+	'''
 
 	print(benchtime_mean_list)
 
@@ -734,14 +776,9 @@ def u_curve():
 	benchtime_err_list = []
 	benchtime_mean_list_list = []
 	benchtime_err_list_list = []
-	energy = 0
-	energy_list = []
-	energy_mean = 0
-	energy_err = 0
-	energy_mean_list = []
-	energy_mean_list_list = []
-	energy_err_list_list = []
-	energy_err_list = []
+	benchtime_mean_list_list_list = []
+	benchtime_err_list_list_list = []
+
 	coretime_list = []
 	graphdata_list = []
 
@@ -753,61 +790,89 @@ def u_curve():
 	cycles_err_list = []
 	cycles_mean_list_list = []
 	cycles_err_list_list = []
+	cycles_mean_list_list_list = []
+	cycles_err_list_list_list = []
 
-	benchtimeprefix = "/micro_2000-0-0f-"
+	energy = 0
+	energy_list = []
+	energy_mean = 0
+	energy_err = 0
+	energy_mean_list = []
+	energy_err_list = []
+	energy_mean_list_list = []
+	energy_err_list_list = []
+	energy_mean_list_list_list = []
+	energy_err_list_list_list = []
+
+	#benchtimeprefix = "/micro_2000-0-0f-"
 	#benchtimeprefix = "/micro_2000-0-f0-"
-	energyprefix = "/monsoon_2000-0-0f-"
+	#energyprefix = "/monsoon_2000-0-0f-"
 	#energyprefix = "/monsoon_2000-0-f0-"
+	benchtimeprefix = "/micro_2000-0-"
+	energyprefix = "/monsoon_2000-0-"
 
-
+	cputype_list = ["0f", "f0"]
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
 
 
 	path = sys.argv[1]
 
-	#'''
-	for cpucount in range(1, 5):
-		benchtime_mean_list = []
-		benchtime_err_list = []
-		cycles_mean_list = []
-		cycles_err_list = []
-		energy_mean_list = []
-		energy_err_list = []
-		for governor in governor_list:
-			benchtime_list = []
-			cycles_list = []
-			energy_list = []
-			for run in range(0, 5): #runcount):
-				filename = path + benchtimeprefix + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
-				print(filename)
-				benchtime, coretime_list, graphdata_list, cycles, _, _ = process_loglines(filename)
-				benchtime_list.append(benchtime)
-				cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
-				filename = path + energyprefix + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
-				energy = get_energy(filename, 5.0, benchtime + 10.0)
-				energy_list.append(energy)
-				print("%f  %f" % (benchtime, energy))
+	for cputype in cputype_list:
+		benchtime_mean_list_list = []
+		benchtime_err_list_list = []
+		cycles_mean_list_list = []
+		cycles_err_list_list = []
+		energy_mean_list_list = []
+		energy_err_list_list = []
+		for cpucount in range(1, 5):
+			benchtime_mean_list = []
+			benchtime_err_list = []
+			cycles_mean_list = []
+			cycles_err_list = []
+			energy_mean_list = []
+			energy_err_list = []
+			for governor in governor_list:
+				benchtime_list = []
+				cycles_list = []
+				energy_list = []
+				for run in range(0, 5): #runcount):
+					#filename = path + benchtimeprefix + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
+					filename = path + benchtimeprefix + cputype + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
+					print(filename)
+					benchtime, coretime_list, graphdata_list, cycles, _, _ = process_loglines(filename)
+					benchtime_list.append(benchtime)
+					cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
+					#filename = path + energyprefix + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
+					filename = path + energyprefix + cputype + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
+					energy = get_energy(filename, 5.0, benchtime + 10.0)
+					energy_list.append(energy)
+					print("%f  %f" % (benchtime, energy))
+				#end_for
+				benchtime_mean, benchtime_err = mean_margin(benchtime_list)
+				benchtime_mean_list.append(benchtime_mean)
+				benchtime_err_list.append(benchtime_err)
+				cycles_mean, cycles_err = mean_margin(cycles_list)
+				cycles_mean_list.append(cycles_mean)
+				cycles_err_list.append(cycles_err)
+				energy_mean, energy_err = mean_margin(energy_list)
+				energy_mean_list.append(energy_mean)
+				energy_err_list.append(energy_err)
 			#end_for
-			benchtime_mean, benchtime_err = mean_margin(benchtime_list)
-			benchtime_mean_list.append(benchtime_mean)
-			benchtime_err_list.append(benchtime_err)
-
-			cycles_mean, cycles_err = mean_margin(cycles_list)
-			cycles_mean_list.append(cycles_mean)
-			cycles_err_list.append(cycles_err)
-
-			energy_mean, energy_err = mean_margin(energy_list)
-			energy_mean_list.append(energy_mean)
-			energy_err_list.append(energy_err)
+			benchtime_mean_list_list.append(benchtime_mean_list)
+			benchtime_err_list_list.append(benchtime_err_list)
+			cycles_mean_list_list.append(cycles_mean_list)
+			cycles_err_list_list.append(cycles_err_list)
+			energy_mean_list_list.append(energy_mean_list)
+			energy_err_list_list.append(energy_err_list)
 		#end_for
-		benchtime_mean_list_list.append(benchtime_mean_list)
-		benchtime_err_list_list.append(benchtime_err_list)
-		cycles_mean_list_list.append(cycles_mean_list)
-		cycles_err_list_list.append(cycles_err_list)
-		energy_mean_list_list.append(energy_mean_list)
-		energy_err_list_list.append(energy_err_list)
+		benchtime_mean_list_list_list.append(benchtime_mean_list_list)
+		benchtime_err_list_list_list.append(benchtime_err_list_list)
+		cycles_mean_list_list_list.append(cycles_mean_list_list)
+		cycles_err_list_list_list.append(cycles_err_list_list)
+		energy_mean_list_list_list.append(energy_mean_list_list)
+		energy_err_list_list_list.append(energy_err_list_list)
 	#end_for
-
+	'''
 	fig, ax = plt.subplots()
 
 	plotcount = 0
@@ -818,12 +883,6 @@ def u_curve():
 	plotcount = len(energy_mean_list_list[0])
 	print("plotcount:  " + str(plotcount))
 	offset_list = np.arange(1.0, plotcount + 1.0, 1.0)
-	#'''
-	color_list.append("red")
-	for i in range(plotcount - 1):
-		color_list.append("blue")
-	#end_for
-	#'''
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	#label_list = ""
 
@@ -854,7 +913,9 @@ def u_curve():
 	plt.subplots_adjust(bottom = 0.15)
 	plt.show()
 	plt.close("all")
+	'''
 
+	'''
 	nplots = 2
 	if (nplots == 1):
 		fig, ax = plt.subplots()
@@ -863,39 +924,58 @@ def u_curve():
 	else:
 		fig, ax_list = plt.subplots(1, nplots)
 	#end_if
+	'''
+	x_subplots = 2
+	y_subplots = 2
+	fig, ax_list = plt.subplots(y_subplots, x_subplots)
 
+	color_list = ["red", "blue", "green", "orange", "brown"]
 	annotate_list = ["def", "30", "40", "50", "60", "70", "80", "90", "100"]
 
-	for i, (benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list, color) in enumerate(zip(benchtime_mean_list_list, benchtime_err_list_list, energy_mean_list_list, energy_err_list_list, color_list)):
-		for j in range(nplots):
-			ax_list[j].scatter(benchtime_mean_list[0], energy_mean_list[0], s = 50, color = color, marker = "s", label = "CPUs:  " + str(i + 1))
-			ax_list[j].scatter(benchtime_mean_list[1:], energy_mean_list[1:], s = 50, color = color)
-			ax_list[j].errorbar(benchtime_mean_list[1:], energy_mean_list[1:], xerr = benchtime_err_list[1:], yerr = energy_err_list[1:], color = color)  #elinewidth = 2, capsize = 10, capthick = 2
-			if (j != 0):
-				for benchtime_mean, energy_mean, annotate in zip(benchtime_mean_list, energy_mean_list, annotate_list):
-					ax_list[j].annotate(annotate, xy = (benchtime_mean + .015, energy_mean + 10), fontsize = 16)
-				#end_for
-			#end_if
+	for x, benchtime_mean_list_list, benchtime_err_list_list, energy_mean_list_list, energy_err_list_list in zip(range(x_subplots), benchtime_mean_list_list_list, benchtime_err_list_list_list, energy_mean_list_list_list, energy_err_list_list_list):
+		for j, (benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list, color) in enumerate(zip(benchtime_mean_list_list, benchtime_err_list_list, energy_mean_list_list, energy_err_list_list, color_list)):
+			for y in range(y_subplots):
+				ax_list[y][x].scatter(benchtime_mean_list[0], energy_mean_list[0], s = 50, color = color, marker = "s", label = "CPUs:  " + str(j + 1))
+				ax_list[y][x].scatter(benchtime_mean_list[1:], energy_mean_list[1:], s = 50, color = color)
+				ax_list[y][x].errorbar(benchtime_mean_list[1:], energy_mean_list[1:], xerr = benchtime_err_list[1:], yerr = energy_err_list[1:], color = color)
+				if (y != 0):
+					for benchtime_mean, energy_mean, annotate in zip(benchtime_mean_list, energy_mean_list, annotate_list):
+						ax_list[y][x].annotate(annotate, xy = (benchtime_mean + .015, energy_mean + 10), fontsize = 12)
+					#end_for
+				#end_if
+			#end_for
 		#end_for
 	#end_for
 
-	ax_list[0].tick_params(labelsize = 16)
-	ax_list[0].axis([0, 70, 0, 2000])
-	#ax_list[0].set_title("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
-	ax_list[0].legend(loc = "upper right", fontsize = 16)
-
 	#'''
-	ax_list[1].tick_params(labelsize = 16)
-	#ax_list[1].axis([0, 24, 0, 2000])
-	#ax_list[1].set_title("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
-	#ax_list[1].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
-	ax_list[1].legend(loc = "lower right", fontsize = 16)
+	ax_list[0][0].tick_params(labelsize = 16)
+	ax_list[0][0].axis([0, 70, 0, 2000])
+	ax_list[0][0].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
+	#ax_list[0][0].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	ax_list[0][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list[0][0].legend(loc = "upper right", fontsize = 16)
 	#'''
-
-	fig.suptitle("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count\n(Little CPUs) (5 runs)", fontsize = 16, fontweight = "bold")
+	#'''
+	ax_list[1][0].tick_params(labelsize = 16)
+	#ax_list[1][0].axis([0, 24, 0, 2000])
+	ax_list[1][0].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	ax_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	#ax_list[1][0].legend(loc = "upper right", fontsize = 16)
+	#'''
+	ax_list[0][1].tick_params(labelsize = 16)
+	ax_list[0][1].axis([0, 70, 0, 2000])
+	ax_list[0][1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
+	#ax_list[0][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	#ax_list[0][1].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list[0][1].legend(loc = "upper right", fontsize = 16)
+	
+	ax_list[1][1].tick_params(labelsize = 16)
+	#ax_list[1][1].axis([0, 24, 0, 2000])
+	ax_list[1][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	#ax_list[1][1].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list[1][1].legend(loc = "upper right", fontsize = 16)
+	
+	fig.suptitle("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count\n(5 runs)", fontsize = 16, fontweight = "bold")
 	#fig.delaxes(ax_list[1])
 	#plt.tight_layout()
 	plt.show()
