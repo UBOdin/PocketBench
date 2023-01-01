@@ -183,9 +183,17 @@ if [ "$experiment" = "microbench" ]; then
 
 	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
 
+	waittime="70"
+	sleep $waittime &
+	waitpid="$!"
+
 	get_idledata
-	/data/forker.exe $proccount /system/bin/taskset $cpumask /data/compute.exe $loopcount $batchcount $sleepinter
-	result="$?"
+	if [ "$proccount" != "0" ]; then
+		/data/forker.exe $proccount /system/bin/taskset $cpumask /data/compute.exe $loopcount $batchcount $sleepinter
+		result="$?"
+	else
+		result="0"
+	fi
 	get_idledata
 	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
 
@@ -194,6 +202,9 @@ if [ "$experiment" = "microbench" ]; then
 	fi
 
 	errtrap $result "ERR on microbench 1"
+
+	wait $waitpid
+	echo "Finished fixed time $waittime" >> $trace_log
 
 fi
 if [ "$experiment" = "uiautomator" ]; then
