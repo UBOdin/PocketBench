@@ -2,8 +2,8 @@
 cpu_dir=/sys/devices/system/cpu
 
 freq_little_lo=$1
-freq_little_hi=$3
 freq_big_lo=$2
+freq_little_hi=$3
 freq_big_hi=$4
 
 interval=".02"
