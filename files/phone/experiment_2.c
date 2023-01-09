@@ -66,6 +66,8 @@ int main(int argc, char** argv) {
 
 	struct timespec interval;
 
+	memset(&output_buff, 0, sizeof(output_buff));
+
 	// Initialize HW performance monitoring structure:
 	memset(&pea_struct, 0, sizeof(pea_struct));
 	pea_struct.type = PERF_TYPE_HARDWARE;
@@ -92,8 +94,6 @@ int main(int argc, char** argv) {
 	result = open(trace_filename, O_WRONLY);
 	errtrap("open");
 	trace_fd = result;
-
-	memset(&output_buff, 0, sizeof(output_buff));
 
 	PRINTLOG("SQL_START");
 
