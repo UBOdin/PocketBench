@@ -35,6 +35,13 @@ public class MetaTest {
     private UiDevice device;
     String logflag = "TESTFLAG";
 
+    static {
+        System.loadLibrary("perflib");
+    }
+
+    public static native int startcount(int dummy);
+    public static native int stopcount(int dummy);
+
     @Before
     public void startMainActivityFromHomeScreen() {
 
