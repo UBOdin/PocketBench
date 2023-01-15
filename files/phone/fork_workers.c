@@ -41,7 +41,6 @@ int main(int argc, char** argv) {
 	int distribute_big;
 	int distribute_little;
 	long long loopcount;
-	char newarg_buff[OUTPUT_SIZE];
 
 	memset(&output_buff, 0, sizeof(output_buff));
 
@@ -59,11 +58,6 @@ int main(int argc, char** argv) {
 	if ((argv[3][1] == 'c') || (argv[3][1] == 'e') || (argv[3][1] == 'f')) {
 		distribute_little = 1;
 	}
-
-	memset(&newarg_buff, 0, sizeof(newarg_buff));
-	loopcount = atoi(argv[5]);
-	snprintf(newarg_buff, OUTPUT_SIZE, "%lld", loopcount / threadcount);
-	argv[5] = newarg_buff;
 
 	// Open handle to ftrace to save output:
 	result = open(trace_filename, O_WRONLY);
