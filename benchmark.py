@@ -46,15 +46,23 @@ def command(string_array):
 
 
 	if (governor != "userspace"):
-		speed = "none:0-0" # Don't use slashes (messes with subdirectories) or parentheses (messes with scripting) or semicolons (ditto)
+		speed = "none:0-0-0-0" # Don't use slashes (messes with subdirectories) or parentheses (messes with scripting) or semicolons (ditto)
 	else:
-		'''
-		little_speed = int(speed) * 19008  # % of lomax (1900800)
-		big_speed = int(speed) * 24576  # % of himax (2457600)
-		speed = speed + ":" + str(little_speed) + "-" + str(big_speed)
-		'''
+		#'''
+		speed = speed + "-" + speed
+
+		speed_list = speed.split("-")
+		lospeed = speed_list[0]
+		hispeed = speed_list[1]
+		little_lospeed = int(lospeed) * 19008  # % of lomax (1900800)
+		big_lospeed = int(lospeed) * 24576  # % of himax (2457600)
+		little_hispeed = int(hispeed) * 19008  # % of lomax (1900800)
+		big_hispeed = int(hispeed) * 24576  # % of himax (2457600)
+		speed = lospeed + "-" + hispeed + ":" + str(little_lospeed) + "-" + str(big_lospeed) + "-" + str(little_hispeed) + "-" + str(big_hispeed)
+		#'''
 		#speed = speed + ":" + str(int(speed) * 26496)
 
+		'''
 		# 1824000 little
 		# 2342400 big
 		# 1747200 1900800 little
@@ -71,10 +79,22 @@ def command(string_array):
 			print("bad governor")
 			#sys.exit(1)
 		#end_if
+		'''
+		'''
+		#if ((delay == "2000-0-80-3") or (delay == "2000-0-08-3")):
+		if (speed == "23"):
+			#speed = "70:1324800-1728000-lh-bh"
+			speed = "23:441600-576000-lh-bh"
+		#end_if
+		#if ((delay == "2000-0-e0-3") or (delay == "2000-0-0e-3")):
+		if (speed == "70"):
+			#speed = "23:441600-576000-lh-bh"
+			speed = "70:1324800-1728000-lh-bh"
+		#end_if
+		'''
 	#end_if
 	print("Speed:  " + speed)
 
-	print("Running " + database + " " + workload)
 	check = device_connected()
 	if (check == False):
 		print("No Device Connected!")
@@ -126,20 +146,23 @@ def main():
 
 			if (input[0].lower() == "what"):
 
-				governor_list = ["schedutil x"]
-				#governor_list = ["schedutil x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
+				governor_list = ["schedutil x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
 				#governor_list = ["interactive x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
-				#governor_list = ["userspace oscillate", "userspace mid", "userspace low", "userspace high"]
+				#governor_list = ["schedutil x", "userspace oscillate", "userspace mid", "userspace low", "userspace high"]
+				#governor_list = ["schedutil x", "userspace 70-100", "userspace 70-70", "userspace 100-100", "performance x"]
+				#governor_list = ["userspace 23", "userspace 70"]
 
-				#delay_list = ["0ms", "lognormal"]
-				delay_list = ["oscill"]
+				#delay_list = ["oscill"]
 				#delay_list = ["normal", "50", "20", "5", "2", "0"]
+				delay_list = ["normal"]
+				#delay_list = ["2000-0-00-0", "2000-0-f0-1", "2000-0-f0-2", "2000-0-f0-3", "2000-0-f0-4", "2000-0-0f-1", "2000-0-0f-2", "2000-0-0f-3", "2000-0-0f-4"]
 
 				threads_list = ["1"]
+				#threads_list = ["80", "c0", "e0", "f0"]
 
-				run_count = 10
+				run_count = 5
 
-				skip_count = 8
+				skip_count = 117 + 181
 
 				iteration = 0
 
@@ -148,7 +171,8 @@ def main():
 					for delay in delay_list:
 						for governor in governor_list:
 							for threads in threads_list:
-								parameters = workload + " " + governor + " " + delay + " " + threads + " " + str(runno)
+								parameters = governor + " " + delay + " " + threads + " " + str(runno)
+								#parameters = governor + " " + delay + "-" + threads + " 1 " + str(runno)
 								if (iteration < skip_count):
 										print("Skipping workload %d:  %s" % (iteration, parameters))
 								else:
