@@ -965,9 +965,15 @@ def macro_speed_pertime():
 		freqtimetotal_dict_list.append({})
 	#end_for
 
-	fig, ax = plt.subplots()
+	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
 
-	for cpu in range(7, 8):
+	fig, ax_list = plt.subplots(2, 4)
+
+	for cpu in range(0, 8):
+		xplot = cpu % 4
+		yplot = int(cpu / 4)
+		print("%d  %d"  % (xplot, yplot))
+
 
 		# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
 		prevtime = eventtime_list[0]  # Reset starttime to start of measurement
@@ -1004,15 +1010,15 @@ def macro_speed_pertime():
 			freqtimetotal_dict[key] = timetotal
 
 			print("%f  %f" % (key / 245760, timetotal))
-			ax.bar(float(key) / 245760, timetotal, color = "blue", width = .1)
+			#ax_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
+			ax_list[yplot][xplot].bar(float(key) / 245760, timetotal, color = "blue", width = .1)
 
 		#end_for
 		freqtimetotal_dict_list[cpu] = freqtimetotal_dict
 
-		plt.show()
-
 	#end_for
 
+	plt.show()
 
 #end_def
 
