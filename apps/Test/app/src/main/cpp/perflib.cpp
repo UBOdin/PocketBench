@@ -11,15 +11,22 @@
 #include <string.h>
 #include <unistd.h>
 
-#define PERFBUFF_SIZE 64
-#define OUTPUT_SIZE 256
+#define IDLEBUFF_SIZE 256
+#define NAMEBUFF_SIZE 128
 #define CPU_MAX 8
+#define CPU_STATES 3
+#define PERFBUFF_SIZE 64
 
-#define PRINTLOG(...) output_len = snprintf( output_buff, OUTPUT_SIZE, __VA_ARGS__ ); \
-	retval = write(trace_fd, output_buff, output_len); \
-	errtrap("write"); \
-	__android_log_print(ANDROID_LOG_VERBOSE, "MACROBENCH", "Log:  %s\n", output_buff);
-	
+#define OUTPUT_SIZE 256
+
+#define CYCLEBUFF_SIZE 256
+
+#define PRINTLOG(...) \
+	retval = dprintf(trace_fd, __VA_ARGS__ ); \
+	errtrap("dprintf");
+
+//	__android_log_print(ANDROID_LOG_VERBOSE, "MACROBENCH", "Log:  %s\n", output_buff);
+// TODO:  readd aosp logging
 
 static int trace_fd;
 static int cpu_arr[CPU_MAX];
@@ -29,13 +36,45 @@ static int cpu_arr[CPU_MAX];
 void __errtrap(int retval, const char* error, int line) {
 
 	if (retval == -1) {
-//		printf("Error in %s() on line %d:  %s\n", error, line, strerror(errno));
 		__android_log_print(ANDROID_LOG_VERBOSE, "MACROBENCH", "Error:  %d %s\n", errno, strerror(errno));
 		_exit(errno);
 	}
 	return;
 
 }
+
+
+static int get_idle(int param) {
+
+	int retval;
+	int idle_fd;
+	char name_buff[NAMEBUFF_SIZE];
+	char idle_buff[IDLEBUFF_SIZE];
+	int offset;
+
+	memset(idle_buff, 0x20, sizeof(idle_buff));
+	offset = 0;
+
+	for (int cpu = 0; cpu < CPU_MAX; cpu++) {
+		for (int state = 0; state < CPU_STATES; state++) {
+			snprintf(name_buff, NAMEBUFF_SIZE, "/sys/devices/system/cpu/cpu%d/cpuidle/state%d/time", cpu, state);
+			retval = open(name_buff, O_RDONLY);
+			errtrap("open");
+			idle_fd = retval;
+			retval = read(idle_fd, idle_buff + offset, IDLEBUFF_SIZE - offset);
+			errtrap("read");
+			close(idle_fd);
+			offset += retval;
+			idle_buff[offset - 1] = ' ';  // Delimit by space
+		}
+	}
+	idle_buff[offset - 1] = '\0';  // nullterm the string
+	PRINTLOG("Idle data #%d:  %s", param, idle_buff);
+
+	return 0;
+
+}
+
 
 
 extern "C" JNIEXPORT jint JNICALL Java_com_example_test_MetaTest_startcount(JNIEnv *env, jclass clazz, jint param) {
@@ -84,6 +123,8 @@ extern "C" JNIEXPORT jint JNICALL Java_com_example_test_MetaTest_startcount(JNIE
 
 	}
 
+	get_idle(param);
+
 	return 0;
 
 }
@@ -97,7 +138,11 @@ extern "C" JNIEXPORT jint JNICALL Java_com_example_test_MetaTest_stopcount(JNIEn
 	int output_len;
 	unsigned long cycles;
 	int perf_fd;
-	unsigned long cycles_arr[CPU_MAX];
+	char cycle_buff[CYCLEBUFF_SIZE];
+	int offset;
+
+	memset(cycle_buff, 0x20, sizeof(cycle_buff));
+	offset = 0;
 
 	for (int i = 0; i < CPU_MAX; i++) {
 
@@ -109,24 +154,32 @@ extern "C" JNIEXPORT jint JNICALL Java_com_example_test_MetaTest_stopcount(JNIEn
 		// Collect results:
 		retval = read(perf_fd, perf_buff, PERFBUFF_SIZE);
 		errtrap("read");
-		// Disable collection:
-//		ioctl(perf_fd, PERF_EVENT_IOC_DISABLE, 0);
 		// Sanity (should be collecting 1 item):
 		if (((unsigned long*)perf_buff)[0] != 1) {
 			return -3;
 		}
 		cycles = ((unsigned long*)perf_buff)[1];
-//		PRINTLOG("Cycle data for CPU %d:  %lu", i, cycles);
-		// Cleanup:
-//		close(perf_fd);
-		cycles_arr[i] = cycles;
+		retval = snprintf(cycle_buff + offset, CYCLEBUFF_SIZE - offset, "%lu ", cycles);
+		offset += retval;
 
 	}
+	cycle_buff[offset - 1] = '\0';  // remove last added space delimiter
+	PRINTLOG("Cycle data #%d:  %s", param, cycle_buff);
 
-	PRINTLOG("Cycle data #%d:  %lu %lu %lu %lu %lu %lu %lu %lu", param, cycles_arr[0], cycles_arr[1], cycles_arr[2], cycles_arr[3], cycles_arr[4], cycles_arr[5], cycles_arr[6], cycles_arr[7]);
+	get_idle(param);
 
-//	PRINTLOG("End perf collection %d", param);
-//	close(trace_fd);
+	// Cleanup, upon request:
+	if (param > 100) {
+		for (int i = 0; i < CPU_MAX; i++) {
+			// Disable collection:
+			ioctl(perf_fd, PERF_EVENT_IOC_DISABLE, 0);
+			// Cleanup:
+			close(perf_fd);
+		}
+		PRINTLOG("End perf collection %d", param);
+		close(trace_fd);
+	}
+
 	return 0;
 
 }
