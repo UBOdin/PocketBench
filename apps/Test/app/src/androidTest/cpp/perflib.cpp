@@ -69,7 +69,7 @@ static int get_idle(int param) {
 		}
 	}
 	idle_buff[offset - 1] = '\0';  // nullterm the string
-	PRINTLOG("Idle data #%d:  %s", param, idle_buff);
+	PRINTLOG("Macro idle stats %d:  %s", param, idle_buff);
 
 	return 0;
 
@@ -164,7 +164,7 @@ extern "C" JNIEXPORT jint JNICALL Java_com_example_test_MetaTest_stopcount(JNIEn
 
 	}
 	cycle_buff[offset - 1] = '\0';  // remove last added space delimiter
-	PRINTLOG("Cycle data %d:  %s", param, cycle_buff);
+	PRINTLOG("Macro cycle stats %d:  %s", param, cycle_buff);
 
 	get_idle(param);
 
