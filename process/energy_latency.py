@@ -295,8 +295,9 @@ def get_energy(file_name, start, stop):
 		logline = input_file.readline()
 
 		if (logline == ""):
-			print("Hit EOF")
-			#break
+			#print("Hit EOF")
+			#print(file_name)
+			break
 			sys.exit(1)
 		#end_if
 
@@ -326,7 +327,7 @@ def get_energy(file_name, start, stop):
 			print(logline)
 			print(volts)
 			print(file_name)
-
+			#break
 			sys.exit(1)
 		#end_if
 
@@ -786,7 +787,7 @@ def u_curve():
 	benchtimeprefix = "/micro_2000-0-"
 	energyprefix = "/monsoon_2000-0-"
 
-	cputype_list = ["0f", "f0"]
+	cputype_list = ["f0", "0f"]
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
 
 
@@ -801,17 +802,23 @@ def u_curve():
 
 	for x, cputype in zip(range(x_subplots), cputype_list):
 		for cpucount, color in zip(range(1, 5), color_list):
+			# For baseline workload (0 CPUs), set cputype = 0
+			if (cpucount == 0):
+				cputype_adj = "00"
+			else:
+				cputype_adj = cputype
+			#end_if
 			for governor, annotate, i in zip(governor_list, annotate_list, range(0, 9)):
 				benchtime_list = []
 				cycles_list = []
 				energy_list = []
 				for run in range(0, 5):
-					filename = path + benchtimeprefix + cputype + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
+					filename = path + benchtimeprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
 					print(filename)
 					benchtime, coretime_list, graphdata_list, cycles, _, _ = process_loglines(filename)
 					benchtime_list.append(benchtime)
 					cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
-					filename = path + energyprefix + cputype + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
+					filename = path + energyprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
 					energy = get_energy(filename, 5.0, benchtime + 10.0)
 					energy_list.append(energy)
 					print("%f  %f" % (benchtime, energy))
@@ -819,6 +826,7 @@ def u_curve():
 				benchtime_mean, benchtime_err = mean_margin(benchtime_list)
 				energy_mean, energy_err = mean_margin(energy_list)
 
+				#'''
 				for y in range(y_subplots):
 					if (i == 0):
 						ax_list[y][x].scatter(benchtime_mean, energy_mean, s = 50, color = color, marker = "s", label = "CPUs:  " + str(cpucount))
@@ -835,6 +843,7 @@ def u_curve():
 				#end_for
 				benchtime_prev = benchtime_mean
 				energy_prev = energy_mean
+				#'''
 
 			#end_for
 		#end_for
@@ -842,7 +851,7 @@ def u_curve():
 
 
 	ax_list[0][0].tick_params(labelsize = 16)
-	ax_list[0][0].axis([0, 70, 0, 2000])
+	ax_list[0][0].axis([0, 70, 0, 3000])
 	ax_list[0][0].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
 	ax_list[0][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 	ax_list[0][0].legend(loc = "upper right", fontsize = 16)
@@ -852,7 +861,7 @@ def u_curve():
 	ax_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 
 	ax_list[0][1].tick_params(labelsize = 16)
-	ax_list[0][1].axis([0, 70, 0, 2000])
+	ax_list[0][1].axis([0, 70, 0, 3000])
 	ax_list[0][1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
 	ax_list[0][1].legend(loc = "upper right", fontsize = 16)
 	
@@ -860,7 +869,7 @@ def u_curve():
 	ax_list[1][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
 	ax_list[1][1].legend(loc = "upper right", fontsize = 16)
 	
-	fig.suptitle("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count\n(5 runs)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Runtime and Energy to Complete a Fixed Compute for Each CPU (no delay), Varying CPU policy and CPU Count\n(5 runs) (Variable energy measurement)", fontsize = 16, fontweight = "bold")
 	plt.show()
 
 	return
