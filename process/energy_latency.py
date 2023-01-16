@@ -44,10 +44,9 @@ def mean_margin(data_list):
 #end_def
 
 
-def process_loglines(file_name):  #, trace_list_list):
+def process_loglines(file_name):
 
 	# file_name = ""
-	trace_list_list = []
 
 	logline = ""
 	iteration = 0
@@ -60,21 +59,16 @@ def process_loglines(file_name):  #, trace_list_list):
 	eventtype = ""
 	datastart = 0
 	freq = 0
-	freq_list = []
+	freq_list_list = []
 	starttime = 0.0
 	endtime = 0.0
 	startflag = False
 	param = ""
-	trace_list = []
 	target_cpu = 0
 	sleepstate = 0
 	idletime = 0
 	idlecount = 0
-	idle_list = []
-	timestart_list = []
-	timetotal_list = []
-	timedelta = 0.0
-	cycle_list = []
+	idledata_list = []
 	offcount = 0
 	oncount = 0
 	startinteracttime = 0.0
@@ -84,9 +78,12 @@ def process_loglines(file_name):  #, trace_list_list):
 	perfcycles = 0
 	inbench = False
 	eventtime_list = []
-	frequency_list = []
 
 	input_file = gzip.open(file_name, "r")
+
+	for i in range(8):
+		freq_list_list.append([])
+	#end_for
 
 	while (True):
 
@@ -108,7 +105,7 @@ def process_loglines(file_name):  #, trace_list_list):
 		#end_if
 
 		'''
-		if (iteration == 80):
+		if (iteration == 100):
 			break
 		#end_if
 		'''
@@ -187,28 +184,92 @@ def process_loglines(file_name):  #, trace_list_list):
 
 		#end_if
 
+		# N.b. for the cpu_frequency event, the cpu field is the CPU# on which the governor
+		# runs.  It is *not* necessarily the *target* CPU# for which the speed is set.
 		if (eventtype == "cpu_frequency"):
-				temp_list = logline.split("state=")[1].split(" ")
-				#print(temp_list)
-				if ((inbench == True) and (temp_list[1]) == "cpu_id=7\n"):
-					#print(temp_list[0])
-					eventtime_list.append(time)
-					frequency_list.append(int(temp_list[0]))
-				#end_if
+
+			index = logline.find(" ", datastart)
+			if (index == -1):
+				print("Invalid speed delimiter")
+				sys.exit(1)
+			#end_if
+			if (logline[datastart:datastart + 6] != "state="):
+				print("Invalid speed parameter")
+				sys.exit(1)
+			#end_if
+			speed = int(logline[datastart + 6:index])
+
+			#index = logline.find(" ", index, -1)
+			if (logline[index + 1:index + 8] != "cpu_id="):
+				print("Invalid speed cpu parameter")
+				sys.exit(1)
+			#end_if
+			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
+
+			#print("logline:  %d  cpu:  %d  speed:  %d" % (iteration, target_cpu, speed))
+			freq_list_list[target_cpu].append((time, speed))
+
 		#end_if
 
+		'''
+		if (eventtype == "cpu_idle"):
+			index = logline.find(" ", datastart)
+			if (index == -1):
+				print("Invalid idle delimiter")
+				sys.exit(1)
+			#end_if
+			if (logline[datastart:datastart + 6] != "state="):
+				print("Invalid idle parameter")
+				sys.exit(1)
+			#end_if
+			sleepstate = int(logline[datastart + 6:index])
+			if (sleepstate == 4294967295):
+				sleepstate = -1
+				idletime += time
+				idlecount += 1
+				offcount += 1
+			else:
+				idletime -= time
+				oncount += 1
+			#end_if
+
+			#index = logline.find(" ", index, -1)
+			if (logline[index + 1:index + 8] != "cpu_id="):
+				print("Invalid idle cpu parameter")
+				sys.exit(1)
+			#end_if
+			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
+
+			# Test hypo:
+			if (cpu != target_cpu):
+				print("cpu mismatch")
+				sys.exit(1)
+			#end_if
+
+			#freq_list[target_cpu] = freq
+			if (target_cpu == bench_cpu):
+				trace_list = [iteration, time, "idle", target_cpu, sleepstate]
+				trace_list_list.append(trace_list)
+			#end_if
+		#end_if
+		'''
+
+
 	#end_while
+
+	input_file.close()
+
+	#print(freq_list_list)
 
 	eventtime_list.append(starttime)
 	eventtime_list.append(endtime)
 
-	input_file.close()
-
-	#'''
+	'''
 	if (len(idledata_list) != 8 * 3 * 2):
 		print("Unexpected length")
 		sys.exit(1)
 	#end
+	'''
 
 	'''
 	idlefloat_list = []
@@ -238,7 +299,7 @@ def process_loglines(file_name):  #, trace_list_list):
 	#print(newidle_list)
 	#print(runtime_list)
 
-	return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, frequency_list
+	return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, freq_list_list
 
 #end_def
 
@@ -877,6 +938,85 @@ def u_curve():
 #end_def
 
 
+def macro_speed_pertime():
+
+	eventtime_list = []
+	freq_tuple_list_list = []
+	filename = ""
+	prevtime = 0.0
+	prevfreq = 0
+	newtime = 0.0
+	newfreq = 0
+	freqtime_tuple_list_dict_list = []
+	freqtime_tuple_list_dict = {}
+	freqtime_tuple_list = []
+	freqtime_tuple = ()
+
+	freqtimetotal_dict = {}
+	freqtimetotal_dict_list = []
+	timedelta = 0.0
+	timetotal = 0.0
+
+	filename = sys.argv[1]
+
+	_, _, _, _, eventtime_list, freq_tuple_list_list = process_loglines(filename)
+
+	for cpu in range(8):
+		freqtimetotal_dict_list.append({})
+	#end_for
+
+	fig, ax = plt.subplots()
+
+	for cpu in range(7, 8):
+
+		# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
+		prevtime = eventtime_list[0]  # Reset starttime to start of measurement
+		freqtime_tuple_list_dict = {}
+		for freq_tuple in freq_tuple_list_list[cpu]:
+			newtime = freq_tuple[0]
+			newfreq = freq_tuple[1]
+			if (newtime < eventtime_list[0]):
+				prevfreq = newfreq
+				continue
+			#end_if
+			if (newtime >= eventtime_list[1]):
+				freqtime_tuple_list_dict[prevfreq].append([prevtime, eventtime_list[1]])
+				break
+			#end_if
+			if (prevfreq in freqtime_tuple_list_dict):
+				freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
+			else:
+				freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
+			#end_if
+			prevtime = newtime
+			prevfreq = newfreq
+		#end_for
+		freqtime_tuple_list_dict_list.append(freqtime_tuple_list_dict)
+
+		# Compute total time spent on a given speed, for each CPU:
+		freqtimetotal_dict = {}
+		for key in freqtime_tuple_list_dict:
+			timetotal = 0.0
+			for freqtime_tuple in freqtime_tuple_list_dict[key]:
+				timedelta = freqtime_tuple[1] - freqtime_tuple[0]
+				timetotal += timedelta
+			#end_for
+			freqtimetotal_dict[key] = timetotal
+
+			print("%f  %f" % (key / 245760, timetotal))
+			ax.bar(float(key) / 245760, timetotal, color = "blue", width = .1)
+
+		#end_for
+		freqtimetotal_dict_list[cpu] = freqtimetotal_dict
+
+		plt.show()
+
+	#end_for
+
+
+#end_def
+
+
 def quick():
 
 	filename = ""
@@ -892,5 +1032,6 @@ def quick():
 
 #main()
 #quick()
-u_curve()
+#u_curve()
+macro_speed_pertime()
 
