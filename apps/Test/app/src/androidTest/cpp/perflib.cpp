@@ -164,7 +164,7 @@ extern "C" JNIEXPORT jint JNICALL Java_com_example_test_MetaTest_stopcount(JNIEn
 
 	}
 	cycle_buff[offset - 1] = '\0';  // remove last added space delimiter
-	PRINTLOG("Cycle data #%d:  %s", param, cycle_buff);
+	PRINTLOG("Cycle data %d:  %s", param, cycle_buff);
 
 	get_idle(param);
 
