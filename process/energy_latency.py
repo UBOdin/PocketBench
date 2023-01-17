@@ -59,7 +59,7 @@ def process_loglines(file_name):
 	eventtype = ""
 	datastart = 0
 	freq = 0
-	freq_list_list = []
+	freq_tuple_list_list = []
 	starttime = 0.0
 	endtime = 0.0
 	startflag = False
@@ -82,7 +82,7 @@ def process_loglines(file_name):
 	input_file = gzip.open(file_name, "r")
 
 	for i in range(8):
-		freq_list_list.append([])
+		freq_tuple_list_list.append([])
 	#end_for
 
 	while (True):
@@ -207,7 +207,7 @@ def process_loglines(file_name):
 			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
 
 			#print("logline:  %d  cpu:  %d  speed:  %d" % (iteration, target_cpu, speed))
-			freq_list_list[target_cpu].append((time, speed))
+			freq_tuple_list_list[target_cpu].append((time, speed))
 
 		#end_if
 
@@ -258,8 +258,6 @@ def process_loglines(file_name):
 	#end_while
 
 	input_file.close()
-
-	#print(freq_list_list)
 
 	eventtime_list.append(starttime)
 	eventtime_list.append(endtime)
