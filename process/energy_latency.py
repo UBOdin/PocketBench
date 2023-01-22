@@ -65,12 +65,9 @@ def process_loglines(file_name):
 	startflag = False
 	param = ""
 	target_cpu = 0
-	sleepstate = 0
-	idletime = 0
-	idlecount = 0
+	speed = 0
+	idlestate = 0
 	idledata_list = []
-	offcount = 0
-	oncount = 0
 	startinteracttime = 0.0
 	endinteracttime = 0.0
 	graphdata_list = []
@@ -187,7 +184,6 @@ def process_loglines(file_name):
 		# N.b. for the cpu_frequency event, the cpu field is the CPU# on which the governor
 		# runs.  It is *not* necessarily the *target* CPU# for which the speed is set.
 		if (eventtype == "cpu_frequency"):
-
 			index = logline.find(" ", datastart)
 			if (index == -1):
 				print("Invalid speed delimiter")
@@ -198,20 +194,14 @@ def process_loglines(file_name):
 				sys.exit(1)
 			#end_if
 			speed = int(logline[datastart + 6:index])
-
-			#index = logline.find(" ", index, -1)
 			if (logline[index + 1:index + 8] != "cpu_id="):
 				print("Invalid speed cpu parameter")
 				sys.exit(1)
 			#end_if
 			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
-
-			#print("logline:  %d  cpu:  %d  speed:  %d" % (iteration, target_cpu, speed))
-			freq_tuple_list_list[target_cpu].append((time, speed))
-
+			freq_tuple_list_list[target_cpu].append((time, "freq", speed))
 		#end_if
 
-		'''
 		if (eventtype == "cpu_idle"):
 			index = logline.find(" ", datastart)
 			if (index == -1):
@@ -222,37 +212,18 @@ def process_loglines(file_name):
 				print("Invalid idle parameter")
 				sys.exit(1)
 			#end_if
-			sleepstate = int(logline[datastart + 6:index])
-			if (sleepstate == 4294967295):
-				sleepstate = -1
-				idletime += time
-				idlecount += 1
-				offcount += 1
-			else:
-				idletime -= time
-				oncount += 1
+			idlestate = int(logline[datastart + 6:index])
+			if (idlestate == 4294967295):
+				idlestate = -1
 			#end_if
-
 			#index = logline.find(" ", index, -1)
 			if (logline[index + 1:index + 8] != "cpu_id="):
 				print("Invalid idle cpu parameter")
 				sys.exit(1)
 			#end_if
 			target_cpu = int(logline[index + 8:-1])  # Fetch the *target* cpu#
-
-			# Test hypo:
-			if (cpu != target_cpu):
-				print("cpu mismatch")
-				sys.exit(1)
-			#end_if
-
-			#freq_list[target_cpu] = freq
-			if (target_cpu == bench_cpu):
-				trace_list = [iteration, time, "idle", target_cpu, sleepstate]
-				trace_list_list.append(trace_list)
-			#end_if
+			freq_tuple_list_list[target_cpu].append((time, "idle", idlestate))
 		#end_if
-		'''
 
 
 	#end_while
@@ -297,7 +268,7 @@ def process_loglines(file_name):
 	#print(newidle_list)
 	#print(runtime_list)
 
-	return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, freq_list_list
+	return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, freq_tuple_list_list
 
 #end_def
 
@@ -972,31 +943,65 @@ def macro_speed_pertime():
 		yplot = int(cpu / 4)
 		print("%d  %d"  % (xplot, yplot))
 
-
 		# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
 		prevtime = eventtime_list[0]  # Reset starttime to start of measurement
 		freqtime_tuple_list_dict = {}
 		for freq_tuple in freq_tuple_list_list[cpu]:
 			newtime = freq_tuple[0]
-			newfreq = freq_tuple[1]
 			if (newtime < eventtime_list[0]):
-				prevfreq = newfreq
+				if (freq_tuple[1] == "freq"):
+					prevfreq = freq_tuple[2]
+				#end_if
+				if (freq_tuple[1] == "idle"):
+					previdle = freq_tuple[2]
+				#end_if
 				continue
 			#end_if
+
 			if (newtime >= eventtime_list[1]):
 				freqtime_tuple_list_dict[prevfreq].append([prevtime, eventtime_list[1]])
 				break
 			#end_if
-			if (prevfreq in freqtime_tuple_list_dict):
-				freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
-			else:
-				freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
+
+			if (freq_tuple[1] == "idle"):
+				newidle = freq_tuple[2]
+				# If CPU is going from non-idle => idle, save (start, end) for current speed:
+				if ((newidle >= 0) and (previdle == -1)):
+					if (prevfreq in freqtime_tuple_list_dict):
+						freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
+					else:
+						freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
+					#end_if
+				#end_if
+				previdle = newidle
+				prevtime = newtime
+				continue
 			#end_if
+
+			if (freq_tuple[1] == "freq"):
+				newfreq = freq_tuple[2]
+				# If CPU is not currently idle, save (start, end) for current speed:
+				if (previdle == -1):
+					if (prevfreq in freqtime_tuple_list_dict):
+						freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
+					else:
+						freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
+					#end_if
+				#end_if
+				prevfreq = newfreq
+				prevtime = newtime
+				continue
+			#end_if
+
 			prevtime = newtime
-			prevfreq = newfreq
 		#end_for
 		freqtime_tuple_list_dict_list.append(freqtime_tuple_list_dict)
 
+		'''
+		if (cpu == 0):
+			print("dumping for 0")
+		#end_if
+		'''
 		# Compute total time spent on a given speed, for each CPU:
 		freqtimetotal_dict = {}
 		for key in freqtime_tuple_list_dict:
@@ -1004,15 +1009,22 @@ def macro_speed_pertime():
 			for freqtime_tuple in freqtime_tuple_list_dict[key]:
 				timedelta = freqtime_tuple[1] - freqtime_tuple[0]
 				timetotal += timedelta
+				'''
+				if (cpu == 0):
+					print("%d  %f  %f" % (key, freqtime_tuple[0], freqtime_tuple[1]))
+				#end_if
+				'''
 			#end_for
 			freqtimetotal_dict[key] = timetotal
 
 			print("%f  %f" % (key / 245760, timetotal))
-			#ax_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
-			ax_list[yplot][xplot].bar(float(key) / 245760, timetotal, color = "blue", width = .1)
+			#ax_list[yplot][xplot].bar(float(key) / 245760, timetotal, color = "blue", width = .1)
+			ax_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
 
 		#end_for
 		freqtimetotal_dict_list[cpu] = freqtimetotal_dict
+
+		ax_list[yplot][xplot].axis([0, 11, 0, 20])
 
 	#end_for
 
