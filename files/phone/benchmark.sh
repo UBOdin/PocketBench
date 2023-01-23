@@ -6,7 +6,7 @@ toggle_events() {
 	echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	#echo $1 > $trace_dir/events/power/cpu_idle/enable
+	echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -79,9 +79,21 @@ errtrap() {
 get_idledata() {
 
 	idlecmd="cat $cpu_dir/cpu*/cpuidle/state*/time"
-	idledata=$($idlecmd)
-	for x in $idledata; do
-		idleconcat="$idleconcat $x"
+	idledata_list=$($idlecmd)
+	for idledata in $idledata_list; do
+		idleconcat="$idleconcat $idledata"
+	done
+
+}
+
+
+get_cpufreq() {
+
+	cpufreqconcat=""
+	cluster_list="0 4"
+	for cluster in $cluster_list; do
+		result=$(cat /sys/devices/system/cpu/cpufreq/policy${cluster}/scaling_cur_freq)
+		cpufreqconcat="$cpufreqconcat $result"
 	done
 
 }
@@ -98,7 +110,8 @@ graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
 #device="nexus6"
 device="pixel2"
-experiment="microbench"
+#experiment="microbench"
+experiment="uiautomator"
 
 governor=$1
 frequency=$2
@@ -183,7 +196,8 @@ if [ "$experiment" = "microbench" ]; then
 
 	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
 
-	waittime="70"
+	#waittime="70"
+	waittime="0"
 	sleep $waittime &
 	waitpid="$!"
 
@@ -222,6 +236,9 @@ if [ "$experiment" = "uiautomator" ]; then
 	#pkgtest="com.example.test.TempleTest"
 	#pkgname="com.google.android.calculator"
 	#pkgtest="com.example.test.CalcTest"
+
+	get_cpufreq
+	echo "CPU FREQ $cpufreqconcat" >> $trace_log
 
 	dumpsys gfxinfo $pkgname reset > /dev/null
 	get_idledata
