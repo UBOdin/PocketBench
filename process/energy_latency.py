@@ -944,7 +944,10 @@ def macro_speed_pertime():
 
 	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
 
-	fig, ax_list_list = plt.subplots(2, 4)
+	#fig, ax_list_list = plt.subplots(2, 4)
+
+	freqtimetotalcluster_dict_list = [{}, {}]
+	freqtimetotalcluster_dict = {}
 
 	for cpu in range(0, 8):
 		xplot = cpu % 4
@@ -1029,8 +1032,6 @@ def macro_speed_pertime():
 
 		# Compute total time spent on a given speed, for each CPU:
 		freqtimetotal_dict = {}
-		tt = 0.0
-
 		for key in freqtime_tuple_list_dict:
 			timetotal = 0.0
 			for freqtime_tuple in freqtime_tuple_list_dict[key]:
@@ -1038,19 +1039,21 @@ def macro_speed_pertime():
 				timetotal += timedelta
 				#print("cpu %d:  %d  %f  %f" % (cpu, key, freqtime_tuple[0], freqtime_tuple[1]))
 			#end_for
-
-			print("cpu %d:  %d  %f" % (cpu, key, timetotal))
-
 			freqtimetotal_dict[key] = timetotal
-			tt += timetotal
 			#ax_list_list[yplot][xplot].bar(float(key) / 245760, timetotal, color = "blue", width = .1)
-			ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
+			#ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
+
+			# Add total time for this CPU to appropriate CPU cluster:
+			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[(int(cpu / 4))]
+			if (key in freqtimetotalcluster_dict):
+				freqtimetotalcluster_dict[key] += timetotal
+			else:
+				freqtimetotalcluster_dict[key] = timetotal
+			#end_if
 
 		#end_for
-
 		freqtimetotal_dict_list[cpu] = freqtimetotal_dict
-		print("time total:  %d  %f" % (cpu, tt))
-
+		'''
 		ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, 32])
 		ax_list_list[yplot][xplot].set_title("CPU " + str(cpu), fontsize = 16, fontweight = "bold")
 		if (xplot == 0):
@@ -1059,43 +1062,39 @@ def macro_speed_pertime():
 		if (yplot == 1):
 			ax_list_list[yplot][xplot].set_xlabel("CPU frequency (decade)", fontsize = 16, fontweight = "bold")
 		#end_if
+		'''
 
 	#end_for
-	
+
+	'''
 	fig.suptitle("Time Spent at a Given Speed, per CPU, for FB (32s script)\n(Showing CPU Idling)", fontsize = 16, fontweight = "bold")
 	plt.show()
 	plt.close("all")
+	'''
 
-	freqtimetotallittle_dict = {}
-	freqtimetotalbig_dict = {}
-	# Compute total time spent on a given speed, for each cluster:
-	for cpu in range(0, 4):
-		freqtimetotal_dict = freqtimetotal_dict_list[cpu]
-		for key in freqtimetotal_dict:
-			freqtimetotal = freqtimetotal_dict[key]
-			if (key in freqtimetotallittle_dict):
-				freqtimetotallittle_dict[key] += freqtimetotal
-			else:
-				freqtimetotallittle_dict[key] = freqtimetotal
-			#end_if
+	fig, ax_list_list = plt.subplots(2, 2)
+
+	for xplot in range(0, 2):
+		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[xplot]
+		for key in freqtimetotalcluster_dict:
+			for yplot in range(0, 2):
+				ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key] / 4, color = "blue", width = .1)
+				if (yplot == 0):
+					ymax = 30
+				elif (yplot == 1):
+					ymax = 5
+				#end_if
+				ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, ymax])
+				ax_list_list[0][0].set_title("Little core cluster", fontsize = 16, fontweight = "bold")
+				ax_list_list[0][1].set_title("Big core cluster", fontsize = 16, fontweight = "bold")
+				if (xplot == 0):
+					ax_list_list[yplot][xplot].set_ylabel("Average CPU time (s)", fontsize = 16, fontweight = "bold")
+				#end_if
+				if (yplot == 1):
+					ax_list_list[yplot][xplot].set_xlabel("CPU frequency (decade)", fontsize = 16, fontweight = "bold")
+				#end_if
+			#end_for
 		#end_for
-	#end_for
-	for cpu in range(4, 8):
-		freqtimetotal_dict = freqtimetotal_dict_list[cpu]
-		for key in freqtimetotal_dict:
-			freqtimetotal = freqtimetotal_dict[key]
-			if (key in freqtimetotalbig_dict):
-				freqtimetotalbig_dict[key] += freqtimetotal
-			else:
-				freqtimetotalbig_dict[key] = freqtimetotal
-			#end_if
-		#end_for
-	#end_for
-
-	fig, ax = plt.subplots()
-
-	for key in freqtimetotallittle_dict:
-		ax.bar(float(key) / maxspeed_dict[0], freqtimetotallittle_dict[key], color = "blue", width = .1)
 	#end_for
 
 	plt.show()
