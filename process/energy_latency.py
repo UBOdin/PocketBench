@@ -994,14 +994,14 @@ def macro_speed_pertime():
 			if (freq_tuple[1] == "idle"):
 				newidle = freq_tuple[2]
 				if ((newidle >= 0) and (previdle == -1)):
-					newfreq = savefreq #0
-					#assert(prevfreq == savefreq)
+					newfreq = 0
+					assert(prevfreq == savefreq)
 				elif ((newidle == -1) and (previdle >= 0)):
 					newfreq = savefreq
-					#assert(prevfreq == 0)
+					assert(prevfreq == 0)
 				elif ((newidle >= 0) and (previdle >= 0)):
-					newfreq = savefreq #0
-					#assert(prevfreq == 0)
+					newfreq = 0
+					assert(prevfreq == 0)
 				else:
 					print("Unexpected idle")
 					sys.exit(1)
@@ -1062,7 +1062,7 @@ def macro_speed_pertime():
 
 	#end_for
 	
-	fig.suptitle("Time Spent at a Given Speed, per CPU, for FB (32s script)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Time Spent at a Given Speed, per CPU, for FB (32s script)\n(Showing CPU Idling)", fontsize = 16, fontweight = "bold")
 	plt.show()
 	plt.close("all")
 
