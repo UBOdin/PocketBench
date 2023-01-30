@@ -929,18 +929,12 @@ def macro_speed_pertime():
 	freqtime_tuple_list = []
 	freqtime_tuple = ()
 
-	freqtimetotal_dict = {}
-	freqtimetotal_dict_list = []
 	timedelta = 0.0
 	timetotal = 0.0
 
 	filename = sys.argv[1]
 
 	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
-
-	for cpu in range(8):
-		freqtimetotal_dict_list.append({})
-	#end_for
 
 	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
 
@@ -950,9 +944,11 @@ def macro_speed_pertime():
 	freqtimetotalcluster_dict = {}
 
 	for cpu in range(0, 8):
+		'''
 		xplot = cpu % 4
 		yplot = int(cpu / 4)
 		print("%d  %d"  % (xplot, yplot))
+		'''
 
 		# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
 		prevtime = eventtime_list[0]  # Reset starttime to start of measurement
@@ -1031,7 +1027,6 @@ def macro_speed_pertime():
 		freqtime_tuple_list_dict_list.append(freqtime_tuple_list_dict)
 
 		# Compute total time spent on a given speed, for each CPU:
-		freqtimetotal_dict = {}
 		for key in freqtime_tuple_list_dict:
 			timetotal = 0.0
 			for freqtime_tuple in freqtime_tuple_list_dict[key]:
@@ -1039,7 +1034,6 @@ def macro_speed_pertime():
 				timetotal += timedelta
 				#print("cpu %d:  %d  %f  %f" % (cpu, key, freqtime_tuple[0], freqtime_tuple[1]))
 			#end_for
-			freqtimetotal_dict[key] = timetotal
 			#ax_list_list[yplot][xplot].bar(float(key) / 245760, timetotal, color = "blue", width = .1)
 			#ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
 
@@ -1052,7 +1046,6 @@ def macro_speed_pertime():
 			#end_if
 
 		#end_for
-		freqtimetotal_dict_list[cpu] = freqtimetotal_dict
 		'''
 		ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, 32])
 		ax_list_list[yplot][xplot].set_title("CPU " + str(cpu), fontsize = 16, fontweight = "bold")
