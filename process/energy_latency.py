@@ -944,9 +944,6 @@ def macro_speed_pertime():
 
 	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
 
-	startfreqlittle = int(startfreq_list[0])
-	startfreqbig = int(startfreq_list[1])
-
 	fig, ax_list_list = plt.subplots(2, 4)
 
 	for cpu in range(0, 8):
@@ -957,18 +954,36 @@ def macro_speed_pertime():
 		# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
 		prevtime = eventtime_list[0]  # Reset starttime to start of measurement
 		freqtime_tuple_list_dict = {}
+		previdle = -2  # Reset to uninitialized
+		prevfreq = int(startfreq_list[int(cpu / 4)])  # Fetch initial CPU speed
+		savefreq = prevfreq
 		for freq_tuple in freq_tuple_list_list[cpu]:
 			newtime = freq_tuple[0]
 
 			# Until the benchmark start time, just update the CPU speed and idle state but don't save any events:
 			if (newtime < eventtime_list[0]):
-				if (freq_tuple[1] == "freq"):
-					prevfreq = freq_tuple[2]
-				#end_if
 				if (freq_tuple[1] == "idle"):
 					previdle = freq_tuple[2]
+					if (previdle == -1):
+						prevfreq = savefreq
+					elif (previdle >= 0):
+						prevfreq = 0
+					else:
+						print("Unexpected init idle")
+						sys.exit(1)
+					#end_if
+				#end_if
+				if (freq_tuple[1] == "freq"):
+					savefreq = freq_tuple[2]
+					if (previdle == -1):
+						prevfreq = savefreq
+					#end_if
 				#end_if
 				continue
+			#end_if
+			if (previdle == -2):
+				print("Idle not initialized")
+				sys.exit(1)
 			#end_if
 
 			if (newtime >= eventtime_list[1]):
@@ -978,43 +993,37 @@ def macro_speed_pertime():
 
 			if (freq_tuple[1] == "idle"):
 				newidle = freq_tuple[2]
-				# If CPU is going from non-idle => idle, save (start, end) for current speed:
-
-				try:
-					if ((newidle >= 0) and (previdle == -1)):
-						if (prevfreq in freqtime_tuple_list_dict):
-							freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
-						else:
-							freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
-						#end_if
-					#end_if
-				except:
-					print("Corner case:  Missing init data")
-					print(cpu)
-					print(freq_tuple)
-					exit(1)
-				#end_try
-
+				if ((newidle >= 0) and (previdle == -1)):
+					newfreq = 0
+					assert(prevfreq == savefreq)
+				elif ((newidle == -1) and (previdle >= 0)):
+					newfreq = savefreq
+					assert(prevfreq == 0)
+				elif ((newidle >= 0) and (previdle >= 0)):
+					newfreq = 0
+					assert(prevfreq == 0)
+				else:
+					print("Unexpected idle")
+					sys.exit(1)
+				#end_if
 				previdle = newidle
-				prevtime = newtime
-				continue
 			#end_if
 
 			if (freq_tuple[1] == "freq"):
-				newfreq = freq_tuple[2]
-				# If CPU is not currently idle, save (start, end) for current speed:
+				savefreq = freq_tuple[2]
 				if (previdle == -1):
-					if (prevfreq in freqtime_tuple_list_dict):
-						freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
-					else:
-						freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
-					#end_if
+					newfreq = savefreq
 				#end_if
-				prevfreq = newfreq
-				prevtime = newtime
-				continue
 			#end_if
 
+			if (prevfreq in freqtime_tuple_list_dict):
+				freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
+			else:
+				freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
+			#end_if
+
+			prevtime = newtime
+			prevfreq = newfreq
 		#end_for
 		freqtime_tuple_list_dict_list.append(freqtime_tuple_list_dict)
 
@@ -1027,18 +1036,10 @@ def macro_speed_pertime():
 			for freqtime_tuple in freqtime_tuple_list_dict[key]:
 				timedelta = freqtime_tuple[1] - freqtime_tuple[0]
 				timetotal += timedelta
-
-				'''
-				if (cpu == 7):
-					print("%d  %f  %f" % (key, freqtime_tuple[0], freqtime_tuple[1]))
-				#end_if
-				'''
-
+				#print("cpu %d:  %d  %f  %f" % (cpu, key, freqtime_tuple[0], freqtime_tuple[1]))
 			#end_for
 
-			if (cpu == 7):
-				print("for 7:  %d  %f" % (key, timetotal))
-			#end_if
+			print("cpu %d:  %d  %f" % (cpu, key, timetotal))
 
 			freqtimetotal_dict[key] = timetotal
 			tt += timetotal
