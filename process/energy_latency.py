@@ -994,14 +994,14 @@ def macro_speed_pertime():
 			if (freq_tuple[1] == "idle"):
 				newidle = freq_tuple[2]
 				if ((newidle >= 0) and (previdle == -1)):
-					newfreq = 0
-					assert(prevfreq == savefreq)
+					newfreq = savefreq #0
+					#assert(prevfreq == savefreq)
 				elif ((newidle == -1) and (previdle >= 0)):
 					newfreq = savefreq
-					assert(prevfreq == 0)
+					#assert(prevfreq == 0)
 				elif ((newidle >= 0) and (previdle >= 0)):
-					newfreq = 0
-					assert(prevfreq == 0)
+					newfreq = savefreq #0
+					#assert(prevfreq == 0)
 				else:
 					print("Unexpected idle")
 					sys.exit(1)
@@ -1045,15 +1045,24 @@ def macro_speed_pertime():
 			tt += timetotal
 			#ax_list_list[yplot][xplot].bar(float(key) / 245760, timetotal, color = "blue", width = .1)
 			ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
+
 		#end_for
 
 		freqtimetotal_dict_list[cpu] = freqtimetotal_dict
 		print("time total:  %d  %f" % (cpu, tt))
 
-		ax_list_list[yplot][xplot].axis([0, 11, 0, 8])
+		ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, 32])
+		ax_list_list[yplot][xplot].set_title("CPU " + str(cpu), fontsize = 16, fontweight = "bold")
+		if (xplot == 0):
+			ax_list_list[yplot][xplot].set_ylabel("Time spent at speed (s)", fontsize = 16, fontweight = "bold")
+		#end_if
+		if (yplot == 1):
+			ax_list_list[yplot][xplot].set_xlabel("CPU frequency (decade)", fontsize = 16, fontweight = "bold")
+		#end_if
 
 	#end_for
-
+	
+	fig.suptitle("Time Spent at a Given Speed, per CPU, for FB (32s script)", fontsize = 16, fontweight = "bold")
 	plt.show()
 	plt.close("all")
 
