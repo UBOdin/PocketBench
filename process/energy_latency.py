@@ -912,119 +912,137 @@ def u_curve():
 #end_def
 
 
+def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
+
+	# freq_tuple_list = []
+	# eventtime_list = []
+	# startfreq = 0
+	prevtime = 0.0
+	previdle = 0
+	prevfreq = 0
+	newtime = 0.0
+	newidle = 0
+	newfreq = 0
+	savefreq = 0
+	freqtime_tuple_list_dict = {}
+	freqtime_tuple_list = []
+	freqtime_tuple = ()
+	
+	# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
+	prevtime = eventtime_list[0]  # Reset starttime to start of measurement
+	freqtime_tuple_list_dict = {}
+	previdle = -2  # Reset to uninitialized
+	prevfreq = startfreq #int(startfreq_list[int(cpu / 4)])  # Fetch initial CPU speed
+	savefreq = prevfreq
+	for freq_tuple in freq_tuple_list:
+		newtime = freq_tuple[0]
+
+		# Until the benchmark start time, just update the CPU speed and idle state but don't save any events:
+		if (newtime < eventtime_list[0]):
+			if (freq_tuple[1] == "idle"):
+				previdle = freq_tuple[2]
+				if (previdle == -1):
+					prevfreq = savefreq
+				elif (previdle >= 0):
+					prevfreq = 0
+				else:
+					print("Unexpected init idle")
+					sys.exit(1)
+				#end_if
+			#end_if
+			if (freq_tuple[1] == "freq"):
+				savefreq = freq_tuple[2]
+				if (previdle == -1):
+					prevfreq = savefreq
+				#end_if
+			#end_if
+			continue
+		#end_if
+		if (previdle == -2):
+			print("Idle not initialized")
+			sys.exit(1)
+		#end_if
+		if (newtime >= eventtime_list[1]):
+			freqtime_tuple_list_dict[prevfreq].append([prevtime, eventtime_list[1]])
+			break
+		#end_if
+
+		if (freq_tuple[1] == "idle"):
+			newidle = freq_tuple[2]
+			if ((newidle >= 0) and (previdle == -1)):
+				newfreq = 0
+				assert(prevfreq == savefreq)
+			elif ((newidle == -1) and (previdle >= 0)):
+				newfreq = savefreq
+				assert(prevfreq == 0)
+			elif ((newidle >= 0) and (previdle >= 0)):
+				newfreq = 0
+				assert(prevfreq == 0)
+			else:
+				print("Unexpected idle")
+				sys.exit(1)
+			#end_if
+			previdle = newidle
+		#end_if
+
+		if (freq_tuple[1] == "freq"):
+			savefreq = freq_tuple[2]
+			if (previdle == -1):
+				newfreq = savefreq
+			#end_if
+		#end_if
+
+		if (prevfreq in freqtime_tuple_list_dict):
+			freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
+		else:
+			freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
+		#end_if
+		prevtime = newtime
+		prevfreq = newfreq
+	#end_for
+
+	return freqtime_tuple_list_dict
+
+#end_def
+
+
 def macro_speed_pertime():
 
 	eventtime_list = []
 	freq_tuple_list_list = []
 	startfreq_list = []
-	startfreqbig = 0
-	startfreqlittle = 0
 	filename = ""
-	prevtime = 0.0
-	prevfreq = 0
-	newtime = 0.0
-	newfreq = 0
-	freqtime_tuple_list_dict_list = []
+	#prevtime = 0.0
+	#prevfreq = 0
+	#newtime = 0.0
+	#newfreq = 0
 	freqtime_tuple_list_dict = {}
-	freqtime_tuple_list = []
-	freqtime_tuple = ()
-
+	#freqtime_tuple_list = []
+	#freqtime_tuple = ()
+	freqtimetotalcluster_dict_list = [{}, {}]
+	freqtimetotalcluster_dict = {}
 	timedelta = 0.0
 	timetotal = 0.0
+	maxspeed_dict = {}
+
+	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
+
 
 	filename = sys.argv[1]
 
 	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
 
-	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
-
-	#fig, ax_list_list = plt.subplots(2, 4)
-
-	freqtimetotalcluster_dict_list = [{}, {}]
-	freqtimetotalcluster_dict = {}
+	fig, ax_list_list = plt.subplots(2, 4)
 
 	for cpu in range(0, 8):
-		'''
+		#'''
 		xplot = cpu % 4
 		yplot = int(cpu / 4)
 		print("%d  %d"  % (xplot, yplot))
-		'''
+		#'''
 
-		# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
-		prevtime = eventtime_list[0]  # Reset starttime to start of measurement
-		freqtime_tuple_list_dict = {}
-		previdle = -2  # Reset to uninitialized
-		prevfreq = int(startfreq_list[int(cpu / 4)])  # Fetch initial CPU speed
-		savefreq = prevfreq
-		for freq_tuple in freq_tuple_list_list[cpu]:
-			newtime = freq_tuple[0]
-
-			# Until the benchmark start time, just update the CPU speed and idle state but don't save any events:
-			if (newtime < eventtime_list[0]):
-				if (freq_tuple[1] == "idle"):
-					previdle = freq_tuple[2]
-					if (previdle == -1):
-						prevfreq = savefreq
-					elif (previdle >= 0):
-						prevfreq = 0
-					else:
-						print("Unexpected init idle")
-						sys.exit(1)
-					#end_if
-				#end_if
-				if (freq_tuple[1] == "freq"):
-					savefreq = freq_tuple[2]
-					if (previdle == -1):
-						prevfreq = savefreq
-					#end_if
-				#end_if
-				continue
-			#end_if
-			if (previdle == -2):
-				print("Idle not initialized")
-				sys.exit(1)
-			#end_if
-
-			if (newtime >= eventtime_list[1]):
-				freqtime_tuple_list_dict[prevfreq].append([prevtime, eventtime_list[1]])
-				break
-			#end_if
-
-			if (freq_tuple[1] == "idle"):
-				newidle = freq_tuple[2]
-				if ((newidle >= 0) and (previdle == -1)):
-					newfreq = 0
-					assert(prevfreq == savefreq)
-				elif ((newidle == -1) and (previdle >= 0)):
-					newfreq = savefreq
-					assert(prevfreq == 0)
-				elif ((newidle >= 0) and (previdle >= 0)):
-					newfreq = 0
-					assert(prevfreq == 0)
-				else:
-					print("Unexpected idle")
-					sys.exit(1)
-				#end_if
-				previdle = newidle
-			#end_if
-
-			if (freq_tuple[1] == "freq"):
-				savefreq = freq_tuple[2]
-				if (previdle == -1):
-					newfreq = savefreq
-				#end_if
-			#end_if
-
-			if (prevfreq in freqtime_tuple_list_dict):
-				freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
-			else:
-				freqtime_tuple_list_dict[prevfreq] = [(prevtime, newtime)]
-			#end_if
-
-			prevtime = newtime
-			prevfreq = newfreq
-		#end_for
-		freqtime_tuple_list_dict_list.append(freqtime_tuple_list_dict)
+		# Construct a per-speed dict of all (start, stop) periods at a speed:
+		freqtime_tuple_list_dict = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, startfreq_list[int(cpu / 4)])
 
 		# Compute total time spent on a given speed, for each CPU:
 		for key in freqtime_tuple_list_dict:
@@ -1035,7 +1053,7 @@ def macro_speed_pertime():
 				#print("cpu %d:  %d  %f  %f" % (cpu, key, freqtime_tuple[0], freqtime_tuple[1]))
 			#end_for
 			#ax_list_list[yplot][xplot].bar(float(key) / 245760, timetotal, color = "blue", width = .1)
-			#ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
+			ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[yplot], timetotal, color = "blue", width = .1)
 
 			# Add total time for this CPU to appropriate CPU cluster:
 			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[(int(cpu / 4))]
@@ -1046,7 +1064,7 @@ def macro_speed_pertime():
 			#end_if
 
 		#end_for
-		'''
+		#'''
 		ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, 32])
 		ax_list_list[yplot][xplot].set_title("CPU " + str(cpu), fontsize = 16, fontweight = "bold")
 		if (xplot == 0):
@@ -1055,15 +1073,15 @@ def macro_speed_pertime():
 		if (yplot == 1):
 			ax_list_list[yplot][xplot].set_xlabel("CPU frequency (decade)", fontsize = 16, fontweight = "bold")
 		#end_if
-		'''
+		#'''
 
 	#end_for
 
-	'''
+	#'''
 	fig.suptitle("Time Spent at a Given Speed, per CPU, for FB (32s script)\n(Showing CPU Idling)", fontsize = 16, fontweight = "bold")
 	plt.show()
 	plt.close("all")
-	'''
+	#'''
 
 	fig, ax_list_list = plt.subplots(2, 2)
 
