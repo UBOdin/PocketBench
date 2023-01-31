@@ -152,13 +152,13 @@ def process_loglines(file_name):
 
 			#if ("Start FB" in logline):
 			if ("SQL_START" in logline):
-				starttime = time
+				starttime = float(time)
 				inbench = True
 			#end_if
 
 			#if ("End FB" in logline):
 			if ("SQL_END" in logline):
-				endtime = time
+				endtime = float(time)
 				inbench = False
 			#end_if
 
@@ -181,7 +181,8 @@ def process_loglines(file_name):
 			#end_if
 
 			if ("CPU FREQ" in logline):
-				startfreq_list = logline.split("CPU FREQ  ")[1].split(" ")
+				temp_list = logline.split("CPU FREQ  ")[1].split(" ")
+				startfreq_list = [int(temp_list[0]), int(temp_list[1])]
 			#end_if
 
 		#end_if
@@ -932,7 +933,7 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
 	prevtime = eventtime_list[0]  # Reset starttime to start of measurement
 	freqtime_tuple_list_dict = {}
 	previdle = -2  # Reset to uninitialized
-	prevfreq = startfreq #int(startfreq_list[int(cpu / 4)])  # Fetch initial CPU speed
+	prevfreq = startfreq
 	savefreq = prevfreq
 	for freq_tuple in freq_tuple_list:
 		newtime = freq_tuple[0]
@@ -1006,29 +1007,20 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
 #end_def
 
 
-def macro_speed_pertime():
+def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
 
+	# filename = ""
+	# freqtimetotalcluster_dict_list = [{}, {}]
+	freqtimetotalcluster_dict = {}
 	eventtime_list = []
 	freq_tuple_list_list = []
 	startfreq_list = []
-	filename = ""
-	#prevtime = 0.0
-	#prevfreq = 0
-	#newtime = 0.0
-	#newfreq = 0
-	freqtime_tuple_list_dict = {}
-	#freqtime_tuple_list = []
-	#freqtime_tuple = ()
-	freqtimetotalcluster_dict_list = [{}, {}]
-	freqtimetotalcluster_dict = {}
 	timedelta = 0.0
 	timetotal = 0.0
-	maxspeed_dict = {}
+
 
 	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
 
-
-	filename = sys.argv[1]
 
 	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
 
@@ -1042,7 +1034,7 @@ def macro_speed_pertime():
 		#'''
 
 		# Construct a per-speed dict of all (start, stop) periods at a speed:
-		freqtime_tuple_list_dict = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, startfreq_list[int(cpu / 4)])
+		freqtime_tuple_list_dict = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]))
 
 		# Compute total time spent on a given speed, for each CPU:
 		for key in freqtime_tuple_list_dict:
@@ -1083,17 +1075,44 @@ def macro_speed_pertime():
 	plt.close("all")
 	#'''
 
+#end_def
+
+
+def macro_speed_pertime():
+
+	filename = ""
+	freqtimetotalcluster_dict_list = [{}, {}]
+	freqtimetotalcluster_dict = {}
+	maxspeed_dict = {}
+
+	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
+
+	#prefix = "/micro_normal_schedutil_none_1_"
+	prefix = "/micro_normal_performance_none_1_"
+	path = sys.argv[1]
+
+	runcount = 3
+	for run in range(0, runcount):
+		filename = path + prefix + str(run) + ".gz"
+		plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list)
+	#end_for
+
+	cpucount = runcount * 4
+
 	fig, ax_list_list = plt.subplots(2, 2)
 
+	tt = 0
 	for xplot in range(0, 2):
 		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[xplot]
 		for key in freqtimetotalcluster_dict:
+
+			tt += freqtimetotalcluster_dict[key]
 			for yplot in range(0, 2):
-				ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key] / 4, color = "blue", width = .1)
+				ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key] / cpucount, color = "blue", width = .1)
 				if (yplot == 0):
 					ymax = 30
 				elif (yplot == 1):
-					ymax = 5
+					ymax = 4
 				#end_if
 				ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, ymax])
 				ax_list_list[0][0].set_title("Little core cluster", fontsize = 16, fontweight = "bold")
@@ -1108,7 +1127,17 @@ def macro_speed_pertime():
 		#end_for
 	#end_for
 
+	fig.suptitle("Aveage Time Spent at a Given Speed, per CPU, for FB (32s script)\n(3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
 	plt.show()
+	plt.close("all")
+
+	print("total time:  %d" % (tt))
+	for cluster in range(2):
+		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
+		for key in freqtimetotalcluster_dict:
+			print("cluster:  %d  speed:  %s  %f" % (cluster, key, freqtimetotalcluster_dict[key] / tt))
+		#end_for
+	#end_for
 
 	return
 
