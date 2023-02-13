@@ -24,7 +24,6 @@ def command(string_array):
 	governor = ""
 	speed = "" # Only valid if governor == "userspace"
 	delay = ""
-	threads = ""
 	runno = ""
 	littlespeed = 0
 	bigspeed = 0
@@ -34,9 +33,8 @@ def command(string_array):
 	governor = string_array[0]
 	speed = string_array[1]
 	delay = string_array[2]
-	threads = "1"  # string_array[3]
-	if (len(string_array) > 4):
-		runno = string_array[4]
+	if (len(string_array) == 3):
+		runno = string_array[3]
 	else:
 		runno = "0"
 	#end_if
@@ -108,7 +106,7 @@ def command(string_array):
 	print("success")
 
 	print("running...")
-	result = subprocess.call(['sh', 'scripts/run.sh', governor, speed, delay, threads, runno])
+	result = subprocess.call(['sh', 'scripts/run.sh', governor, speed, delay, runno])
 	print("log is present in the logs directory.")
 	if (result != 0):
 		print("Error on script:  " + str(result))
@@ -157,12 +155,9 @@ def main():
 				delay_list = ["normal"]
 				#delay_list = ["2000-0-00-0", "2000-0-f0-1", "2000-0-f0-2", "2000-0-f0-3", "2000-0-f0-4", "2000-0-0f-1", "2000-0-0f-2", "2000-0-0f-3", "2000-0-0f-4"]
 
-				threads_list = ["1"]
-				#threads_list = ["80", "c0", "e0", "f0"]
+				run_count = 3
 
-				run_count = 5
-
-				skip_count = 117 + 181
+				skip_count = 0
 
 				iteration = 0
 
@@ -170,16 +165,13 @@ def main():
 				for runno in range(run_count):
 					for delay in delay_list:
 						for governor in governor_list:
-							for threads in threads_list:
-								parameters = governor + " " + delay + " " + threads + " " + str(runno)
-								#parameters = governor + " " + delay + "-" + threads + " 1 " + str(runno)
-								if (iteration < skip_count):
-										print("Skipping workload %d:  %s" % (iteration, parameters))
-								else:
-									result = command(parameters.split())
-								#end_if
-								iteration += 1
-								#end_for
+							parameters = governor + " " + delay + " " + str(runno)
+							if (iteration < skip_count):
+									print("Skipping workload %d:  %s" % (iteration, parameters))
+							else:
+								result = command(parameters.split())
+							#end_if
+							iteration += 1
 							#end_for
 						#end_for
 					#end_for

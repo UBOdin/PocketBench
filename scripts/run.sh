@@ -5,12 +5,11 @@ governor="$1"
 cpuspeed="$(echo $2 | cut -d ":" -f2)"
 filespeed="$(echo $2 | cut -d ":" -f1)"
 background="$3"
-threadcount="$4"
-runcount="$5"
+runcount="$4"
 wakeport="2017"  # Phone-client wifi wakeup port
 meter="0"  # boolean -- whether using Monsoon meter
 
-filesuffix="${background}_${governor}_${filespeed}_${threadcount}_${runcount}"
+filesuffix="${background}_${governor}_${filespeed}_${runcount}"
 filename="micro_${filesuffix}"
 
 
