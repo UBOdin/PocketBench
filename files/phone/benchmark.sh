@@ -243,10 +243,10 @@ if [ "$experiment" = "uiautomator" ]; then
 	dumpsys gfxinfo $pkgname reset > /dev/null
 	get_idledata
 
-	echo "{\"EVENT\":\"SQL_START\", \"thread\":0}" >> $trace_log
+	echo "SQL_START" >> $trace_log
 	am instrument -w -e class $pkgtest com.example.test.test
 	result="$?"
-	echo "{\"EVENT\":\"SQL_END\", \"thread\":0}" >> $trace_log
+	echo "SQL_END" >> $trace_log
 
 	get_idledata
 	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
