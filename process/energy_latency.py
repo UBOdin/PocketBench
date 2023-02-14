@@ -73,7 +73,6 @@ def process_loglines(file_name):
 	graphdata_list = []
 	runtime_list = []
 	perfcycles = 0
-	inbench = False
 	eventtime_list = []
 	startfreq_list = []
 
@@ -150,16 +149,14 @@ def process_loglines(file_name):
 
 		if (eventtype == "tracing_mark_write"):
 
-			#if ("Start FB" in logline):
+			#if ("friend_flick_end 2" in logline):
 			if ("SQL_START" in logline):
 				starttime = float(time)
-				inbench = True
 			#end_if
 
-			#if ("End FB" in logline):
+			#if ("friend_flick_start 3" in logline):
 			if ("SQL_END" in logline):
 				endtime = float(time)
-				inbench = False
 			#end_if
 
 			if ("IDLE DATA" in logline):
@@ -929,6 +926,8 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
 	freqtime_tuple_list = []
 	freqtime_tuple = ()
 
+	plot_tuple_list = []
+
 	# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
 	prevtime = eventtime_list[0]  # Reset starttime to start of measurement
 	freqtime_tuple_list_dict = {}
@@ -997,6 +996,8 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
 			#end_if
 		#end_if
 
+		plot_tuple_list.append((prevfreq, prevtime, newtime))
+
 		if (prevfreq in freqtime_tuple_list_dict):
 			freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
 		else:
@@ -1006,7 +1007,75 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
 		prevfreq = newfreq
 	#end_for
 
-	return freqtime_tuple_list_dict
+	return freqtime_tuple_list_dict, plot_tuple_list
+
+#end_def
+
+
+def plot_freq_over_time():
+
+	freq_tuple_list = []
+	plot_tuple_list = []
+
+	starttime = 0.0
+	endtime = 0.0
+	freqmax = 0
+
+	filename = sys.argv[1]
+
+	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
+
+	fig, ax_list_list = plt.subplots(2, 4)
+
+	for cpu in range(0, 8):
+
+		xplot = cpu % 4
+		yplot = int(cpu / 4)
+		print("%d  %d"  % (xplot, yplot))
+
+		starttime = eventtime_list[0]
+		endtime = eventtime_list[1]
+
+		_, plot_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]))
+
+		time_list = []
+		freq_list = []
+
+		prevfreq = plot_tuple_list[0][0]
+		for plot_tuple in plot_tuple_list[1:]:
+
+			'''
+			ax_list_list[yplot][xplot].plot([plot_tuple[1], prevfreq], [plot_tuple[1], plot_tuple[0]])
+			ax_list_list[yplot][xplot].plot([plot_tuple[1], plot_tuple[0]], [plot_tuple[2], plot_tuple[0]])
+			'''
+
+			time_list.append(plot_tuple[1] - starttime)
+			freq_list.append(prevfreq)
+			time_list.append(plot_tuple[1] - starttime)
+			freq_list.append(plot_tuple[0])
+
+			prevtime = plot_tuple[1]
+			prevfreq = plot_tuple[0]
+
+		#end_for
+
+		ax_list_list[yplot][xplot].plot(time_list, freq_list)
+		ax_list_list[yplot][xplot].axis([0, endtime - starttime, 0, 2500000])
+
+		ax_list_list[yplot][xplot].set_title("CPU " + str(cpu), fontsize = 16, fontweight = "bold")
+		if (xplot == 0):
+			ax_list_list[yplot][xplot].set_ylabel("CPU speed (Hz)", fontsize = 16, fontweight = "bold")
+		#end_if
+		if (yplot == 1):
+			ax_list_list[yplot][xplot].set_xlabel("Time during flick (s)", fontsize = 16, fontweight = "bold")
+		#end_if
+
+	#end_for
+
+	fig.suptitle("Frequency Over Time, per CPU, for Interim Between Flicks #2 and #3 on FB Friends", fontsize = 16, fontweight = "bold")
+	plt.show()
+
+	return
 
 #end_def
 
@@ -1040,7 +1109,7 @@ def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
 		#'''
 
 		# Construct a per-speed dict of all (start, stop) periods at a speed:
-		freqtime_tuple_list_dict = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]))
+		freqtime_tuple_list_dict, _ = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]))
 
 		# Compute total time spent on a given speed, for each CPU:
 		for key in freqtime_tuple_list_dict:
@@ -1166,5 +1235,5 @@ def quick():
 #main()
 #quick()
 #u_curve()
-macro_speed_pertime()
-
+#macro_speed_pertime()
+plot_freq_over_time()
