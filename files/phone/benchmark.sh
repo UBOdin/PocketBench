@@ -39,6 +39,14 @@ set_governor() {
 			echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
 			echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
 		fi
+		if [ "$governor" = "ioblock" ]; then
+			freq_little_min="$(echo $frequency | cut -d "-" -f1)"
+			freq_big_min="$(echo $frequency | cut -d "-" -f2)"
+			freq_little_max="$(echo $frequency | cut -d "-" -f3)"
+			freq_big_max="$(echo $frequency | cut -d "-" -f4)"
+			/data/setgov.exe $freq_little_min $freq_little_max 0
+			/data/setgov.exe $freq_big_min $freq_big_max 4
+		fi
 	fi
 
 }
