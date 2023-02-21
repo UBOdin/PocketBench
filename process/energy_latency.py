@@ -173,8 +173,20 @@ def process_loglines(file_name):
 				#break
 			#end_if
 
+			'''
 			if ("Cycle data" in logline):
 				perfcycles = int(logline.split("Cycle data:  ")[1])
+				print("cycles")
+			#end_if
+			'''
+			if ("Macro cycle stats 103" in logline):
+				perfcycles_str = logline.split("Macro cycle stats 103:  ")[1][:-1]
+				perfcycles_list = perfcycles_str.split(" ")
+				perfcycles = 0
+				for e in perfcycles_list:
+					perfcycles += int(e)
+				#end_for
+				print("cycles:  " + str(perfcycles))
 			#end_if
 
 			if ("CPU FREQ" in logline):
@@ -291,32 +303,6 @@ def get_energy(file_name, start, stop):
 
 	amps_total = 0.0
 
-	'''
-	# Get linecount (kludge):
-	input_file = open(file_name, "r")
-	while (True):
-		logline = input_file.readline()
-		if (logline == ""):
-			break
-		#end_if
-		iteration += 1
-	#end_while
-	input_file.close()
-
-	# Facebook:  15s - 45s (double check)
-	# Temple Run:  15s - 70s
-	# microbench (do nothing or sleep for 20s):  5s - 35s
-
-	#start = 7.0  # fixed
-	#stop = float(iteration - 2) / 5000.0 - 19.0  # Set stop to 19s before end
-	start = 5.0 #08.0 #15.0
-	stop = 35.0 #48.0 #45.0
-	#start = 8.0
-	#stop = start + 150.0
-	iteration = 0  # reset counter
-	#print("File:  %s  Stop:  %f" % (file_name, stop))
-	'''
-
 	# Reopen file:
 	input_file = open(file_name, "r")
 	# Skip first line:
@@ -328,8 +314,8 @@ def get_energy(file_name, start, stop):
 		logline = input_file.readline()
 
 		if (logline == ""):
-			#print("Hit EOF")
-			#print(file_name)
+			print("Hit EOF")
+			print(file_name)
 			break
 			sys.exit(1)
 		#end_if
@@ -1219,6 +1205,98 @@ def macro_speed_pertime():
 #end_def
 
 
+def crossplot_energy_jank():
+
+	benchtime = 0
+	jank = 0.0
+	jank_list = []
+	jank_mean = 0.0
+	jank_err = 0.0
+	energy = 0.0
+	energy_list = []
+	energy_mean = 0.0
+	energy_err = 0.0
+	cycles = 0
+	cycles_list = []
+
+	governor_list = ["schedutil_none", "userspace_70-70", "userspace_80-80", "ioblock_def-70", "ioblock_def-80", "ioblock_40-def", "ioblock_40-80"]
+	ftraceprefix = "/micro_normal_"
+	energyprefix = "/monsoon_normal_"
+	runcount = 3
+
+	path = sys.argv[1]
+
+	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
+	marker_list = ["o", "1", "2", "v", "^", ">", "<"]
+
+	nsubplots = 2
+	fig, ax_list = plt.subplots(1, nsubplots) #nsubplots, 1)
+	fig2, ax2_list = plt.subplots(1, nsubplots)
+
+	for governor, color, marker in zip(governor_list, color_list, marker_list):
+
+		jank_list = []
+		energy_list = []
+		cycles_list = []
+		for run in range(0, 10):
+			ftracefilename = path + ftraceprefix + governor + "_" + str(run) + ".gz"
+			print(ftracefilename)
+
+			benchtime, _, graphdata_list, cycles, _, _, _ = process_loglines(ftracefilename)
+			jank = 100.0 * (float(graphdata_list[1]) / float(graphdata_list[0]))
+			jank_list.append(jank)
+			cycles_list.append(cycles)
+
+			energyfilename = path + energyprefix + governor + "_" + str(run) + ".csv"
+			energy = get_energy(energyfilename, 5.0, 55.0) #benchtime + 15.0)
+			energy_list.append(energy)
+
+			print("%f  %f  %f  %f" % (benchtime, jank, cycles, energy))
+
+		#end_for
+		jank_mean, jank_err = mean_margin(jank_list)
+		energy_mean, energy_err = mean_margin(energy_list)
+		cycles_mean, cycles_err = mean_margin(cycles_list)
+
+		for i in range(nsubplots):
+			ax_list[i].scatter(jank_mean, energy_mean, marker = marker, s = 200, color = color)
+			ax_list[i].errorbar(jank_mean, energy_mean, xerr = jank_err, yerr = energy_err, color = color)
+			ax2_list[i].scatter(cycles_mean, energy_mean, marker = marker, s = 200, color = color)
+			ax2_list[i].errorbar(cycles_mean, energy_mean, xerr = cycles_err, yerr = energy_err, color = color)
+		#end_for
+
+	#end_for
+
+	handle_list = []
+	for governor, color, marker in zip(governor_list, color_list, marker_list):
+		#handle_list.append(Patch(color = color, label = governor))
+		handle_list.append(Line2D([], [], marker = marker, markersize = 15, color = color, label = governor, linewidth = 0))
+	#end_for
+
+	ax_list[0].axis([0, 8.0, 0, 6000])
+	ax_list[1].axis([1.5, 5.0, 4600, 5800])
+	ax_list[0].legend(handles = handle_list, loc = "upper right", fontsize = 16)
+	ax_list[0].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_xlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_xlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Energy and Screendrops for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
+	
+	ax2_list[0].axis([0, 80000000000, 0, 6000])
+	ax2_list[0].legend(handles = handle_list, loc = "upper left", fontsize = 16)
+	ax2_list[0].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
+	#ax2_list[1].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
+	ax2_list[0].set_xlabel("Cycles, total", fontsize = 16, fontweight = "bold")
+	ax2_list[1].set_xlabel("Cycles, total", fontsize = 16, fontweight = "bold")
+	fig2.suptitle("Energy and CPU Cyclecount for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
+
+	plt.show()
+
+	return
+
+#end_def
+
+
 def quick():
 
 	filename = ""
@@ -1236,4 +1314,6 @@ def quick():
 #quick()
 #u_curve()
 #macro_speed_pertime()
-plot_freq_over_time()
+#plot_freq_over_time()
+crossplot_energy_jank()
+
