@@ -896,11 +896,12 @@ def u_curve():
 #end_def
 
 
-def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
+def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq, trackidle):
 
 	# freq_tuple_list = []
 	# eventtime_list = []
 	# startfreq = 0
+	# trackidle = False
 	prevtime = 0.0
 	previdle = 0
 	prevfreq = 0
@@ -922,6 +923,12 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq):
 	savefreq = prevfreq
 	for freq_tuple in freq_tuple_list:
 		newtime = freq_tuple[0]
+
+		# If not tracking idle state, short circuit:
+		if ((trackidle == False) and (freq_tuple[1] == "idle")):
+			previdle = -1
+			continue
+		#end_if
 
 		# Until the benchmark start time, just update the CPU speed and idle state but don't save any events:
 		if (newtime < eventtime_list[0]):
@@ -1022,18 +1029,13 @@ def plot_freq_over_time():
 		starttime = eventtime_list[0]
 		endtime = eventtime_list[1]
 
-		_, plot_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]))
+		_, plot_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]), True)
 
 		time_list = []
 		freq_list = []
 
 		prevfreq = plot_tuple_list[0][0]
 		for plot_tuple in plot_tuple_list[1:]:
-
-			'''
-			ax_list_list[yplot][xplot].plot([plot_tuple[1], prevfreq], [plot_tuple[1], plot_tuple[0]])
-			ax_list_list[yplot][xplot].plot([plot_tuple[1], plot_tuple[0]], [plot_tuple[2], plot_tuple[0]])
-			'''
 
 			time_list.append(plot_tuple[1] - starttime)
 			freq_list.append(prevfreq)
@@ -1281,7 +1283,7 @@ def crossplot_energy_jank():
 	ax_list[0].set_xlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
 	ax_list[1].set_xlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
 	fig.suptitle("Energy and Screendrops for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
-	
+
 	ax2_list[0].axis([0, 80000000000, 0, 6000])
 	ax2_list[0].legend(handles = handle_list, loc = "upper left", fontsize = 16)
 	ax2_list[0].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
@@ -1314,6 +1316,6 @@ def quick():
 #quick()
 #u_curve()
 #macro_speed_pertime()
-#plot_freq_over_time()
-crossplot_energy_jank()
+plot_freq_over_time()
+#crossplot_energy_jank()
 
