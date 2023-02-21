@@ -913,8 +913,6 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq, tr
 	freqtime_tuple_list = []
 	freqtime_tuple = ()
 
-	plot_tuple_list = []
-
 	# Compute a list of (start, stop) times, spent at each freqency, for each CPU:
 	prevtime = eventtime_list[0]  # Reset starttime to start of measurement
 	freqtime_tuple_list_dict = {}
@@ -951,10 +949,14 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq, tr
 			#end_if
 			continue
 		#end_if
+
+		# Sanity (n.b. very occasionally, tracefiles trip on this -- no idle event before start time):
 		if (previdle == -2):
 			print("Idle not initialized")
 			sys.exit(1)
 		#end_if
+
+		# End.  N.b. do not assume current speed (sometimes == start speed, also) is already in dict:
 		if (newtime >= eventtime_list[1]):
 			if (prevfreq in freqtime_tuple_list_dict):
 				freqtime_tuple_list_dict[prevfreq].append((prevtime, eventtime_list[1]))
@@ -989,7 +991,7 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq, tr
 			#end_if
 		#end_if
 
-		plot_tuple_list.append((prevfreq, prevtime, newtime))
+		freqtime_tuple_list.append((prevfreq, prevtime, newtime))
 
 		if (prevfreq in freqtime_tuple_list_dict):
 			freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
@@ -1000,19 +1002,43 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq, tr
 		prevfreq = newfreq
 	#end_for
 
-	return freqtime_tuple_list_dict, plot_tuple_list
+	return freqtime_tuple_list_dict, freqtime_tuple_list
 
 #end_def
 
 
-def plot_freq_over_time():
+def make_time_list_freq_list(freqtime_tuple_list, starttime):
 
-	freq_tuple_list = []
-	plot_tuple_list = []
+	# freqtime_tuple_list = []
+	# starttime = 0.0
+	freqtime_tuple = ()
+	time_list = []
+	freq_list = []
+	prevfreq = 0
 
+	prevfreq = freqtime_tuple_list[0][0]
+	for freqtime_tuple in freqtime_tuple_list[1:]:
+		time_list.append(freqtime_tuple[1] - starttime)
+		freq_list.append(prevfreq)
+		time_list.append(freqtime_tuple[1] - starttime)
+		freq_list.append(freqtime_tuple[0])
+		#prevtime = freqtime_tuple[1]
+		prevfreq = freqtime_tuple[0]
+	#end_for
+
+	return time_list, freq_list
+
+#end_def
+
+
+def plot_freq_over_time_all():
+
+	eventtime_list = []
+	freqtuple_list_list = []
+	freqtuple_list = []
+	startfreq_list = []
 	starttime = 0.0
 	endtime = 0.0
-	freqmax = 0
 
 	filename = sys.argv[1]
 
@@ -1029,23 +1055,8 @@ def plot_freq_over_time():
 		starttime = eventtime_list[0]
 		endtime = eventtime_list[1]
 
-		_, plot_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]), True)
-
-		time_list = []
-		freq_list = []
-
-		prevfreq = plot_tuple_list[0][0]
-		for plot_tuple in plot_tuple_list[1:]:
-
-			time_list.append(plot_tuple[1] - starttime)
-			freq_list.append(prevfreq)
-			time_list.append(plot_tuple[1] - starttime)
-			freq_list.append(plot_tuple[0])
-
-			prevtime = plot_tuple[1]
-			prevfreq = plot_tuple[0]
-
-		#end_for
+		_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]), True)
+		time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
 
 		ax_list_list[yplot][xplot].plot(time_list, freq_list)
 		ax_list_list[yplot][xplot].axis([0, endtime - starttime, 0, 2500000])
@@ -1062,6 +1073,59 @@ def plot_freq_over_time():
 
 	fig.suptitle("Frequency Over Time, per CPU, for Interim Between Flicks #2 and #3 on FB Friends", fontsize = 16, fontweight = "bold")
 	plt.show()
+
+	return
+
+#end_def
+
+
+def plot_freq_over_time_one():
+
+	eventtime_list = []
+	freqtuple_list_list = []
+	freqtuple_list = []
+	startfreq_list = []
+	starttime = 0.0
+	endtime = 0.0
+	time_list = []
+	freq_list = []
+
+	filename = sys.argv[1]
+
+	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
+
+	nplots = 2
+	fig, ax_list = plt.subplots(nplots, 1)
+	fig.set_size_inches(12, 8)
+
+	targetcpu = 6
+
+	for cpu in range(targetcpu, targetcpu + 1):
+
+		xplot = cpu % 4
+		yplot = int(cpu / 4)
+		print("%d  %d"  % (xplot, yplot))
+
+		starttime = eventtime_list[0] + 20
+		endtime = eventtime_list[0] + 21
+
+		for i in range(nplots):
+			_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), bool(i))
+			time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
+			ax_list[i].plot(time_list, freq_list)
+			ax_list[i].axis([0, endtime - starttime, 0, 2500000])
+			ax_list[i].set_ylabel("CPU speed (Hz)", fontsize = 16, fontweight = "bold")
+		#end_for
+
+		ax_list[0].set_title("CPU Speed, Ignoring Idling", fontsize = 16, fontweight = "bold")
+		ax_list[1].set_title("CPU Speed, Showing Idling", fontsize = 16, fontweight = "bold")
+		ax_list[1].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
+
+	#end_for
+
+	fig.suptitle("Frequency Over Time, per CPU, for 1s of Interaction on FB Friends", fontsize = 16, fontweight = "bold")
+	plt.show()
+	fig.savefig("graph_freqtime_flick.pdf", bbox_inches = "tight")
 
 	return
 
@@ -1316,6 +1380,6 @@ def quick():
 #quick()
 #u_curve()
 #macro_speed_pertime()
-plot_freq_over_time()
+plot_freq_over_time_one()
 #crossplot_energy_jank()
 
