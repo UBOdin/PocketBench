@@ -958,6 +958,7 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq, tr
 
 		# End.  N.b. do not assume current speed (sometimes == start speed, also) is already in dict:
 		if (newtime >= eventtime_list[1]):
+			freqtime_tuple_list.append((prevfreq, prevtime, eventtime_list[1]))
 			if (prevfreq in freqtime_tuple_list_dict):
 				freqtime_tuple_list_dict[prevfreq].append((prevtime, eventtime_list[1]))
 			else:
@@ -992,7 +993,6 @@ def make_freqtime_tuple_list_dict(freq_tuple_list, eventtime_list, startfreq, tr
 		#end_if
 
 		freqtime_tuple_list.append((prevfreq, prevtime, newtime))
-
 		if (prevfreq in freqtime_tuple_list_dict):
 			freqtime_tuple_list_dict[prevfreq].append((prevtime, newtime))
 		else:
@@ -1025,13 +1025,15 @@ def make_time_list_freq_list(freqtime_tuple_list, starttime):
 		#prevtime = freqtime_tuple[1]
 		prevfreq = freqtime_tuple[0]
 	#end_for
+	time_list.append(freqtime_tuple[2] - starttime)
+	freq_list.append(prevfreq)
 
 	return time_list, freq_list
 
 #end_def
 
 
-def plot_freq_over_time_all():
+def plot_freq_over_time_fb_all_cpus():
 
 	eventtime_list = []
 	freqtuple_list_list = []
@@ -1079,7 +1081,9 @@ def plot_freq_over_time_all():
 #end_def
 
 
-def plot_freq_over_time_one():
+# Plots frequency/time graph for 1s FB interaction (showing constantly changing speed)
+# Tracefile:  .../20230214/fb_runs_ioblock/micro_normal_schedutil_none_1.gz
+def plot_freq_over_time_fb_one_cpu():
 
 	eventtime_list = []
 	freqtuple_list_list = []
@@ -1102,14 +1106,11 @@ def plot_freq_over_time_one():
 
 	for cpu in range(targetcpu, targetcpu + 1):
 
-		xplot = cpu % 4
-		yplot = int(cpu / 4)
-		print("%d  %d"  % (xplot, yplot))
-
 		starttime = eventtime_list[0] + 20
 		endtime = eventtime_list[0] + 21
 
 		for i in range(nplots):
+
 			_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), bool(i))
 			time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
 			ax_list[i].plot(time_list, freq_list)
@@ -1126,6 +1127,67 @@ def plot_freq_over_time_one():
 	fig.suptitle("Frequency Over Time, per CPU, for 1s of Interaction on FB Friends", fontsize = 16, fontweight = "bold")
 	plt.show()
 	fig.savefig("graph_freqtime_flick.pdf", bbox_inches = "tight")
+
+	return
+
+#end_def
+
+# Plots frequency/time graph for microbenchmarks (different delays)
+# Tracefile:  .../20230221/microbench_different_delays/*
+def plot_freq_over_time_micro():
+
+	eventtime_list = []
+	freqtuple_list_list = []
+	freqtuple_list = []
+	startfreq_list = []
+	starttime = 0.0
+	endtime = 0.0
+	time_list = []
+	freq_list = []
+
+	fig, ax_list_list = plt.subplots(2, 2)
+	fig.set_size_inches(12, 8)
+
+	targetcpu = 7
+
+	path = sys.argv[1]
+	prefix = "/micro_1000-"
+	postfix = "-f0-1_schedutil_none_0.gz"
+	delay_list = ["0", "5"]
+
+	for yplot, delay in enumerate(delay_list):
+
+		filename = path + prefix + delay + postfix
+		print(filename)
+		_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
+
+		for cpu in range(targetcpu, targetcpu + 1):
+			starttime = eventtime_list[0]
+			endtime = eventtime_list[1]
+			for i in range(2):
+				xplot = i
+				_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), False)
+				time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
+				ax_list_list[yplot][xplot].plot(time_list, freq_list)
+			#end_for
+			ax_list_list[yplot][0].axis([0, 26, 0, 2600000])
+		#end_for
+
+	#end_for
+
+	ax_list_list[0][1].axis([0, .5, 0, 2600000])
+	ax_list_list[1][1].axis([5, 7, 0, 2600000])
+	#ax_list_list[i].set_ylabel("CPU speed (Hz)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].set_title("Full Run", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][1].set_title("Zoomed Time Slice", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][1].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].set_ylabel("CPU speed (Hz)\n(No Delays)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_ylabel("CPU speed (Hz)\n(1000 5ms Delays)", fontsize = 16, fontweight = "bold")
+
+	fig.suptitle("CPU Speed Over Time, for a Fixed Compute, and Different Delays", fontsize = 16, fontweight = "bold")
+	plt.show()
+	fig.savefig("graph_freqtime_micro.pdf", bbox_inches = "tight")
 
 	return
 
@@ -1380,6 +1442,8 @@ def quick():
 #quick()
 #u_curve()
 #macro_speed_pertime()
-plot_freq_over_time_one()
+#plot_freq_over_time_fb_one_cpu()
+#plot_freq_over_time_all()
+plot_freq_over_time_micro()
 #crossplot_energy_jank()
 
