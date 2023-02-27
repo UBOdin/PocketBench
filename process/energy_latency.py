@@ -1268,7 +1268,7 @@ def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
 		#'''
 
 		# Construct a per-speed dict of all (start, stop) periods at a speed:
-		freqtime_tuple_list_dict, _ = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]))
+		freqtime_tuple_list_dict, _ = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], eventtime_list, int(startfreq_list[int(cpu / 4)]), True)
 
 		# Compute total time spent on a given speed, for each CPU:
 		for key in freqtime_tuple_list_dict:
@@ -1312,6 +1312,9 @@ def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
 #end_def
 
 
+
+# Plots time spent per frequency for fb (default policy)
+# Tracefile:  .../20230206/fb_runs/*
 def plot_time_perspeed_fb():
 
 	filename = ""
@@ -1321,13 +1324,12 @@ def plot_time_perspeed_fb():
 
 	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
 
-	#prefix = "/micro_2000-0-f0-4_schedutil_none_1_"
 	prefix = "/micro_normal_schedutil_none_1_"
 	#prefix = "/micro_normal_performance_none_1_"
 	#prefix = "/micro_normal_userspace_60-60_1_"
 	path = sys.argv[1]
 
-	runcount = 1
+	runcount = 3
 	for run in range(0, runcount):
 		filename = path + prefix + str(run) + ".gz"
 		plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list)
@@ -1335,6 +1337,8 @@ def plot_time_perspeed_fb():
 	cpucount = runcount * 4
 
 	fig, ax_list_list = plt.subplots(2, 2)
+	fig.set_size_inches(12, 8)
+
 	for xplot in range(0, 2):
 		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[xplot]
 		for key in freqtimetotalcluster_dict:
@@ -1346,19 +1350,21 @@ def plot_time_perspeed_fb():
 					ymax = 4
 				#end_if
 				ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, ymax])
-				ax_list_list[0][0].set_title("Little core cluster", fontsize = 16, fontweight = "bold")
-				ax_list_list[0][1].set_title("Big core cluster", fontsize = 16, fontweight = "bold")
-				if (xplot == 0):
-					ax_list_list[yplot][xplot].set_ylabel("Average CPU time (s)", fontsize = 16, fontweight = "bold")
-				#end_if
-				if (yplot == 1):
-					ax_list_list[yplot][xplot].set_xlabel("CPU frequency (decade)", fontsize = 16, fontweight = "bold")
-				#end_if
 			#end_for
 		#end_for
 	#end_for
-	fig.suptitle("Aveage Time Spent at a Given Speed, per CPU, for FB (32s script)\n(3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
+
+	ax_list_list[0][0].set_title("Little core cluster", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][1].set_title("Big core cluster", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].set_ylabel("Full", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_ylabel("Zoom", fontsize = 16, fontweight = "bold")
+
+	fig.supxlabel("CPU speed (decade)", fontsize = 16, fontweight = "bold")
+	fig.supylabel("Average time per CPU at a speed (s)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Average Time Spent at a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
+	fig.subplots_adjust(left = .09, bottom = .07)
 	plt.show()
+	fig.savefig("graph_time_per_freq_fb.pdf", bbox_inches = "tight")
 	plt.close("all")
 
 	for cluster in range(2):
@@ -1486,7 +1492,7 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_all()
 #plot_freq_over_time_micro()
