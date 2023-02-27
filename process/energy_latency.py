@@ -501,6 +501,7 @@ def crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_m
 
 #end_def
 
+
 def crossplot_benchtime_energy(benchtime_mean_list, benchtime_err_list, energy_mean_list, energy_err_list):
 
 	# benchtime_mean_list = []
@@ -788,7 +789,7 @@ def main():
 
 # Plots energy and runtime per policy for microbenchmark
 # Tracefiles:  .../20221216/u_curve_vary_time and .../20230102/u_curve_fixed_time
-def u_curve():
+def plot_energy_runtime_micro():
 
 	benchtime = 0
 	benchtime_list = []
@@ -1175,6 +1176,7 @@ def plot_freq_over_time_fb_one_cpu():
 
 #end_def
 
+
 # Plots frequency/time graph for microbenchmarks (different delays)
 # Tracefile:  .../20230221/microbench_different_delays/*
 def plot_freq_over_time_micro():
@@ -1310,7 +1312,7 @@ def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
 #end_def
 
 
-def macro_speed_pertime():
+def plot_time_perspeed_fb():
 
 	filename = ""
 	freqtimetotalcluster_dict_list = [{}, {}]
@@ -1483,8 +1485,8 @@ def quick():
 
 #main()
 #quick()
-u_curve()
-#macro_speed_pertime()
+#plot_energy_runtime_micro()
+plot_time_perspeed_fb()()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_all()
 #plot_freq_over_time_micro()
