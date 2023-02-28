@@ -818,7 +818,7 @@ def plot_energy_runtime_micro():
 	x_subplots = 2
 	y_subplots = 2
 	fig, ax_list = plt.subplots(y_subplots, x_subplots)
-	fig.set_size_inches(12, 8)
+	fig.set_size_inches(12, 9)
 
 	#color_list = ["red", "blue", "green", "orange", "brown"]
 	color_list = ["0.0", "0.2", "0.4", ".6", ".8"]
@@ -826,7 +826,7 @@ def plot_energy_runtime_micro():
 	annotate_list = ["default", "30", "40", "50", "60", "70", "80", "90", "100"]
 	handle_list = []
 
-	readtraces = True
+	readtraces = False
 	#plotfilename = "graph_u_varylen_multicore"
 	plotfilename = "graph_u_fixedlen_multicore"
 	outputline = ""
@@ -909,12 +909,14 @@ def plot_energy_runtime_micro():
 
 	handle_list.append(Line2D([], [], marker = "s", markersize = 7, color = "0.0", linewidth = 0, label = "Default"))
 	handle_list.append(Line2D([], [], marker = "o", markersize = 5, color = "0.0", linewidth = 0, label = "Fixed Speed"))
+	handle_list.append(Line2D([], [], linewidth = 0))
+	handle_list.append(Line2D([], [], linewidth = 0))
 
 	ax_list[0][0].tick_params(labelsize = 16)
 	ax_list[0][0].axis([0, 70, 0, 3000])
 	ax_list[0][0].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
 	ax_list[0][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
-	ax_list[0][0].legend(handles = handle_list, loc = "upper right", fontsize = 16)
+	ax_list[0][0].legend(handles = handle_list, loc = "upper right", fontsize = 16, ncol = 2)
 
 	ax_list[1][0].tick_params(labelsize = 16)
 	ax_list[1][0].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
@@ -923,7 +925,7 @@ def plot_energy_runtime_micro():
 	ax_list[0][1].tick_params(labelsize = 16)
 	ax_list[0][1].axis([0, 70, 0, 3000])
 	ax_list[0][1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
-	ax_list[0][1].legend(handles = handle_list, loc = "upper right", fontsize = 16)
+	ax_list[0][1].legend(handles = handle_list, loc = "upper right", fontsize = 16, ncol = 2)
 	
 	ax_list[1][1].tick_params(labelsize = 16)
 	ax_list[1][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
@@ -1322,7 +1324,7 @@ def plot_time_perspeed_fb():
 	freqtimetotalcluster_dict = {}
 	maxspeed_dict = {}
 
-	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
+	maxspeed_dict = {0:1900800, 1:2457600}  # 10% CPU freq to norm speeds
 
 	prefix = "/micro_normal_schedutil_none_1_"
 	#prefix = "/micro_normal_performance_none_1_"
@@ -1339,17 +1341,18 @@ def plot_time_perspeed_fb():
 	fig, ax_list_list = plt.subplots(2, 2)
 	fig.set_size_inches(12, 8)
 
+	xprop = 100  # CPU speed proportion (out of)
 	for xplot in range(0, 2):
 		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[xplot]
 		for key in freqtimetotalcluster_dict:
 			for yplot in range(0, 2):
-				ax_list_list[yplot][xplot].bar(float(key) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key] / cpucount, color = "blue", width = .1)
+				ax_list_list[yplot][xplot].bar((float(key) * xprop) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key] / cpucount, color = "blue", width = .01 * xprop)
 				if (yplot == 0):
 					ymax = 30
 				elif (yplot == 1):
-					ymax = 4
+					ymax = 3.5
 				#end_if
-				ax_list_list[yplot][xplot].axis([-0.5, 10.5, 0, ymax])
+				ax_list_list[yplot][xplot].axis([-.05 * xprop, 1.05 * xprop, 0, ymax])
 			#end_for
 		#end_for
 	#end_for
@@ -1359,7 +1362,7 @@ def plot_time_perspeed_fb():
 	ax_list_list[0][0].set_ylabel("Full", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][0].set_ylabel("Zoom", fontsize = 16, fontweight = "bold")
 
-	fig.supxlabel("CPU speed (decade)", fontsize = 16, fontweight = "bold")
+	fig.supxlabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
 	fig.supylabel("Average time per CPU at a speed (s)", fontsize = 16, fontweight = "bold")
 	fig.suptitle("Average Time Spent at a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(left = .09, bottom = .07)
