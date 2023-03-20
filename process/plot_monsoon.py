@@ -128,7 +128,7 @@ def get_energy(file_name):
 
 	fig, ax = plt.subplots()
 
-	ax.axis([0, bucketcount, 0, bucketmax * 1.1])
+	#ax.axis([0, bucketcount, 0, bucketmax * 1.1])
 	ax.set_xticks(xtick_list)
 	ax.set_xticklabels(xlabel_list)
 	ax.set_xlabel("Time, seconds", fontsize = 12, fontweight = "bold")
@@ -137,6 +137,10 @@ def get_energy(file_name):
 	ax.set_ylabel("Current, mA", fontsize = 12, fontweight = "bold")
 
 	# N.b. this is mA, NOT uA or mAh or uAh -- this is current, not power
+
+	print(bucketcount)
+	print(bucketmax)
+	#ax.axis([0, 700, 0, 350000])
 
 	ax.plot(bucketamps_list)
 
