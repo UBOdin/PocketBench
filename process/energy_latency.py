@@ -1392,7 +1392,7 @@ def plot_time_perspeed_fb():
 # Plots time energy and screendrops per CPU policy (Second plot:  energy and cycles per CPU policy)
 # Tracefile:  .../20230214/fb_runs_ioblock/*
 # Summary post-processed data file:  graph_energy_jank_fb.txt  
-def crossplot_energy_jank():
+def plot_energy_drops_perpol_fb():
 
 	benchtime = 0
 	jank = 0.0
@@ -1540,5 +1540,5 @@ def quick():
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_all()
 #plot_freq_over_time_micro()
-crossplot_energy_jank()
+plot_energy_drops_perpol_fb()
 
