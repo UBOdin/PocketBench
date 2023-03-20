@@ -118,8 +118,8 @@ graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
 #device="nexus6"
 device="pixel2"
-#experiment="microbench"
-experiment="uiautomator"
+experiment="microbench"
+#experiment="uiautomator"
 
 governor=$1
 frequency=$2
@@ -208,6 +208,9 @@ if [ "$experiment" = "microbench" ]; then
 	waittime="0"
 	sleep $waittime &
 	waitpid="$!"
+
+	get_cpufreq
+	echo "CPU FREQ $cpufreqconcat" >> $trace_log
 
 	get_idledata
 	if [ "$proccount" != "0" ]; then
