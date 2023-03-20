@@ -789,6 +789,7 @@ def main():
 
 # Plots energy and runtime per policy for microbenchmark
 # Tracefiles:  .../20221216/u_curve_vary_time and .../20230102/u_curve_fixed_time
+# Summary post-processed data file(s):  graph_u_varylen_multicore.txt and graph_u_fixedlen_multicore.txt
 def plot_energy_runtime_micro():
 
 	benchtime = 0
@@ -821,8 +822,8 @@ def plot_energy_runtime_micro():
 	fig.set_size_inches(12, 9)
 
 	#color_list = ["red", "blue", "green", "orange", "brown"]
-	color_list = ["0.0", "0.2", "0.4", ".6", ".8"]
-	linestyle_list = ["solid", "dotted", "dashed", "dashdot", "solid"]
+	color_list = ["0.0", "0.2", "0.4", ".6"]
+	linestyle_list = ["solid", "dotted", "dashed", "dashdot"]
 	annotate_list = ["default", "30", "40", "50", "60", "70", "80", "90", "100"]
 	handle_list = []
 
@@ -1362,12 +1363,13 @@ def plot_time_perspeed_fb():
 	ax_list_list[0][0].set_ylabel("Full", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][0].set_ylabel("Zoom", fontsize = 16, fontweight = "bold")
 
+	fig.suptitle("Average Time Spent at a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
 	fig.supylabel("Average time per CPU at a speed (s)", fontsize = 16, fontweight = "bold")
-	fig.suptitle("Average Time Spent at a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(left = .09, bottom = .07)
-	plt.show()
 	fig.savefig("graph_time_per_freq_fb.pdf", bbox_inches = "tight")
+
+	plt.show()
 	plt.close("all")
 
 	for cluster in range(2):
@@ -1387,6 +1389,9 @@ def plot_time_perspeed_fb():
 #end_def
 
 
+# Plots time energy and screendrops per CPU policy (Second plot:  energy and cycles per CPU policy)
+# Tracefile:  .../20230214/fb_runs_ioblock/*
+# Summary post-processed data file:  graph_energy_jank_fb.txt  
 def crossplot_energy_jank():
 
 	benchtime = 0
@@ -1410,35 +1415,63 @@ def crossplot_energy_jank():
 
 	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
 	marker_list = ["o", "1", "2", "v", "^", ">", "<"]
+	label_list = ["Default", "Fixed 70", "Fixed 80", "Range 0-70", "Range 0-80", "Range 40-100", "Range 40-80"]
+	#linestyle_list = ["solid", "dashdotted", "dashdotdotted", "long dash with offset", "densely dashed", "dashed", "loosely dashed" ]
 
 	nsubplots = 2
 	fig, ax_list = plt.subplots(1, nsubplots) #nsubplots, 1)
+	fig.set_size_inches(12, 8)
 	fig2, ax2_list = plt.subplots(1, nsubplots)
+	fig2.set_size_inches(12, 8)
+
+	readtraces = False
+	plotfilename = "graph_energy_jank_fb"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(plotfilename + ".txt", "r")
+	#end_if
 
 	for governor, color, marker in zip(governor_list, color_list, marker_list):
 
-		jank_list = []
-		energy_list = []
-		cycles_list = []
-		for run in range(0, 10):
-			ftracefilename = path + ftraceprefix + governor + "_" + str(run) + ".gz"
-			print(ftracefilename)
+		if (readtraces == True):
 
-			benchtime, _, graphdata_list, cycles, _, _, _ = process_loglines(ftracefilename)
-			jank = 100.0 * (float(graphdata_list[1]) / float(graphdata_list[0]))
-			jank_list.append(jank)
-			cycles_list.append(cycles)
+			jank_list = []
+			energy_list = []
+			cycles_list = []
+			for run in range(0, 10):
+				ftracefilename = path + ftraceprefix + governor + "_" + str(run) + ".gz"
+				print(ftracefilename)
+				benchtime, _, graphdata_list, cycles, _, _, _ = process_loglines(ftracefilename)
+				jank = 100.0 * (float(graphdata_list[1]) / float(graphdata_list[0]))
+				jank_list.append(jank)
+				cycles_list.append(cycles)
+				energyfilename = path + energyprefix + governor + "_" + str(run) + ".csv"
+				energy = get_energy(energyfilename, 5.0, 55.0) #benchtime + 15.0)
+				energy_list.append(energy)
+				print("%f  %f  %f  %f" % (benchtime, jank, cycles, energy))
+			#end_for
+			jank_mean, jank_err = mean_margin(jank_list)
+			energy_mean, energy_err = mean_margin(energy_list)
+			cycles_mean, cycles_err = mean_margin(cycles_list)
 
-			energyfilename = path + energyprefix + governor + "_" + str(run) + ".csv"
-			energy = get_energy(energyfilename, 5.0, 55.0) #benchtime + 15.0)
-			energy_list.append(energy)
+			outputline = str(jank_mean) + "," + str(jank_err) + "," + str(cycles_mean) + "," + str(cycles_err) + "," + str(energy_mean) + "," + str(energy_err) + "\n"
+			plotdata_file.write(outputline)
 
-			print("%f  %f  %f  %f" % (benchtime, jank, cycles, energy))
-
-		#end_for
-		jank_mean, jank_err = mean_margin(jank_list)
-		energy_mean, energy_err = mean_margin(energy_list)
-		cycles_mean, cycles_err = mean_margin(cycles_list)
+		else:
+			inputline = plotdata_file.readline()
+			inputline_list = inputline.split(",")
+			assert(len(inputline_list) == 6)
+			jank_mean = float(inputline_list[0])
+			jank_err = float(inputline_list[1])
+			cycles_mean = float(inputline_list[2])
+			cycles_err = float(inputline_list[3])
+			energy_mean = float(inputline_list[4])
+			energy_err = float(inputline_list[5])
+		#end_if
 
 		for i in range(nsubplots):
 			ax_list[i].scatter(jank_mean, energy_mean, marker = marker, s = 200, color = color)
@@ -1449,28 +1482,36 @@ def crossplot_energy_jank():
 
 	#end_for
 
+	plotdata_file.close()
+
 	handle_list = []
-	for governor, color, marker in zip(governor_list, color_list, marker_list):
+	for governor, color, marker, label in zip(governor_list, color_list, marker_list, label_list):
 		#handle_list.append(Patch(color = color, label = governor))
-		handle_list.append(Line2D([], [], marker = marker, markersize = 15, color = color, label = governor, linewidth = 0))
+		handle_list.append(Line2D([], [], marker = marker, markersize = 15, color = color, label = label, linewidth = 0))
 	#end_for
 
+	ax_list[0].set_title("Zero centered", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_title("Zoomed", fontsize = 16, fontweight = "bold")
 	ax_list[0].axis([0, 8.0, 0, 6000])
 	ax_list[1].axis([1.5, 5.0, 4600, 5800])
-	ax_list[0].legend(handles = handle_list, loc = "upper right", fontsize = 16)
+	ax_list[0].legend(handles = handle_list, loc = "lower right", fontsize = 16)
 	ax_list[0].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
-	#ax_list[1].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_xlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_xlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
-	fig.suptitle("Energy and Screendrops for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
 
+	fig.suptitle("Energy and Screendrops for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
+	fig.supxlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
+	fig.subplots_adjust(top = 0.90, bottom = 0.07)
+	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
+
+	ax2_list[0].set_title("Zero centered", fontsize = 16, fontweight = "bold")
+	ax2_list[1].set_title("Zoomed", fontsize = 16, fontweight = "bold")
 	ax2_list[0].axis([0, 80000000000, 0, 6000])
-	ax2_list[0].legend(handles = handle_list, loc = "upper left", fontsize = 16)
+	ax2_list[0].legend(handles = handle_list, loc = "lower left", fontsize = 16)
 	ax2_list[0].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
-	#ax2_list[1].set_ylabel("Energy (mAh)", fontsize = 16, fontweight = "bold")
-	ax2_list[0].set_xlabel("Cycles, total", fontsize = 16, fontweight = "bold")
-	ax2_list[1].set_xlabel("Cycles, total", fontsize = 16, fontweight = "bold")
+
 	fig2.suptitle("Energy and CPU Cyclecount for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
+	fig2.supxlabel("Cycles, total", fontsize = 16, fontweight = "bold")
+	fig2.subplots_adjust(top = 0.90, bottom = 0.09)
+	fig2.savefig("graph_energy_cycles_fb.pdf", bbox_inches = "tight")
 
 	plt.show()
 
@@ -1495,9 +1536,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_all()
 #plot_freq_over_time_micro()
-#crossplot_energy_jank()
+crossplot_energy_jank()
 
