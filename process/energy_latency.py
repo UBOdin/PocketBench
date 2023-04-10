@@ -75,6 +75,8 @@ def process_loglines(file_name):
 	perfcycles = 0
 	eventtime_list = []
 	startfreq_list = []
+	ttid = 0.0
+	ttfd = 0.0
 
 	input_file = gzip.open(file_name, "r")
 
@@ -194,6 +196,33 @@ def process_loglines(file_name):
 				startfreq_list = [int(temp_list[0]), int(temp_list[1])]
 			#end_if
 
+			if ("ActivityTaskManager: Displayed" in logline):
+				ttid_str = logline.split(" ")[-1]
+				#print(ttid_str)
+				temp = ttid_str[1:-3]
+				#print(temp)
+				if ("s" in temp):
+					temp_list = temp.split("s")
+					ttid = float(temp_list[0]) + float(temp_list[1]) / 1000.0
+				else:
+					ttid = float(temp) / 1000.0
+				#end_if
+				#print(ttid)
+			#end_if
+			if ("ActivityTaskManager: Fully drawn" in logline):
+				ttfd_str = logline.split(" ")[-1]
+				#print(ttfd_str)
+				temp = ttfd_str[1:-3]
+				#print(temp)
+				if ("s" in temp):
+					temp_list = temp.split("s")
+					ttfd = float(temp_list[0]) + float(temp_list[1]) / 1000.0
+				else:
+					ttfd = float(temp) / 1000.0
+				#end_if
+				#print(ttfd)
+			#end_if
+
 		#end_if
 
 		# N.b. for the cpu_frequency event, the cpu field is the CPU# on which the governor
@@ -283,7 +312,8 @@ def process_loglines(file_name):
 	#print(newidle_list)
 	#print(runtime_list)
 
-	return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, freq_tuple_list_list, startfreq_list
+	#return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, freq_tuple_list_list, startfreq_list
+	return endtime - starttime, runtime_list, graphdata_list, perfcycles, eventtime_list, freq_tuple_list_list, startfreq_list, ttid, ttfd
 
 #end_def
 
@@ -1520,6 +1550,111 @@ def plot_energy_drops_perpol_fb():
 #end_def
 
 
+def plot_energy_hintperf_spot():
+
+	governor_list = ["normal_schedutil_none", "normal_userspace_70-70", "boost_schedutil_none", "boost_userspace_70-70"]
+	ftraceprefix = "/micro_"
+	energyprefix = "/monsoon_"
+
+	benchtime = 0
+	ttid = 0.0
+	ttid_list = []
+	ttid_mean = 0.0
+	ttid_err = 0.0
+	ttfd = 0.0
+	ttfd_list = []
+	ttfd_mean = 0.0
+	ttfd_err = 0.0
+	energy = 0.0
+	energy_list = []
+	energy_mean = 0.0
+	energy_err = 0.0
+
+	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
+	marker_list = ["v", "^", ">", "<"]
+	label_list = ["Default, no hint", "Fixed 70, no hint", "Default, with hint", "Fixed 70, with hint"]
+
+	path = sys.argv[1]
+
+	fig, ax_list_list = plt.subplots(2, 2)
+
+	for governor, color, marker, label in zip(governor_list, color_list, marker_list, label_list):
+
+		ttid_list = []
+		ttfd_list = []
+		energy_list = []
+
+		for run in range(5):
+
+			ftracefilename = path + ftraceprefix + governor + "_" + str(run) + ".gz"
+			print(ftracefilename)
+			benchtime, _, _, _, _, _, _, ttid, ttfd = process_loglines(ftracefilename)
+			ttid_list.append(ttid)
+			ttfd_list.append(ttfd)
+
+			#'''
+			energyfilename = path + energyprefix + governor + "_" + str(run) + ".csv"
+			print(energyfilename)
+			#energy = get_energy(energyfilename, 5.0, 55.0) #benchtime + 15.0)
+			energy = get_energy(energyfilename, 12.0, 12.0 + ttfd + 10.0)
+			energy_list.append(energy)
+			#'''
+
+			print(ttid)
+			print(ttfd)
+			print(energy)
+
+		#end_for
+
+		ttid_mean, ttid_err = mean_margin(ttid_list)
+		ttfd_mean, ttfd_err = mean_margin(ttfd_list)
+		energy_mean, energy_err = mean_margin(energy_list)
+
+		for yplot in range(0, 2):
+			ax_list_list[yplot, 0].scatter(ttid_mean, energy_mean, marker = marker, s = 200)
+			ax_list_list[yplot, 0].errorbar(ttid_mean, energy_mean, xerr = ttid_err, yerr = energy_err)
+			ax_list_list[yplot, 1].scatter(ttfd_mean, energy_mean, marker = marker, s = 200)
+			ax_list_list[yplot, 1].errorbar(ttfd_mean, energy_mean, xerr = ttfd_err, yerr = energy_err)
+		#end_for
+
+	#end_for
+
+	handle_list = []
+	for governor, color, marker, label in zip(governor_list, color_list, marker_list, label_list):
+		handle_list.append(Line2D([], [], marker = marker, markersize = 15, color = color, label = label, linewidth = 0))
+	#end_for
+
+
+	ax_list_list[0, 0].tick_params(labelsize = 16)
+	ax_list_list[0, 1].tick_params(labelsize = 16)
+	ax_list_list[1, 0].tick_params(labelsize = 16)
+	ax_list_list[1, 1].tick_params(labelsize = 16)
+
+	ax_list_list[0, 0].axis([0, 2.5, 0, 1200])
+	ax_list_list[0, 1].axis([0, 2.5, 0, 1200])
+
+	ax_list_list[0, 0].set_title("Zero Centered", fontsize = 16, fontweight = "bold")
+	ax_list_list[0, 1].set_title("Zero Centered", fontsize = 16, fontweight = "bold")
+	ax_list_list[1, 0].set_title("Zoomed", fontsize = 16, fontweight = "bold")
+	ax_list_list[1, 1].set_title("Zoomed", fontsize = 16, fontweight = "bold")
+
+	ax_list_list[1, 0].set_xlabel("Time to initial display (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1, 1].set_xlabel("Time to fully drawn (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0, 0].set_ylabel("Energy (uAh)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1, 0].set_ylabel("Energy (uAh)", fontsize = 16, fontweight = "bold")
+
+	ax_list_list[0, 0].legend(handles = handle_list, loc = "lower left", fontsize = 16)
+	ax_list_list[0, 1].legend(handles = handle_list, loc = "lower left", fontsize = 16)
+
+	fig.suptitle("Runtime and Energy Use for Spotify App Coldstart (5 runs)", fontsize = 16, fontweight = "bold")
+
+	plt.show()
+
+	return
+
+#end_def
+
+
 def quick():
 
 	filename = ""
@@ -1540,5 +1675,5 @@ def quick():
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_all()
 #plot_freq_over_time_micro()
-plot_energy_drops_perpol_fb()
-
+#plot_energy_drops_perpol_fb()
+plot_energy_hintperf_spot()
