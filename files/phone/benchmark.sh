@@ -27,9 +27,9 @@ set_governor() {
 		#for i in $cpu; do
 		#	echo "1" > $cpu_dir/cpu$i/online
 		#done
-		clusters="0 4"
-		for i in $clusters; do
-			echo "$governor" > $cpu_dir/cpufreq/policy$i/scaling_governor
+		cluster_list="0 4"
+		for cluster in $cluster_list; do
+			echo "$governor" > $cpu_dir/cpufreq/policy${cluster}/scaling_governor
 			errtrap $? "ERR Invalid governor"
 		done
 		if [ "$governor" = "userspace" ]; then
@@ -40,12 +40,10 @@ set_governor() {
 			echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
 		fi
 		if [ "$governor" = "ioblock" ]; then
-			freq_little_min="$(echo $frequency | cut -d "-" -f1)"
-			freq_big_min="$(echo $frequency | cut -d "-" -f2)"
-			freq_little_max="$(echo $frequency | cut -d "-" -f3)"
-			freq_big_max="$(echo $frequency | cut -d "-" -f4)"
-			/data/setgov.exe $freq_little_min $freq_little_max 0
-			/data/setgov.exe $freq_big_min $freq_big_max 4
+			# TODO:  Sort out freq parameter order issue with syscall
+			freq_space="$(echo $frequency | tr - " ")"
+			/data/setdef.exe $freq_space
+			errtrap $? "ERR ioblock setdef"
 		fi
 	fi
 
