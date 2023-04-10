@@ -3,10 +3,10 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	echo $1 > $trace_dir/events/power/cpu_idle/enable
+	#echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -116,8 +116,9 @@ graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
 #device="nexus6"
 device="pixel2"
-experiment="microbench"
+#experiment="microbench"
 #experiment="uiautomator"
+experiment="simpleapp"
 
 governor=$1
 frequency=$2
@@ -228,6 +229,36 @@ if [ "$experiment" = "microbench" ]; then
 
 	wait $waitpid
 	echo "Finished fixed time $waittime" >> $trace_log
+
+fi
+if [ "$experiment" = "simpleapp" ]; then
+
+	pkgname="com.spotify.music"
+	alogcat_file="/data/logcat.txt"
+
+	am force-stop $pkgname
+	sleep 5
+
+	logcat -c
+	echo "before start" >> $trace_log
+	# repurpose $bgdelay:
+	if [ "$bgdelay" = "boost" ]; then
+		set_governor "performance"
+	fi
+	am start -a android.intent.action.MAIN -c andorid.intent.category.LAUNCHER -n $pkgname/.MainActivity
+	sleep 2
+	set_governor "$governor"
+	echo "after start" >> $trace_log
+	sleep 5
+	logcat -d > $alogcat_file
+	sleep 5
+
+	am start -a android.intent.action.MAIN -c android.intent.category.HOME
+	sleep 5
+	input tap 100 100
+
+	grep "ActivityTaskManager: Displayed" $alogcat_file >> $trace_log
+	grep "ActivityTaskManager: Fully drawn" $alogcat_file >> $trace_log
 
 fi
 if [ "$experiment" = "uiautomator" ]; then
