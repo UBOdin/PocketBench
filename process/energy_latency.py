@@ -1664,6 +1664,115 @@ def plot_energy_hintperf_spot():
 #end_def
 
 
+# Plots energy per CPU policy for each of several CPU load levels
+# Tracefiles:  .../20220712/bench_fixtime_* (3 subdirectories)
+def plot_energy_varying_sleep_micro():
+
+	path = ""
+	filename = ""
+	prefix = ""
+	governor = ""
+	governor_list = []
+	saturation = ""
+	saturation_list = []
+	energy = 0.0
+	energy_list = []
+	energy_mean = 0.0
+	energy_err = 0.0
+	runcount = 0
+
+	path = sys.argv[1]
+
+	readtraces = False
+	plotfilename = "graph_energy_varying_sleep"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(plotfilename + ".txt", "r")
+	#end_if
+
+	# Get energy data for several runs each of for different governor policies AND for different CPU saturation levels:
+
+	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
+	saturation_list = ["saturated", "mixed", "sleep"]
+	ftraceprefix = "/micro_SQL_A_0ms_"
+	energyprefix = "/monsoon_SQL_A_0ms_"
+	runcount = 3
+
+	offset_list = np.arange(0, len(governor_list))
+
+	fig, ax = plt.subplots()
+
+	color_list = ["0.0", "0.3", "0.6"]
+	legendlabel_list = ["thread sleeping", "thread busy ~50%", "thread busy 100%"]
+	xticklabel_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "fixed 100"]
+	linestyle_list = ["solid", "dotted", "dashed"]
+	handle_list = []
+
+	for saturation, color, linestyle, legendlabel in zip(saturation_list, color_list, linestyle_list, legendlabel_list):
+		energy_mean_list = []
+		energy_err_list = []
+		for i, (governor, offset) in enumerate(zip(governor_list, offset_list)):
+
+			if (readtraces == True):
+				energy_list = []
+				for run in range(runcount):
+					filename = path + "/bench_fixtime_" + saturation + ftraceprefix + governor + "_1_" + str(run) + ".gz"
+					#benchtime, _, _, _, _, _, _, _, _ = process_loglines(filename)
+					filename = path + "/bench_fixtime_" + saturation + energyprefix + governor + "_1_" + str(run) + ".csv"
+					energy = get_energy(filename, 5.0, 35.0)  # N.b. all runs fixed 20s
+					print(filename + " : " + str(energy))
+					energy_list.append(energy)
+				#end_for
+				energy_mean, energy_err = mean_margin(energy_list)
+				outputline = str(energy_mean) + "," + str(energy_err) + "\n"
+				plotdata_file.write(outputline)
+			else:
+				inputline = plotdata_file.readline()
+				inputline_list = inputline.split(",")
+				assert(len(inputline_list) == 2)
+				energy_mean = float(inputline_list[0])
+				energy_err = float(inputline_list[1])
+			#end_if
+
+			ax.scatter(offset, energy_mean, color = color)
+			ax.errorbar(offset, energy_mean, yerr = energy_err, color = color)
+			if (i >= 2):
+				ax.plot([offset_prev, offset], [energy_mean_prev, energy_mean], color = color, linestyle = linestyle)
+			#end_if
+			offset_prev = offset
+			energy_mean_prev = energy_mean
+
+		#end_for
+		handle_list.append(Line2D([], [], marker = "o", markersize = 10, color = color, linestyle = linestyle, label = legendlabel)) #, linewidth = ))
+	#end_for
+
+	plotdata_file.close()
+
+	ax.set_xticks(offset_list)
+	ax.set_xticklabels(xticklabel_list)
+	tick_list = ax.get_xticklabels()
+	for i in range(len(tick_list)):
+		tick_list[i].set_rotation(-45)
+		tick_list[i].set_ha("left")
+	#end_for
+
+	ax.set_title("Total Energy per CPU Policy, :30s Process\n (3 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
+	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Total Energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
+	ax.legend(handles = handle_list, loc = "upper center", fontsize = 16)
+
+	plt.show()
+	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
+
+	return
+
+#end_def
+
+
 def quick():
 
 	filename = ""
@@ -1685,5 +1794,6 @@ def quick():
 #plot_freq_over_time_all()
 #plot_freq_over_time_micro()
 #plot_energy_drops_perpol_fb()
-plot_energy_hintperf_spot()
+#plot_energy_hintperf_spot()
+plot_energy_varying_sleep_micro()
 
