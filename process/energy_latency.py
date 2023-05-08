@@ -1272,7 +1272,7 @@ def plot_freq_over_time_micro():
 #end_def
 
 
-def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
+def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list):
 
 	# filename = ""
 	# freqtimetotalcluster_dict_list = [{}, {}]
@@ -1287,7 +1287,9 @@ def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
 	maxspeed_dict = {0:190080, 1:245760}  # 10% CPU freq to norm speeds
 
 
-	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
+	_, _, _, perfcycles, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
+
+	perfcycles_list.append(perfcycles)
 
 	#startfreq_list = ["364800", "979200"]  # kludge
 
@@ -1347,27 +1349,34 @@ def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list):
 
 
 # Plots time spent per frequency for fb (default policy)
-# Tracefile:  .../20230206/fb_runs/*
+# Tracefile:  .../20230206/fb_runs/* OR .../20230214/fb_runs_ioblock/*
+# (n.b. filename tweak to latter directory -- started omitting threadcount parameter
 def plot_time_perspeed_fb():
 
 	filename = ""
 	freqtimetotalcluster_dict_list = [{}, {}]
 	freqtimetotalcluster_dict = {}
 	maxspeed_dict = {}
+	perfcycles_list = []
 
 	maxspeed_dict = {0:1900800, 1:2457600}  # 10% CPU freq to norm speeds
 
-	prefix = "/micro_normal_schedutil_none_1_"
+	prefix = ""
+	#prefix = "/micro_normal_schedutil_none_"
+	#prefix = "/micro_normal_schedutil_none_1_"
 	#prefix = "/micro_normal_performance_none_1_"
 	#prefix = "/micro_normal_userspace_60-60_1_"
 	path = sys.argv[1]
 
-	runcount = 3
+	runcount = 9
 	for run in range(0, runcount):
 		filename = path + prefix + str(run) + ".gz"
-		plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list)
+		plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
 	#end_for
 	cpucount = runcount * 4
+
+	perfcycles_mean, _ = mean_margin(perfcycles_list)
+	print("Cyclecount mean:  %d" % (perfcycles_mean))
 
 	fig, ax_list_list = plt.subplots(2, 2)
 	fig.set_size_inches(12, 8)
@@ -1677,3 +1686,4 @@ def quick():
 #plot_freq_over_time_micro()
 #plot_energy_drops_perpol_fb()
 plot_energy_hintperf_spot()
+
