@@ -1707,12 +1707,13 @@ def plot_energy_varying_sleep_micro():
 	fig, ax = plt.subplots()
 
 	color_list = ["0.0", "0.3", "0.6"]
+	marker_list = ["o", "s", "D"]
 	legendlabel_list = ["thread sleeping", "thread busy ~50%", "thread busy 100%"]
 	xticklabel_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "fixed 100"]
 	linestyle_list = ["solid", "dotted", "dashed"]
 	handle_list = []
 
-	for saturation, color, linestyle, legendlabel in zip(saturation_list, color_list, linestyle_list, legendlabel_list):
+	for saturation, color, marker, linestyle, legendlabel in zip(saturation_list, color_list, marker_list, linestyle_list, legendlabel_list):
 		energy_mean_list = []
 		energy_err_list = []
 		for i, (governor, offset) in enumerate(zip(governor_list, offset_list)):
@@ -1738,7 +1739,7 @@ def plot_energy_varying_sleep_micro():
 				energy_err = float(inputline_list[1])
 			#end_if
 
-			ax.scatter(offset, energy_mean, color = color)
+			ax.scatter(offset, energy_mean, color = color, marker = marker, s = 50)
 			ax.errorbar(offset, energy_mean, yerr = energy_err, color = color)
 			if (i >= 2):
 				ax.plot([offset_prev, offset], [energy_mean_prev, energy_mean], color = color, linestyle = linestyle)
@@ -1747,7 +1748,7 @@ def plot_energy_varying_sleep_micro():
 			energy_mean_prev = energy_mean
 
 		#end_for
-		handle_list.append(Line2D([], [], marker = "o", markersize = 10, color = color, linestyle = linestyle, label = legendlabel)) #, linewidth = ))
+		handle_list.append(Line2D([], [], color = color, marker = marker, markersize = 10, linestyle = linestyle, label = legendlabel)) #, linewidth = ))
 	#end_for
 
 	plotdata_file.close()
@@ -1759,6 +1760,7 @@ def plot_energy_varying_sleep_micro():
 		tick_list[i].set_rotation(-45)
 		tick_list[i].set_ha("left")
 	#end_for
+	ax.tick_params(labelsize = 16)
 
 	ax.set_title("Total Energy per CPU Policy, :30s Process\n (3 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
 	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
