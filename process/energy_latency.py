@@ -1173,7 +1173,7 @@ def plot_freq_over_time_fb_one_cpu():
 
 	filename = sys.argv[1]
 
-	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
+	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
 
 	nplots = 2
 	fig, ax_list = plt.subplots(nplots, 1)
