@@ -1210,9 +1210,69 @@ def plot_freq_over_time_fb_one_cpu():
 #end_def
 
 
+#
+#
+def plot_freq_over_time_micro_1():
+
+	eventtime_list = []
+	freqtuple_list_list = []
+	freqtuple_list = []
+	startfreq_list = []
+	starttime = 0.0
+	endtime = 0.0
+	time_list = []
+	freq_list = []
+
+	filename = sys.argv[1]
+
+	prefix = "micro_75-"
+	postfix = "-f0-1_schedutil_none_0.gz"
+	cpu = 7
+	delay_list = ["0", "scale"]
+
+	path = sys.argv[1]
+
+	xplots = 2
+	yplots = 2
+	fig, ax_list_list = plt.subplots(yplots, xplots)
+	fig.set_size_inches(12, 8)
+
+	for xplot, delay in enumerate(delay_list):
+
+		filename = path + prefix + delay + postfix
+		print(filename)
+		_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
+		starttime = eventtime_list[0]
+		endtime = eventtime_list[1]
+
+		for yplot in range(yplots):
+			_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), bool(yplot))
+			time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
+			ax_list_list[yplot][xplot].plot(time_list, freq_list)
+			ax_list_list[yplot][xplot].axis([0, endtime - starttime, 0, 2500000])
+			ax_list_list[yplot][xplot].set_ylabel("CPU speed (Hz)", fontsize = 16, fontweight = "bold")
+		#end_for
+
+		'''
+		ax_list_list[0][].set_title("CPU Speed, Ignoring Idling", fontsize = 16, fontweight = "bold")
+		ax_list_list[1][].set_title("CPU Speed, Showing Idling", fontsize = 16, fontweight = "bold")
+		ax_list_list[1][].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
+		'''
+
+	#end_for
+
+	#fig.suptitle("Frequency Over Time, per CPU, for 1s of Interaction on FB Friends", fontsize = 16, fontweight = "bold")
+	plt.show()
+	#fig.savefig("graph_freqtime_flick.pdf", bbox_inches = "tight")
+
+	return
+
+#end_def
+
+
 # Plots frequency/time graph for microbenchmarks (different delays)
 # Tracefile:  .../20230221/microbench_different_delays/*
-def plot_freq_over_time_micro():
+def plot_freq_over_time_micro_2():
 
 	eventtime_list = []
 	freqtuple_list_list = []
@@ -1793,9 +1853,9 @@ def quick():
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-#plot_freq_over_time_all()
-#plot_freq_over_time_micro()
+plot_freq_over_time_micro_1()
+#plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
-plot_energy_varying_sleep_micro()
+#plot_energy_varying_sleep_micro()
 
