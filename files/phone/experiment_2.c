@@ -25,7 +25,7 @@ void __errtrap(int result, const char* error, int line) {
 
 	if (result == -1) {
 		printf("Error in %s() on line %d:  %s\n", error, line, strerror(errno));
-		__android_log_print(ANDROID_LOG_VERBOSE, "Microbench", "Error:  %d %s\n", errno, strerror(errno));
+		__android_log_print(ANDROID_LOG_VERBOSE, "Microbench", "Error in %s() on line %d:  %d %s\n", error, line, errno, strerror(errno));
 		_exit(errno);
 	}
 	return;
@@ -40,6 +40,23 @@ long gettime_us() {
 	gettimeofday(&now, NULL);
 
 	return now.tv_sec * 1000000 + now.tv_usec;
+
+}
+
+
+static inline int sleepthread(long sleep_s, long sleep_ms) {
+
+	struct timespec interval;
+	int result;
+
+	interval.tv_sec = sleep_s;
+	interval.tv_nsec = sleep_ms * 1000 * 1000;
+	if ((sleep_s || sleep_ms) > 0) {
+		result = nanosleep(&interval, NULL);
+		errtrap("nanosleep");
+	}
+
+	return 0;
 
 }
 
@@ -64,7 +81,7 @@ int main(int argc, char** argv) {
 	long long sum;
 	long sleep_ms;
 
-	struct timespec interval;
+//	struct timespec interval;
 
 	memset(&output_buff, 0, sizeof(output_buff));
 
@@ -108,7 +125,11 @@ int main(int argc, char** argv) {
 		_Exit(1);
 	}
 	batchcount = atoi(argv[2]);
-	sleep_ms = atoi(argv[3]);
+	if (*argv[3] == 's') {
+		sleep_ms = -1;
+	} else {
+		sleep_ms = atoi(argv[3]);
+	}
 
 	// Enable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_RESET, 0);
@@ -117,6 +138,8 @@ int main(int argc, char** argv) {
 	sum = 0;
 	innercount = 20;
 	long long i = 0;
+
+	sleepthread(0, 500);
 	while (1) {
 
 		if (i >= batchcount) {
@@ -129,16 +152,28 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		interval.tv_sec = 0;
-		interval.tv_nsec = sleep_ms * 1000 * 1000;
 		if (sleep_ms > 0) {
-			result = nanosleep(&interval, NULL);
-			errtrap("nanosleep");
+			sleepthread(0, sleep_ms);
+		} else if (sleep_ms < 0) {
+			// For magic sleep_ms < 0, divide batches into 3 groups:  Scale down from 10...1 ms sleeps,
+			// then 10 zero-sleeps, then scale up from 1...10 ms.  Scales load up, plateaus, then down.
+			int j = i * 30 / batchcount;
+			int k;
+			if (j < 10) {
+				k = 10 - j;
+			} else if (j >= 20) {
+				k = j - 19;
+			} else {
+				k = 0;
+			}
+			sleepthread(0, k);
 		}
+		// skip sleep if sleep_ms == 0
 
 		i++;
 	}
 	printf("Iter count:  %lld\n", i);
+	sleepthread(0, 500);
 
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
