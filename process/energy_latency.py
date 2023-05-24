@@ -1210,8 +1210,8 @@ def plot_freq_over_time_fb_one_cpu():
 #end_def
 
 
-#
-#
+# Plots frequency/time graph for a single microbenchmark (continuous)
+# Tracefile:  .../20230515/freq_time_micro_page_1/*
 def plot_freq_over_time_micro_1():
 
 	eventtime_list = []
@@ -1225,52 +1225,34 @@ def plot_freq_over_time_micro_1():
 
 	filename = sys.argv[1]
 
-	prefix = "micro_75-"
-	postfix = "-f0-1_schedutil_none_0.gz"
 	cpu = 7
-	delay_list = ["0", "scale"]
+	filename = sys.argv[1]
 
-	path = sys.argv[1]
-
-	yplots = 2
-	fig, ax_list = plt.subplots(yplots)
+	fig, ax = plt.subplots()
 	fig.set_size_inches(12, 8)
 
+	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
+	starttime = eventtime_list[0]
+	endtime = eventtime_list[1]
+
+	_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), True)
+	time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
+
+	ax.plot(time_list, freq_list, color = "black")
+	ax.axis([0, endtime - starttime, 0, 2500000])
+	ax.set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Nominal CPU speed (GHz)", fontsize = 16, fontweight = "bold")
+	ax.tick_params(labelsize = 12)
 	ytick_list = []
 	yticklabel_list = []
 	for i in range(0, 35, 5):
 		ytick_list.append(i * 100 * 1000)
 		yticklabel_list.append(i / 10)
 	#end_for
+	ax.set_yticks(ytick_list)
+	ax.set_yticklabels(yticklabel_list)
 
-	for yplot, delay in enumerate(delay_list):
-
-		filename = path + prefix + delay + postfix
-		print(filename)
-		_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
-		starttime = eventtime_list[0]
-		endtime = eventtime_list[1]
-
-		# N.b. do NOT show idling here -- running at 0 speed (idle) is ok -- problem is when *nominal* speed is < energy u-minimum
-		_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), False)
-		time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
-		ax_list[yplot].plot(time_list, freq_list, color = "black")
-		ax_list[yplot].axis([0, endtime - starttime, 0, 2500000])
-		ax_list[yplot].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
-		ax_list[yplot].set_ylabel("Nominal CPU speed (GHz)", fontsize = 16, fontweight = "bold")
-		ax_list[yplot].tick_params(labelsize = 12)
-
-		ax_list[yplot].set_yticks(ytick_list)
-		ax_list[yplot].set_yticklabels(yticklabel_list)
-
-	#end_for
-
-	ax_list[0].set_title("Continuous workload", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_title("Varying workload (increasing, plateauing, then decreasing", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
-
-	fig.subplots_adjust(top = .91, hspace = .3)
-	fig.suptitle("Frequency Over Time for Different Workloads", fontsize = 16, fontweight = "bold")
+	ax.set_title("CPU Frequency Over Time for a Continuous Workload", fontsize = 16, fontweight = "bold")
 	fig.savefig("graph_freqtime_waste.pdf", bbox_inches = "tight")
 
 	plt.show()
