@@ -1410,6 +1410,8 @@ def plot_time_perspeed_fb():
 	freqtimetotalcluster_dict = {}
 	maxspeed_dict = {}
 	perfcycles_list = []
+	cluster = 0
+	runcount = 0
 
 	maxspeed_dict = {0:1900800, 1:2457600}  # 10% CPU freq to norm speeds
 
@@ -1420,15 +1422,48 @@ def plot_time_perspeed_fb():
 	#prefix = "/micro_normal_userspace_60-60_1_"
 	path = sys.argv[1]
 
-	runcount = 9
-	for run in range(0, runcount):
-		filename = path + prefix + str(run) + ".gz"
-		plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
-	#end_for
-	cpucount = runcount * 4
+	readtraces = False
+	plotfilename = "graph_time_per_freq_fb"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(plotfilename + ".txt", "r")
+	#end_if
 
-	perfcycles_mean, _ = mean_margin(perfcycles_list)
-	print("Cyclecount mean:  %d" % (perfcycles_mean))
+	if (readtraces == True):
+		runcount = 9
+		for run in range(0, runcount):
+			filename = path + prefix + str(run) + ".gz"
+			plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
+		#end_for
+		#perfcycles_mean, _ = mean_margin(perfcycles_list)
+		#print("Cyclecount mean:  %d" % (perfcycles_mean))
+		for cluster in range(2):
+			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
+			for key in freqtimetotalcluster_dict:
+				freqtimetotalcluster_dict[key] /= (runcount * 4)  # Adjust to per-CPU average time
+				outputline = str(cluster) + "," + str(key) + "," + str(freqtimetotalcluster_dict[key]) + "\n"
+				plotdata_file.write(outputline)
+			#end_for
+		#end_for
+	else:
+		while (True):
+			inputline = plotdata_file.readline()
+			if (inputline == ""):
+				break
+			#end_if
+			inputline_list = inputline.split(",")
+			assert(len(inputline_list) == 3)
+			cluster = int(inputline_list[0])
+			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
+			freqtimetotalcluster_dict[int(inputline_list[1])] = float(inputline_list[2])
+		#end_while
+	#end_if
+	plotdata_file.close()
+
 
 	fig, ax_list_list = plt.subplots(2, 2)
 	fig.set_size_inches(12, 8)
@@ -1438,7 +1473,7 @@ def plot_time_perspeed_fb():
 		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[xplot]
 		for key in freqtimetotalcluster_dict:
 			for yplot in range(0, 2):
-				ax_list_list[yplot][xplot].bar((float(key) * xprop) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key] / cpucount, color = "blue", width = .01 * xprop)
+				ax_list_list[yplot][xplot].bar((float(key) * xprop) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key], color = "blue", width = .01 * xprop)
 				if (yplot == 0):
 					ymax = 30
 				elif (yplot == 1):
@@ -1458,7 +1493,7 @@ def plot_time_perspeed_fb():
 	fig.supxlabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
 	fig.supylabel("Average time per CPU at a speed (s)", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(left = .09, bottom = .07)
-	fig.savefig("graph_time_per_freq_fb.pdf", bbox_inches = "tight")
+	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
 
 	plt.show()
 	plt.close("all")
