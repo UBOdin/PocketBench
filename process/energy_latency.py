@@ -1718,6 +1718,7 @@ def plot_energy_hintperf_spot():
 
 # Plots energy per CPU policy for each of several CPU load levels
 # Tracefiles:  .../20220712/bench_fixtime_* (3 subdirectories)
+# Summary post-processed data file:  graph_energy_varying_sleep.txt
 def plot_energy_varying_sleep_micro():
 
 	path = ""
@@ -1843,9 +1844,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-plot_freq_over_time_micro_1()
+#plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
