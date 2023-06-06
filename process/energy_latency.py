@@ -1408,6 +1408,8 @@ def plot_time_perspeed_fb():
 	filename = ""
 	freqtimetotalcluster_dict_list = [{}, {}]
 	freqtimetotalcluster_dict = {}
+	fttc_tuple_list_list = [[], []]
+	fttc_tuple = ()
 	maxspeed_dict = {}
 	perfcycles_list = []
 	cluster = 0
@@ -1422,7 +1424,7 @@ def plot_time_perspeed_fb():
 	#prefix = "/micro_normal_userspace_60-60_1_"
 	path = sys.argv[1]
 
-	readtraces = False
+	readtraces = True
 	plotfilename = "graph_time_per_freq_fb"
 	outputline = ""
 	inputline = ""
@@ -1434,7 +1436,7 @@ def plot_time_perspeed_fb():
 	#end_if
 
 	if (readtraces == True):
-		runcount = 9
+		runcount = 3
 		for run in range(0, runcount):
 			filename = path + prefix + str(run) + ".gz"
 			plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
@@ -1444,8 +1446,10 @@ def plot_time_perspeed_fb():
 		for cluster in range(2):
 			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
 			for key in freqtimetotalcluster_dict:
-				freqtimetotalcluster_dict[key] /= (runcount * 4)  # Adjust to per-CPU average time
-				outputline = str(cluster) + "," + str(key) + "," + str(freqtimetotalcluster_dict[key]) + "\n"
+				fttc_tuple_list_list[cluster].append((key, freqtimetotalcluster_dict[key] / (runcount * 4)))  # Adjust to per-CPU average time))
+			#end_for
+			for fttc_tuple in fttc_tuple_list_list[cluster]:
+				outputline = str(cluster) + "," + str(fttc_tuple[0]) + "," + str(fttc_tuple[1]) + "\n"
 				plotdata_file.write(outputline)
 			#end_for
 		#end_for
@@ -1458,8 +1462,7 @@ def plot_time_perspeed_fb():
 			inputline_list = inputline.split(",")
 			assert(len(inputline_list) == 3)
 			cluster = int(inputline_list[0])
-			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
-			freqtimetotalcluster_dict[int(inputline_list[1])] = float(inputline_list[2])
+			fttc_tuple_list_list[cluster].append((int(inputline_list[1]), float(inputline_list[2])))
 		#end_while
 	#end_if
 	plotdata_file.close()
@@ -1470,10 +1473,9 @@ def plot_time_perspeed_fb():
 
 	xprop = 100  # CPU speed proportion (out of)
 	for xplot in range(0, 2):
-		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[xplot]
-		for key in freqtimetotalcluster_dict:
+		for fttc_tuple in fttc_tuple_list_list[xplot]:
 			for yplot in range(0, 2):
-				ax_list_list[yplot][xplot].bar((float(key) * xprop) / maxspeed_dict[xplot], freqtimetotalcluster_dict[key], color = "blue", width = .01 * xprop)
+				ax_list_list[yplot][xplot].bar((float(fttc_tuple[0]) * xprop) / maxspeed_dict[xplot], fttc_tuple[1], color = "blue", width = .01 * xprop)
 				if (yplot == 0):
 					ymax = 30
 				elif (yplot == 1):
