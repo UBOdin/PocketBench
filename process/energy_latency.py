@@ -1418,13 +1418,9 @@ def plot_time_perspeed_fb():
 	maxspeed_dict = {0:1900800, 1:2457600}  # 10% CPU freq to norm speeds
 
 	prefix = ""
-	#prefix = "/micro_normal_schedutil_none_"
-	#prefix = "/micro_normal_schedutil_none_1_"
-	#prefix = "/micro_normal_performance_none_1_"
-	#prefix = "/micro_normal_userspace_60-60_1_"
 	path = sys.argv[1]
 
-	readtraces = True
+	readtraces = False
 	plotfilename = "graph_time_per_freq_fb"
 	outputline = ""
 	inputline = ""
@@ -1473,27 +1469,48 @@ def plot_time_perspeed_fb():
 
 	xprop = 100  # CPU speed proportion (out of)
 	for xplot in range(0, 2):
-		for fttc_tuple in fttc_tuple_list_list[xplot]:
+		fttc_tuple_list_list[xplot].sort(key = lambda fttc_tuple:fttc_tuple[0])
+
+		cdfsubtotal = 0.0
+		#for fttc_tuple in fttc_tuple_list_list[xplot]:
+		fttc_iter = iter(fttc_tuple_list_list[xplot])
+		fttc_tuple = next(fttc_iter)
+		speedprev = float(fttc_tuple[0] * xprop) / maxspeed_dict[xplot]
+		cdfsubtotalprev = fttc_tuple[1]
+		while (True):
+			try:
+				fttc_tuple = next(fttc_iter)
+			except StopIteration:
+				break
+			#end_try
+
+			speed = float(fttc_tuple[0] * xprop) / maxspeed_dict[xplot]
+			cdfsubtotal = cdfsubtotalprev + fttc_tuple[1]
+
 			for yplot in range(0, 2):
-				ax_list_list[yplot][xplot].bar((float(fttc_tuple[0]) * xprop) / maxspeed_dict[xplot], fttc_tuple[1], color = "blue", width = .01 * xprop)
-				if (yplot == 0):
-					ymax = 30
-				elif (yplot == 1):
-					ymax = 3.5
-				#end_if
-				ax_list_list[yplot][xplot].axis([-.05 * xprop, 1.05 * xprop, 0, ymax])
+				ax_list_list[yplot][xplot].plot([speedprev, speed], [cdfsubtotalprev, cdfsubtotalprev], color = "blue")
+				ax_list_list[yplot][xplot].plot([speed, speed], [cdfsubtotalprev, cdfsubtotal], color = "blue")
 			#end_for
-		#end_for
+			speedprev = speed
+			cdfsubtotalprev = cdfsubtotal
+		#end_while
+
+
 	#end_for
+
+	ax_list_list[0][0].axis([-.05 * xprop, 1.05 * xprop, 0, 35])
+	ax_list_list[0][1].axis([-.05 * xprop, 1.05 * xprop, 0, 35])
+	ax_list_list[1][0].axis([-.05 * xprop, 1.05 * xprop, 25, 33])
+	ax_list_list[1][1].axis([-.05 * xprop, 1.05 * xprop, 25, 33])
 
 	ax_list_list[0][0].set_title("Little core cluster", fontsize = 16, fontweight = "bold")
 	ax_list_list[0][1].set_title("Big core cluster", fontsize = 16, fontweight = "bold")
 	ax_list_list[0][0].set_ylabel("Full", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][0].set_ylabel("Zoom", fontsize = 16, fontweight = "bold")
 
-	fig.suptitle("Average Time Spent at a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Cumulative Time Spent at a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
-	fig.supylabel("Average time per CPU at a speed (s)", fontsize = 16, fontweight = "bold")
+	fig.supylabel("Cumulative time per CPU at a speed (s)", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(left = .09, bottom = .07)
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
 
