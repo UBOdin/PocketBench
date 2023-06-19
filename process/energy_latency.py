@@ -1467,6 +1467,8 @@ def plot_time_perspeed_fb():
 	fig, ax_list_list = plt.subplots(2, 2)
 	fig.set_size_inches(12, 8)
 
+	linewidth = 2
+
 	xprop = 100  # CPU speed proportion (out of)
 	for xplot in range(0, 2):
 		fttc_tuple_list_list[xplot].sort(key = lambda fttc_tuple:fttc_tuple[0])
@@ -1477,6 +1479,7 @@ def plot_time_perspeed_fb():
 		fttc_tuple = next(fttc_iter)
 		speedprev = float(fttc_tuple[0] * xprop) / maxspeed_dict[xplot]
 		cdfsubtotalprev = fttc_tuple[1]
+		cdfsubtotalorig = cdfsubtotalprev
 		while (True):
 			try:
 				fttc_tuple = next(fttc_iter)
@@ -1488,29 +1491,52 @@ def plot_time_perspeed_fb():
 			cdfsubtotal = cdfsubtotalprev + fttc_tuple[1]
 
 			for yplot in range(0, 2):
-				ax_list_list[yplot][xplot].plot([speedprev, speed], [cdfsubtotalprev, cdfsubtotalprev], color = "blue")
-				ax_list_list[yplot][xplot].plot([speed, speed], [cdfsubtotalprev, cdfsubtotal], color = "blue")
+				#ax_list_list[yplot][xplot].plot([speedprev, speed], [cdfsubtotalprev, cdfsubtotalprev], color = "blue")
+				#ax_list_list[yplot][xplot].plot([speed, speed], [cdfsubtotalprev, cdfsubtotal], color = "blue")
+				ax_list_list[yplot][xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [speedprev, speed], color = "blue", linewidth = linewidth)
+				ax_list_list[yplot][xplot].plot([cdfsubtotalprev, cdfsubtotal], [speed, speed], color = "blue", linewidth = linewidth)
 			#end_for
 			speedprev = speed
 			cdfsubtotalprev = cdfsubtotal
 		#end_while
-
-
+		print(speedprev)
+		print(cdfsubtotalprev)
+		#ax_list_list[1][xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red")
+		ax_list_list[1][xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red", linewidth = linewidth)
+		ax_list_list[1][xplot].plot([cdfsubtotalorig, cdfsubtotalprev], [70, 70], color = "red", linewidth = linewidth)
 	#end_for
 
+	handle_list = []
+	handle_list.append(Line2D([], [], color = "red", linewidth = 5, label = "Ideal"))
+	handle_list.append(Line2D([], [], color = "blue", linewidth = 5, label = "Actual"))
+	ax_list_list[1][0].legend(handles = handle_list, loc = "lower right", fontsize = 16)
+	ax_list_list[1][1].legend(handles = handle_list, loc = "lower right", fontsize = 16)
+
+
+	'''
 	ax_list_list[0][0].axis([-.05 * xprop, 1.05 * xprop, 0, 35])
 	ax_list_list[0][1].axis([-.05 * xprop, 1.05 * xprop, 0, 35])
 	ax_list_list[1][0].axis([-.05 * xprop, 1.05 * xprop, 25, 33])
 	ax_list_list[1][1].axis([-.05 * xprop, 1.05 * xprop, 25, 33])
+	'''
+	ax_list_list[0][0].axis([0, 35, -.05 * xprop, 1.05 * xprop])
+	ax_list_list[0][1].axis([0, 35, -.05 * xprop, 1.05 * xprop])
+	ax_list_list[1][0].axis([25, 33, -.05 * xprop, 1.05 * xprop])
+	ax_list_list[1][1].axis([25, 33, -.05 * xprop, 1.05 * xprop])
+
+	ax_list_list[0][0].tick_params(labelsize = 12)
+	ax_list_list[0][1].tick_params(labelsize = 12)
+	ax_list_list[1][0].tick_params(labelsize = 12)
+	ax_list_list[1][1].tick_params(labelsize = 12)
 
 	ax_list_list[0][0].set_title("Little core cluster", fontsize = 16, fontweight = "bold")
 	ax_list_list[0][1].set_title("Big core cluster", fontsize = 16, fontweight = "bold")
 	ax_list_list[0][0].set_ylabel("Full", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][0].set_ylabel("Zoom", fontsize = 16, fontweight = "bold")
 
-	fig.suptitle("Cumulative Time Spent at a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
-	fig.supxlabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
-	fig.supylabel("Cumulative time per CPU at a speed (s)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Cumulative Time Spent at or Below a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
+	fig.supylabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
+	fig.supxlabel("Cumulative time per CPU at or below a speed (s)", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(left = .09, bottom = .07)
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
 
