@@ -1272,7 +1272,7 @@ def plot_freq_over_time_micro_1():
 	ax.annotate("and poor latency", xy = (.29, .65), fontweight = "bold", fontsize = 16)
 
 	ax.set_title("CPU Frequency Over Time for a Continuous Workload", fontsize = 16, fontweight = "bold")
-	fig.savefig("graph_freqtime_waste.pdf", bbox_inches = "tight")
+	fig.savefig("graph_missed_opportunities.pdf", bbox_inches = "tight")
 
 	plt.show()
 
@@ -1493,9 +1493,9 @@ def plot_time_perspeed_fb():
 	plotdata_file.close()
 
 
-	fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[1, 4, .5, 1, 4]})
+	fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[2, 22, 1, 2, 22]})
 
-	fig.set_size_inches(12, 8)
+	fig.set_size_inches(12, 6)
 
 	linewidth = 2
 
@@ -1530,7 +1530,7 @@ def plot_time_perspeed_fb():
 		ax_list[xplot].plot([0, cdfsubtotalorig], [0, 0], color = "red", linewidth = linewidth)
 		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red", linewidth = linewidth)
 		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalprev], [70, 70], color = "red", linewidth = linewidth)
-		ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [70, 100], color = "red", linewidth = linewidth)
+		#ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [70, 100], color = "red", linewidth = linewidth)
 	#end_for
 
 	ax_list[2].set_visible(False)
@@ -1538,13 +1538,13 @@ def plot_time_perspeed_fb():
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "red", linewidth = 5, label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 5, label = "Actual"))
-	ax_list[1].legend(handles = handle_list, loc = "upper left", fontsize = 16)
-	ax_list[4].legend(handles = handle_list, loc = "lower right", fontsize = 16)
+	ax_list[1].legend(handles = handle_list, loc = (-.15, .50), fontsize = 16)
+	ax_list[4].legend(handles = handle_list, loc = (-.15, .80), fontsize = 16)
 
-	ax_list[0].set_xlim(0, .06)
-	ax_list[1].set_xlim(.76, 1.00)
-	ax_list[3].set_xlim(0, .06)
-	ax_list[4].set_xlim(.76, 1.00)
+	ax_list[0].set_xlim(0, .02)
+	ax_list[1].set_xlim(.78, 1.00)
+	ax_list[3].set_xlim(0, .02)
+	ax_list[4].set_xlim(.78, 1.00)
 
 	ax_list[0].spines.right.set_visible(False)
 	ax_list[1].spines.left.set_visible(False)
@@ -1554,8 +1554,10 @@ def plot_time_perspeed_fb():
 	ax_list[4].set_yticks([])
 
 	ax_list[0].tick_params(labelsize = 12)
+	ax_list[0].set_xticks([])
 	ax_list[1].tick_params(labelsize = 12)
 	ax_list[3].tick_params(labelsize = 12)
+	ax_list[3].set_xticks([])
 	ax_list[4].tick_params(labelsize = 12)
 
 	ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
@@ -1573,9 +1575,27 @@ def plot_time_perspeed_fb():
 	ax_list[4].scatter(0, 0, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 	ax_list[4].scatter(0, 1, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 
+	p = mpatches.Polygon([[.96, 71], [.998, 71], [.998, 99], [.965, 99]], facecolor = "grey", alpha = 0.5)
+	ax_list[1].add_patch(p)
+	ax_list[1].annotate("", xy = (.885, 42.5), xytext = (.92, 29), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
+	ax_list[1].annotate("Underperformance", xy = (.90, 23.5), fontsize = 12)
+	p = mpatches.Polygon([[.878, 16.5], [.878, 69], [.953, 69], [.95, 62.5], [.90, 62.5], [.888, 16.5]], facecolor = "grey", alpha = 0.5)
+	ax_list[1].add_patch(p)
+	ax_list[1].annotate("", xy = (.98, 84), xytext = (.92, 84), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
+	ax_list[1].annotate("Overperformance", xy = (.828, 82.8), fontsize = 12)
+
+	p = mpatches.Polygon([[.868, 71], [.998, 71], [.998, 99], [.902, 99]], facecolor = "grey", alpha = 0.5)
+	ax_list[4].add_patch(p)
+	ax_list[4].annotate("", xy = (.815, 53), xytext = (.835, 32.5), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
+	ax_list[4].annotate("Underperformance", xy = (.83, 27.5), fontsize = 12)
+	p = mpatches.Polygon([[.803, 12.5], [.803, 69], [.834, 69], [.83, 47], [.813, 47], [.805, 12.5]], facecolor = "grey", alpha = 0.5)
+	ax_list[4].add_patch(p)
+	ax_list[4].annotate("", xy = (.94, 84), xytext = (.94, 58), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
+	ax_list[4].annotate("Overperformance", xy = (.895, 54), fontsize = 12)
+
 	fig.suptitle("CDF of Average Time per CPU, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("CDF of average time per CPU at or below a speed", fontsize = 16, fontweight = "bold")
-	fig.subplots_adjust(top = .88, bottom = .08)
+	fig.subplots_adjust(top = .84, bottom = .10)
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
 
 	plt.show()
@@ -1950,9 +1970,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-plot_freq_over_time_micro_1()
+#plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
