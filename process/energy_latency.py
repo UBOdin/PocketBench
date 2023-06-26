@@ -1238,19 +1238,57 @@ def plot_freq_over_time_micro_1():
 	_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), True)
 	time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
 
-	ax.plot(time_list, freq_list, color = "black")
-	ax.axis([0, endtime - starttime, 0, 2500000])
+	timebase = .1
+	newtime_list = []
+	newfreq_list = []
+	for time, freq in zip(time_list, freq_list):
+		newtime_list.append(time - timebase)
+		newfreq_list.append(freq / (1000 * 1000))
+	#end_for
+	time_list = newtime_list
+	freq_list = newfreq_list
+
+	ax.plot(time_list, freq_list, solid_capstyle = "butt", color = "black", linewidth = 3)
+	ax.axis([0, .7, 0, 2.6])
 	ax.set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Nominal CPU speed (GHz)", fontsize = 16, fontweight = "bold")
 	ax.tick_params(labelsize = 12)
+	'''
 	ytick_list = []
 	yticklabel_list = []
 	for i in range(0, 35, 5):
-		ytick_list.append(i * 100 * 1000)
+		ytick_list.append(i / 10)
 		yticklabel_list.append(i / 10)
 	#end_for
 	ax.set_yticks(ytick_list)
 	ax.set_yticklabels(yticklabel_list)
+	'''
+
+	#ax.plot([0.0, 0.40512 - timebase], [2.4576, 2.4576], solid_capstyle = "butt", color = "red", linewidth = 10)
+	#ax.plot([0.674479 - timebase, 1.0], [2.4576, 2.4576], solid_capstyle = "butt", color = "red", linewidth = 10)
+	foo = ax.plot([0.0, 1.0], [1.72, 1.72], solid_capstyle = "butt", color = "red", linewidth = 10)
+	#'''
+	print(type(foo))
+	print(len(foo))
+	print(type(foo[0]))
+	print(foo[0].zorder)
+	#'''
+	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
+	ax.annotate("Energy-optimal", xy = (.08, 2.25), fontweight = "bold", fontsize = 16)
+	ax.annotate("CPU speed", xy = (.1, 2.15), fontweight = "bold", fontsize = 16)
+
+	p = mpatches.Polygon([[.1, .29], [.1, 1.67], [.26, 1.67]], facecolor = "blue", alpha = 0.5)
+	ax.add_patch(p)
+	p = mpatches.Polygon([[.29, 1.77], [.32, 2.43], [.57, 2.43], [.57, 1.77]], facecolor = "blue", alpha = 0.5)
+	ax.add_patch(p)
+	#ax.arrow(1, 1, 2 * math.cos(45 * pi / 180), 2 * math.sin(45 * pi / 180), width = .1, length_includes_head = False, facecolor = "red", edgecolor = "blue", linewidth = 5)
+	#ax.arrow(.43, 1.4, 0, .7, width = .005, head_length = .15, length_includes_head = True, facecolor = "black", zorder = 10)
+	ax.annotate("", xy = (.43, 2.1), xytext = (.43, 1.4), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
+	ax.annotate("Wasted Energy", xy = (.36, 1.32), fontweight = "bold", fontsize = 16)
+	ax.annotate("(Overperformance)", xy = (.34, 1.22), fontweight = "bold", fontsize = 16)
+	ax.annotate("", xy = (.155, 1.25), xytext = (.27, .75), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
+	ax.annotate("Both wasted energy", xy = (.275, .75), fontweight = "bold", fontsize = 16)
+	ax.annotate("and poor latency", xy = (.29, .65), fontweight = "bold", fontsize = 16)
 
 	ax.set_title("CPU Frequency Over Time for a Continuous Workload", fontsize = 16, fontweight = "bold")
 	fig.savefig("graph_freqtime_waste.pdf", bbox_inches = "tight")
@@ -1482,8 +1520,8 @@ def plot_time_perspeed_fb():
 
 	xprop = 100  # CPU speed proportion (out of)
 	yprop = 1  # time spent proportion (out of)
-	for xplot in [0, 1, 3, 4]:#range(0, 4):
-		#cluster = int(xplot / 2)
+	# Plot identical graphs in plots (0, 1) and in (3, 4).  Plot 2 is a dummy spacer (ignore).
+	for xplot in [0, 1, 3, 4]:
 		if (xplot < 2):
 			cluster = 0
 		elif (xplot > 2):
@@ -1514,7 +1552,6 @@ def plot_time_perspeed_fb():
 		ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [70, 100], color = "red", linewidth = linewidth)
 	#end_for
 
-	#'''
 	ax_list[2].set_visible(False)
 
 	handle_list = []
@@ -1559,7 +1596,6 @@ def plot_time_perspeed_fb():
 	fig.supxlabel("CDF of average time per CPU at or below a speed", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .88, bottom = .08)
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
-	#'''
 
 	plt.show()
 	plt.close("all")
@@ -1933,9 +1969,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-#plot_freq_over_time_micro_1()
+plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
