@@ -1238,6 +1238,7 @@ def plot_freq_over_time_micro_1():
 	_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), True)
 	time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
 
+	# rework plot data:  time offset and speed magnitude
 	timebase = .1
 	newtime_list = []
 	newfreq_list = []
@@ -1253,26 +1254,8 @@ def plot_freq_over_time_micro_1():
 	ax.set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Nominal CPU speed (GHz)", fontsize = 16, fontweight = "bold")
 	ax.tick_params(labelsize = 12)
-	'''
-	ytick_list = []
-	yticklabel_list = []
-	for i in range(0, 35, 5):
-		ytick_list.append(i / 10)
-		yticklabel_list.append(i / 10)
-	#end_for
-	ax.set_yticks(ytick_list)
-	ax.set_yticklabels(yticklabel_list)
-	'''
 
-	#ax.plot([0.0, 0.40512 - timebase], [2.4576, 2.4576], solid_capstyle = "butt", color = "red", linewidth = 10)
-	#ax.plot([0.674479 - timebase, 1.0], [2.4576, 2.4576], solid_capstyle = "butt", color = "red", linewidth = 10)
-	foo = ax.plot([0.0, 1.0], [1.72, 1.72], solid_capstyle = "butt", color = "red", linewidth = 10)
-	#'''
-	print(type(foo))
-	print(len(foo))
-	print(type(foo[0]))
-	print(foo[0].zorder)
-	#'''
+	ax.plot([0.0, 1.0], [1.72, 1.72], solid_capstyle = "butt", color = "red", linewidth = 10)
 	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
 	ax.annotate("Energy-optimal", xy = (.08, 2.25), fontweight = "bold", fontsize = 16)
 	ax.annotate("CPU speed", xy = (.1, 2.15), fontweight = "bold", fontsize = 16)
@@ -1281,8 +1264,6 @@ def plot_freq_over_time_micro_1():
 	ax.add_patch(p)
 	p = mpatches.Polygon([[.29, 1.77], [.32, 2.43], [.57, 2.43], [.57, 1.77]], facecolor = "blue", alpha = 0.5)
 	ax.add_patch(p)
-	#ax.arrow(1, 1, 2 * math.cos(45 * pi / 180), 2 * math.sin(45 * pi / 180), width = .1, length_includes_head = False, facecolor = "red", edgecolor = "blue", linewidth = 5)
-	#ax.arrow(.43, 1.4, 0, .7, width = .005, head_length = .15, length_includes_head = True, facecolor = "black", zorder = 10)
 	ax.annotate("", xy = (.43, 2.1), xytext = (.43, 1.4), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
 	ax.annotate("Wasted Energy", xy = (.36, 1.32), fontweight = "bold", fontsize = 16)
 	ax.annotate("(Overperformance)", xy = (.34, 1.22), fontweight = "bold", fontsize = 16)
