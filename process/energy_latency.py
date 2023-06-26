@@ -1420,7 +1420,7 @@ def plot_time_perspeed_fb():
 	prefix = ""
 	path = sys.argv[1]
 
-	readtraces = False
+	readtraces = True
 	plotfilename = "graph_time_per_freq_fb"
 	outputline = ""
 	inputline = ""
@@ -1442,7 +1442,7 @@ def plot_time_perspeed_fb():
 			# Construct (unsorted) list of (speed, timespent) tuples
 			# to save out (rather than working with the original dict):
 			for speed in freqtimetotalcluster_dict:
-				fttc_tuple_list_list[cluster].append((key, freqtimetotalcluster_dict[key] / (runcount * 4)))  # Adjust to per-CPU average time))
+				fttc_tuple_list_list[cluster].append((speed, freqtimetotalcluster_dict[speed] / (runcount * 4)))  # Adjust to per-CPU average time))
 			#end_for
 			# Sort list of (speed, timespent) tuples by speed:
 			fttc_tuple_list_list[cluster].sort(key = lambda fttc_tuple:fttc_tuple[0])
