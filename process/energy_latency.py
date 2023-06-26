@@ -1408,8 +1408,8 @@ def plot_time_perspeed_fb():
 	filename = ""
 	freqtimetotalcluster_dict_list = [{}, {}]
 	freqtimetotalcluster_dict = {}
-	fttc_tuple_list_list = [[], []]
-	fttc_tuple = ()
+	fttc_list_list_list = [[], []]
+	fttc_list = []
 	maxspeed_dict = {}
 	perfcycles_list = []
 	cluster = 0
@@ -1420,7 +1420,7 @@ def plot_time_perspeed_fb():
 	prefix = ""
 	path = sys.argv[1]
 
-	readtraces = True
+	readtraces = False
 	plotfilename = "graph_time_per_freq_fb"
 	outputline = ""
 	inputline = ""
@@ -1439,15 +1439,23 @@ def plot_time_perspeed_fb():
 		#end_for
 		for cluster in range(2):
 			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
-			# Construct (unsorted) list of (speed, timespent) tuples
+			# Construct (unsorted) list of [speed, timespent] lists:
 			# to save out (rather than working with the original dict):
+			timetotal = 0.0
 			for speed in freqtimetotalcluster_dict:
-				fttc_tuple_list_list[cluster].append((speed, freqtimetotalcluster_dict[speed] / (runcount * 4)))  # Adjust to per-CPU average time))
+				time = freqtimetotalcluster_dict[speed]  # total time per speed (of all CPUs in cluster and all runs)
+				timepcpr = time / (runcount * 4)  # Average time per speed (for 1 CPU and 1 run)
+				timetotal += timepcpr
+				fttc_list_list_list[cluster].append([speed, timepcpr])
 			#end_for
-			# Sort list of (speed, timespent) tuples by speed:
-			fttc_tuple_list_list[cluster].sort(key = lambda fttc_tuple:fttc_tuple[0])
-			for fttc_tuple in fttc_tuple_list_list[cluster]:
-				outputline = str(cluster) + "," + str(fttc_tuple[0]) + "," + str(fttc_tuple[1]) + "\n"
+			# Sort list of [speed, timespent] lists by speed:
+			fttc_list_list_list[cluster].sort(key = lambda fttc_list:fttc_list[0])
+			# Norm total time of [speed, timespent] lists to (0, 1):
+			for fttc_list in fttc_list_list_list[cluster]:
+				fttc_list[1] /= timetotal
+			#end_for
+			for fttc_list in fttc_list_list_list[cluster]:
+				outputline = str(cluster) + "," + str(fttc_list[0]) + "," + str(fttc_list[1]) + "\n"
 				plotdata_file.write(outputline)
 			#end_for
 		#end_for
@@ -1460,19 +1468,20 @@ def plot_time_perspeed_fb():
 			inputline_list = inputline.split(",")
 			assert(len(inputline_list) == 3)
 			cluster = int(inputline_list[0])
-			fttc_tuple_list_list[cluster].append((int(inputline_list[1]), float(inputline_list[2])))
+			fttc_list_list_list[cluster].append((int(inputline_list[1]), float(inputline_list[2])))
 		#end_while
 	#end_if
 	plotdata_file.close()
 
 
-	fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[3, 8, 1, 3, 8]})
+	fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[1, 4, .5, 1, 4]})
 
 	fig.set_size_inches(12, 8)
 
 	linewidth = 2
 
 	xprop = 100  # CPU speed proportion (out of)
+	yprop = 1  # time spent proportion (out of)
 	for xplot in [0, 1, 3, 4]:#range(0, 4):
 		#cluster = int(xplot / 2)
 		if (xplot < 2):
@@ -1480,19 +1489,19 @@ def plot_time_perspeed_fb():
 		elif (xplot > 2):
 			cluster = 1
 		#end_if
-		fttc_iter = iter(fttc_tuple_list_list[cluster])
-		fttc_tuple = next(fttc_iter)
-		speedprev = float(fttc_tuple[0] * xprop) / maxspeed_dict[cluster]
-		cdfsubtotalprev = fttc_tuple[1]
+		fttc_iter = iter(fttc_list_list_list[cluster])
+		fttc_list = next(fttc_iter)
+		speedprev = float(fttc_list[0] * xprop) / maxspeed_dict[cluster]
+		cdfsubtotalprev = fttc_list[1] * yprop
 		cdfsubtotalorig = cdfsubtotalprev
 		while (True):
 			try:
-				fttc_tuple = next(fttc_iter)
+				fttc_list = next(fttc_iter)
 			except StopIteration:
 				break
 			#end_try
-			speed = float(fttc_tuple[0] * xprop) / maxspeed_dict[cluster]
-			cdfsubtotal = cdfsubtotalprev + fttc_tuple[1]
+			speed = float(fttc_list[0] * xprop) / maxspeed_dict[cluster]
+			cdfsubtotal = cdfsubtotalprev + fttc_list[1] * yprop
 			ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [speedprev, speed], color = "blue", linewidth = linewidth)
 			ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotal], [speed, speed], color = "blue", linewidth = linewidth)
 			speedprev = speed
@@ -1511,13 +1520,13 @@ def plot_time_perspeed_fb():
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "red", linewidth = 5, label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 5, label = "Actual"))
-	ax_list[1].legend(handles = handle_list, loc = "lower right", fontsize = 16)
+	ax_list[1].legend(handles = handle_list, loc = "upper left", fontsize = 16)
 	ax_list[4].legend(handles = handle_list, loc = "lower right", fontsize = 16)
 
-	ax_list[0].set_xlim(0, 3)
-	ax_list[1].set_xlim(25, 33)
-	ax_list[3].set_xlim(0, 3)
-	ax_list[4].set_xlim(25, 33)
+	ax_list[0].set_xlim(0, .06)
+	ax_list[1].set_xlim(.76, 1.00)
+	ax_list[3].set_xlim(0, .06)
+	ax_list[4].set_xlim(.76, 1.00)
 
 	ax_list[0].spines.right.set_visible(False)
 	ax_list[1].spines.left.set_visible(False)
@@ -1546,8 +1555,8 @@ def plot_time_perspeed_fb():
 	ax_list[4].scatter(0, 0, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 	ax_list[4].scatter(0, 1, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 
-	fig.suptitle("Cumulative Time Spent at or Below a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
-	fig.supxlabel("Cumulative time per CPU at or below a speed (s)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("CDF of Average Time per CPU, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
+	fig.supxlabel("CDF of average time per CPU at or below a speed", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .88, bottom = .08)
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
 	#'''
