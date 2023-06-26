@@ -1437,13 +1437,15 @@ def plot_time_perspeed_fb():
 			filename = path + prefix + str(run) + ".gz"
 			plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
 		#end_for
-		#perfcycles_mean, _ = mean_margin(perfcycles_list)
-		#print("Cyclecount mean:  %d" % (perfcycles_mean))
 		for cluster in range(2):
 			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
-			for key in freqtimetotalcluster_dict:
+			# Construct (unsorted) list of (speed, timespent) tuples
+			# to save out (rather than working with the original dict):
+			for speed in freqtimetotalcluster_dict:
 				fttc_tuple_list_list[cluster].append((key, freqtimetotalcluster_dict[key] / (runcount * 4)))  # Adjust to per-CPU average time))
 			#end_for
+			# Sort list of (speed, timespent) tuples by speed:
+			fttc_tuple_list_list[cluster].sort(key = lambda fttc_tuple:fttc_tuple[0])
 			for fttc_tuple in fttc_tuple_list_list[cluster]:
 				outputline = str(cluster) + "," + str(fttc_tuple[0]) + "," + str(fttc_tuple[1]) + "\n"
 				plotdata_file.write(outputline)
@@ -1464,20 +1466,23 @@ def plot_time_perspeed_fb():
 	plotdata_file.close()
 
 
-	fig, ax_list_list = plt.subplots(2, 2)
+	fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[3, 8, 1, 3, 8]})
+
 	fig.set_size_inches(12, 8)
 
 	linewidth = 2
 
 	xprop = 100  # CPU speed proportion (out of)
-	for xplot in range(0, 2):
-		fttc_tuple_list_list[xplot].sort(key = lambda fttc_tuple:fttc_tuple[0])
-
-		cdfsubtotal = 0.0
-		#for fttc_tuple in fttc_tuple_list_list[xplot]:
-		fttc_iter = iter(fttc_tuple_list_list[xplot])
+	for xplot in [0, 1, 3, 4]:#range(0, 4):
+		#cluster = int(xplot / 2)
+		if (xplot < 2):
+			cluster = 0
+		elif (xplot > 2):
+			cluster = 1
+		#end_if
+		fttc_iter = iter(fttc_tuple_list_list[cluster])
 		fttc_tuple = next(fttc_iter)
-		speedprev = float(fttc_tuple[0] * xprop) / maxspeed_dict[xplot]
+		speedprev = float(fttc_tuple[0] * xprop) / maxspeed_dict[cluster]
 		cdfsubtotalprev = fttc_tuple[1]
 		cdfsubtotalorig = cdfsubtotalprev
 		while (True):
@@ -1486,74 +1491,69 @@ def plot_time_perspeed_fb():
 			except StopIteration:
 				break
 			#end_try
-
-			speed = float(fttc_tuple[0] * xprop) / maxspeed_dict[xplot]
+			speed = float(fttc_tuple[0] * xprop) / maxspeed_dict[cluster]
 			cdfsubtotal = cdfsubtotalprev + fttc_tuple[1]
-
-			for yplot in range(0, 2):
-				#ax_list_list[yplot][xplot].plot([speedprev, speed], [cdfsubtotalprev, cdfsubtotalprev], color = "blue")
-				#ax_list_list[yplot][xplot].plot([speed, speed], [cdfsubtotalprev, cdfsubtotal], color = "blue")
-				ax_list_list[yplot][xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [speedprev, speed], color = "blue", linewidth = linewidth)
-				ax_list_list[yplot][xplot].plot([cdfsubtotalprev, cdfsubtotal], [speed, speed], color = "blue", linewidth = linewidth)
-			#end_for
+			ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [speedprev, speed], color = "blue", linewidth = linewidth)
+			ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotal], [speed, speed], color = "blue", linewidth = linewidth)
 			speedprev = speed
 			cdfsubtotalprev = cdfsubtotal
 		#end_while
-		print(speedprev)
-		print(cdfsubtotalprev)
-		#ax_list_list[1][xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red")
-		ax_list_list[1][xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red", linewidth = linewidth)
-		ax_list_list[1][xplot].plot([cdfsubtotalorig, cdfsubtotalprev], [70, 70], color = "red", linewidth = linewidth)
+		# Plot "ideal" inv-DF:
+		ax_list[xplot].plot([0, cdfsubtotalorig], [0, 0], color = "red", linewidth = linewidth)
+		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red", linewidth = linewidth)
+		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalprev], [70, 70], color = "red", linewidth = linewidth)
+		ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [70, 100], color = "red", linewidth = linewidth)
 	#end_for
+
+	#'''
+	ax_list[2].set_visible(False)
 
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "red", linewidth = 5, label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 5, label = "Actual"))
-	ax_list_list[1][0].legend(handles = handle_list, loc = "lower right", fontsize = 16)
-	ax_list_list[1][1].legend(handles = handle_list, loc = "lower right", fontsize = 16)
+	ax_list[1].legend(handles = handle_list, loc = "lower right", fontsize = 16)
+	ax_list[4].legend(handles = handle_list, loc = "lower right", fontsize = 16)
 
+	ax_list[0].set_xlim(0, 3)
+	ax_list[1].set_xlim(25, 33)
+	ax_list[3].set_xlim(0, 3)
+	ax_list[4].set_xlim(25, 33)
 
-	'''
-	ax_list_list[0][0].axis([-.05 * xprop, 1.05 * xprop, 0, 35])
-	ax_list_list[0][1].axis([-.05 * xprop, 1.05 * xprop, 0, 35])
-	ax_list_list[1][0].axis([-.05 * xprop, 1.05 * xprop, 25, 33])
-	ax_list_list[1][1].axis([-.05 * xprop, 1.05 * xprop, 25, 33])
-	'''
-	ax_list_list[0][0].axis([0, 35, -.05 * xprop, 1.05 * xprop])
-	ax_list_list[0][1].axis([0, 35, -.05 * xprop, 1.05 * xprop])
-	ax_list_list[1][0].axis([25, 33, -.05 * xprop, 1.05 * xprop])
-	ax_list_list[1][1].axis([25, 33, -.05 * xprop, 1.05 * xprop])
+	ax_list[0].spines.right.set_visible(False)
+	ax_list[1].spines.left.set_visible(False)
+	ax_list[1].set_yticks([])
+	ax_list[3].spines.right.set_visible(False)
+	ax_list[4].spines.left.set_visible(False)
+	ax_list[4].set_yticks([])
 
-	ax_list_list[0][0].tick_params(labelsize = 12)
-	ax_list_list[0][1].tick_params(labelsize = 12)
-	ax_list_list[1][0].tick_params(labelsize = 12)
-	ax_list_list[1][1].tick_params(labelsize = 12)
+	ax_list[0].tick_params(labelsize = 12)
+	ax_list[1].tick_params(labelsize = 12)
+	ax_list[3].tick_params(labelsize = 12)
+	ax_list[4].tick_params(labelsize = 12)
 
-	ax_list_list[0][0].set_title("Little core cluster", fontsize = 16, fontweight = "bold")
-	ax_list_list[0][1].set_title("Big core cluster", fontsize = 16, fontweight = "bold")
-	ax_list_list[0][0].set_ylabel("Full", fontsize = 16, fontweight = "bold")
-	ax_list_list[1][0].set_ylabel("Zoom", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
+	ax_list[4].set_title("Big CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
+
+	ax_list[0].set_ylabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
+	ax_list[3].set_yticklabels([])
+
+	ax_list[0].scatter(1, 0, transform = ax_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list[0].scatter(1, 1, transform = ax_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list[1].scatter(0, 0, transform = ax_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list[1].scatter(0, 1, transform = ax_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list[3].scatter(1, 0, transform = ax_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list[3].scatter(1, 1, transform = ax_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list[4].scatter(0, 0, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list[4].scatter(0, 1, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 
 	fig.suptitle("Cumulative Time Spent at or Below a Given Speed, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
-	fig.supylabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("Cumulative time per CPU at or below a speed (s)", fontsize = 16, fontweight = "bold")
-	fig.subplots_adjust(left = .09, bottom = .07)
+	fig.subplots_adjust(top = .88, bottom = .08)
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
+	#'''
 
 	plt.show()
 	plt.close("all")
-
-	for cluster in range(2):
-		freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
-		tt = 0
-		for key in freqtimetotalcluster_dict:
-			tt += freqtimetotalcluster_dict[key]
-		#end_for
-		print("total time:  %d" % (tt))
-		for key in freqtimetotalcluster_dict:
-			print("cluster:  %d  speed:  %s  %f" % (cluster, key, freqtimetotalcluster_dict[key] / tt))
-		#end_for
-	#end_for
 
 	return
 
