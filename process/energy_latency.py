@@ -1249,10 +1249,21 @@ def plot_freq_over_time_micro_1():
 	time_list = newtime_list
 	freq_list = newfreq_list
 
+	# switch displayed y labels from GHz to %:
+	ytick_list = []
+	yticklabel_list = []
+	for i in range(0, 120, 20):
+		ytick_list.append(i * (2.4576 / 100.0))
+		yticklabel_list.append(i)
+	#end_for
+
+	ax.set_yticks(ytick_list)
+	ax.set_yticklabels(yticklabel_list)
+
 	ax.plot(time_list, freq_list, solid_capstyle = "butt", color = "black", linewidth = 3)
 	ax.axis([0, .7, 0, 2.6])
 	ax.set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Nominal CPU speed (GHz)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Nominal CPU speed (% of maximum)", fontsize = 16, fontweight = "bold")
 	ax.tick_params(labelsize = 12)
 
 	ax.plot([0.0, 1.0], [1.72, 1.72], solid_capstyle = "butt", color = "red", linewidth = 10)
@@ -1970,9 +1981,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-#plot_freq_over_time_micro_1()
+plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
