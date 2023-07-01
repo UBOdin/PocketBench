@@ -1538,17 +1538,16 @@ def plot_time_perspeed_fb():
 			cdfsubtotalprev = cdfsubtotal
 		#end_while
 		# Plot "ideal" inv-DF:
-		ax_list[xplot].plot([0, cdfsubtotalorig], [0, 0], color = "red", linewidth = linewidth)
-		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red", linewidth = linewidth)
-		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalprev], [70, 70], color = "red", linewidth = linewidth)
-		#ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [70, 100], color = "red", linewidth = linewidth)
+		ax_list[xplot].plot([0, cdfsubtotalorig], [0, 0], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
+		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
+		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalprev], [70, 70], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
 	#end_for
 
 	ax_list[2].set_visible(False)
 
 	handle_list = []
-	handle_list.append(Line2D([], [], color = "red", linewidth = 5, label = "Ideal"))
-	handle_list.append(Line2D([], [], color = "blue", linewidth = 5, label = "Actual"))
+	handle_list.append(Line2D([], [], color = "red", linewidth = 2, linestyle = (0, (1, 1)), label = "Ideal"))
+	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
 	ax_list[1].legend(handles = handle_list, loc = (-.15, .50), fontsize = 16)
 	ax_list[4].legend(handles = handle_list, loc = (-.15, .80), fontsize = 16)
 
@@ -1565,10 +1564,10 @@ def plot_time_perspeed_fb():
 	ax_list[4].set_yticks([])
 
 	ax_list[0].tick_params(labelsize = 12)
-	ax_list[0].set_xticks([])
+	ax_list[0].set_xticks([0])
 	ax_list[1].tick_params(labelsize = 12)
 	ax_list[3].tick_params(labelsize = 12)
-	ax_list[3].set_xticks([])
+	ax_list[3].set_xticks([0])
 	ax_list[4].tick_params(labelsize = 12)
 
 	ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
@@ -1981,9 +1980,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-plot_freq_over_time_micro_1()
+#plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
