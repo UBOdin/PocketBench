@@ -1504,8 +1504,14 @@ def plot_time_perspeed_fb():
 	plotdata_file.close()
 
 
-	fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[2, 22, 1, 2, 22]})
+	#fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[2, 22, 1, 2, 22]})
+	fig = plt.figure()
+	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [2, 22, 1, 2, 22], top = 0.82, bottom = .10)
 
+	ax_list = []
+	for i in range(5):
+		ax_list.append(fig.add_subplot(gs2[i]))
+	#end_for
 	fig.set_size_inches(12, 6)
 
 	linewidth = 2
