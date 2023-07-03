@@ -5,3 +5,5 @@ logs/
 apps/Benchmark_withJson/build/intermediates/dex-cache/cache.xml
 apps/Benchmark_withJson/.gradle/
 files/json/raw/
+process/data_processed/
+process/graphs_saved/
