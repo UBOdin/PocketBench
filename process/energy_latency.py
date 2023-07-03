@@ -1503,18 +1503,68 @@ def plot_time_perspeed_fb():
 	#end_if
 	plotdata_file.close()
 
-
-	#fig, ax_list = plt.subplots(1, 5, gridspec_kw = {"width_ratios":[2, 22, 1, 2, 22]})
 	fig = plt.figure()
-	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [2, 22, 1, 2, 22], top = 0.82, bottom = .10)
+	fig.set_size_inches(12, 6)
+
+	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [2, 22, 1, 2, 22], height_ratios = [9, 11], top = 0.95, bottom = .70)
+	ax0_list = []
+	ax0_list.append(fig.add_subplot(gs1[0, 0:2]))
+	ax0_list.append(fig.add_subplot(gs1[1, 0:2]))
+	ax0_list.append(fig.add_subplot(gs1[0, 3:5]))
+	ax0_list.append(fig.add_subplot(gs1[1, 3:5]))
+
+	xprop = 100
+	yprop = 100
+	for i in range(4):
+		cluster = int(i / 2)
+		for fttc_list in fttc_list_list_list[cluster]:
+			speed = float(fttc_list[0] / maxspeed_dict[cluster]) * xprop
+			time = float(fttc_list[1]) * yprop
+			ax0_list[i].bar(speed, time, color = "blue", linewidth = 2)
+		#end_for
+	#end_for
+
+	ax0_list[0].set_ylim(79, 88)
+	ax0_list[1].set_ylim(0, 11)
+	ax0_list[2].set_ylim(79, 88)
+	ax0_list[3].set_ylim(0, 11)
+
+	ax0_list[0].spines.bottom.set_visible(False)
+	ax0_list[0].set_xticks([])
+	ax0_list[1].spines.top.set_visible(False)
+	ax0_list[2].spines.bottom.set_visible(False)
+	ax0_list[2].set_xticks([])
+	ax0_list[3].spines.top.set_visible(False)
+
+	for i in range(4):
+		ax0_list[i].tick_params(labelsize = 12)
+	#end_for
+
+	ax0_list[0].scatter(0, 0, transform = ax0_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[0].scatter(1, 0, transform = ax0_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[1].scatter(0, 1, transform = ax0_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[1].scatter(1, 1, transform = ax0_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[2].scatter(0, 0, transform = ax0_list[2].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[2].scatter(1, 0, transform = ax0_list[2].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[3].scatter(0, 1, transform = ax0_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[3].scatter(1, 1, transform = ax0_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+
+	ax0_list[0].set_title("Little CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
+	ax0_list[1].set_ylabel("        Time spent (%)", fontsize = 16, fontweight = "bold")
+	ax0_list[2].set_title("Big CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
+
+
+	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [2, 22, 1, 2, 22], top = 0.52, bottom = .10)
+	#fig.text(x = .5, y = .75, ha = "center", s = "foobar", fontweight = "bold", fontsize = 16)
 
 	ax_list = []
 	for i in range(5):
-		ax_list.append(fig.add_subplot(gs2[i]))
+		ax = fig.add_subplot(gs2[i])
+		ax_list.append(ax)
 	#end_for
-	fig.set_size_inches(12, 6)
 
 	linewidth = 2
+	alpha = .3
 
 	xprop = 100  # CPU speed proportion (out of)
 	yprop = 1  # time spent proportion (out of)
@@ -1591,20 +1641,20 @@ def plot_time_perspeed_fb():
 	ax_list[4].scatter(0, 0, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 	ax_list[4].scatter(0, 1, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 
-	p = mpatches.Polygon([[.96, 71], [.998, 71], [.998, 99], [.965, 99]], facecolor = "grey", alpha = 0.5)
+	p = mpatches.Polygon([[.96, 71], [.998, 71], [.998, 99], [.965, 99]], facecolor = "grey", alpha = alpha)
 	ax_list[1].add_patch(p)
 	ax_list[1].annotate("", xy = (.885, 42.5), xytext = (.92, 29), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
 	ax_list[1].annotate("Underperformance", xy = (.90, 23.5), fontsize = 12)
-	p = mpatches.Polygon([[.878, 16.5], [.878, 69], [.953, 69], [.95, 62.5], [.90, 62.5], [.888, 16.5]], facecolor = "grey", alpha = 0.5)
+	p = mpatches.Polygon([[.878, 16.5], [.878, 69], [.953, 69], [.95, 62.5], [.90, 62.5], [.888, 16.5]], facecolor = "grey", alpha = alpha)
 	ax_list[1].add_patch(p)
 	ax_list[1].annotate("", xy = (.98, 84), xytext = (.92, 84), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
 	ax_list[1].annotate("Overperformance", xy = (.828, 82.8), fontsize = 12)
 
-	p = mpatches.Polygon([[.868, 71], [.998, 71], [.998, 99], [.902, 99]], facecolor = "grey", alpha = 0.5)
+	p = mpatches.Polygon([[.868, 71], [.998, 71], [.998, 99], [.902, 99]], facecolor = "grey", alpha = alpha)
 	ax_list[4].add_patch(p)
 	ax_list[4].annotate("", xy = (.815, 53), xytext = (.835, 32.5), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
 	ax_list[4].annotate("Underperformance", xy = (.83, 27.5), fontsize = 12)
-	p = mpatches.Polygon([[.803, 12.5], [.803, 69], [.834, 69], [.83, 47], [.813, 47], [.805, 12.5]], facecolor = "grey", alpha = 0.5)
+	p = mpatches.Polygon([[.803, 12.5], [.803, 69], [.834, 69], [.83, 47], [.813, 47], [.805, 12.5]], facecolor = "grey", alpha = alpha)
 	ax_list[4].add_patch(p)
 	ax_list[4].annotate("", xy = (.94, 84), xytext = (.94, 58), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
 	ax_list[4].annotate("Overperformance", xy = (.895, 54), fontsize = 12)
