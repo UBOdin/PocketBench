@@ -1559,7 +1559,27 @@ def plot_time_perspeed_fb():
 			time = float(fttc_list[1]) * yprop
 			ax0_list[i].bar(speed, time, color = "blue", linewidth = 2)
 		#end_for
+		# Plot ideal speed:
+		ax0_list[i].plot([70, 70], [0, 100], color = "red", linewidth = 2, linestyle = (0, (1, 1)))
 	#end_for
+
+	ytick_list = []
+	yticklabel_list = []
+	for i in range(0, 100, 5):
+		ytick_list.append(i)
+		yticklabel_list.append(str(i))
+	#end_for
+
+	for i in range(4):
+		ax0_list[i].set_yticks(ytick_list)
+	#end_for
+
+	ax0_list[0].set_yticklabels(yticklabel_list)
+	ax0_list[1].set_yticklabels(yticklabel_list)
+	ax0_list[0].tick_params(labelsize = 12)
+	ax0_list[1].tick_params(labelsize = 12)
+	ax0_list[2].set_yticklabels([])
+	ax0_list[3].set_yticklabels([])
 
 	ax0_list[0].set_ylim(79, 88)
 	ax0_list[1].set_ylim(0, 11)
@@ -1573,18 +1593,14 @@ def plot_time_perspeed_fb():
 	ax0_list[2].set_xticks([])
 	ax0_list[3].spines.top.set_visible(False)
 
-	for i in range(4):
-		ax0_list[i].tick_params(labelsize = 12)
-	#end_for
-
-	ax0_list[0].scatter(0, 0, transform = ax0_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax0_list[0].scatter(1, 0, transform = ax0_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax0_list[1].scatter(0, 1, transform = ax0_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax0_list[1].scatter(1, 1, transform = ax0_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax0_list[2].scatter(0, 0, transform = ax0_list[2].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax0_list[2].scatter(1, 0, transform = ax0_list[2].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax0_list[3].scatter(0, 1, transform = ax0_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax0_list[3].scatter(1, 1, transform = ax0_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax0_list[0].scatter(0, 0, transform = ax0_list[0].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	ax0_list[0].scatter(1, 0, transform = ax0_list[0].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	ax0_list[1].scatter(0, 1, transform = ax0_list[1].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	ax0_list[1].scatter(1, 1, transform = ax0_list[1].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	ax0_list[2].scatter(0, 0, transform = ax0_list[2].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	ax0_list[2].scatter(1, 0, transform = ax0_list[2].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	ax0_list[3].scatter(0, 1, transform = ax0_list[3].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	ax0_list[3].scatter(1, 1, transform = ax0_list[3].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
 
 	ax0_list[0].set_title("Little CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
 	ax0_list[1].set_ylabel("        Time spent\n        per speed (%)", fontsize = 16, fontweight = "bold")
@@ -1664,7 +1680,7 @@ def plot_time_perspeed_fb():
 	ax_list[3].set_xlim(0, .09)
 	ax_list[4].set_xlim(.82, 1.00)
 	for i in range(5):
-		ax_list[i].set_ylim(-58, 58)
+		ax_list[i].set_ylim(-62, 62)
 	#end_for
 
 	ax_list[0].spines.right.set_visible(False)
@@ -1706,7 +1722,7 @@ def plot_time_perspeed_fb():
 	p = mpatches.Polygon([[.878 + adjx, 16.5 + adjy], [.878 + adjx, 69 + adjy], [.953 + adjx, 69 + adjy], [.95 + adjx, 62.5 + adjy], [.90 + adjx, 62.5 + adjy], [.888 + adjx, 16.5 + adjy]], facecolor = "grey", alpha = alpha)
 	ax_list[0].add_patch(p)
 	ax_list[0].annotate("", xy = (.009, -20), xytext = (.92 + adjx, 29 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	ax_list[0].annotate("Underperformance", xy = (.045, -48), fontsize = 12, zorder = 10)
+	fig.text(x = .18, y = .135,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
 	adjx = 0
 	adjy = -70
@@ -1720,7 +1736,7 @@ def plot_time_perspeed_fb():
 	p = mpatches.Polygon([[.803 + adjx, 12.5 + adjy], [.803 + adjx, 69 + adjy], [.834 + adjx, 69 + adjy], [.83 + adjx, 47 + adjy], [.813 + adjx, 47 + adjy], [.805 + adjx, 12.5 + adjy]], facecolor = "grey", alpha = alpha)
 	ax_list[3].add_patch(p)
 	ax_list[3].annotate("", xy = (.015, -13.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	ax_list[3].annotate("Underperformance", xy = (.029, -45), fontsize = 12)
+	fig.text(x = .585, y = .145,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
 	fig.suptitle("Time per CPU Speed, Default Policy (32s FB script) (3 Runs)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
@@ -2101,11 +2117,11 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
-plot_energy_varying_sleep_micro()
+#plot_energy_varying_sleep_micro()
 
