@@ -1498,15 +1498,16 @@ def plot_time_perspeed_fb():
 			inputline_list = inputline.split(",")
 			assert(len(inputline_list) == 3)
 			cluster = int(inputline_list[0])
-			fttc_list_list_list[cluster].append((int(inputline_list[1]), float(inputline_list[2])))
+			fttc_list_list_list[cluster].append([int(inputline_list[1]), float(inputline_list[2])])
 		#end_while
 	#end_if
 	plotdata_file.close()
 
+
 	fig = plt.figure()
 	fig.set_size_inches(12, 6)
 
-	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [2, 22, 1, 2, 22], height_ratios = [9, 11], top = 0.95, bottom = .70)
+	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [9, 11], top = 0.85, bottom = .65)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs1[0, 0:2]))
 	ax0_list.append(fig.add_subplot(gs1[1, 0:2]))
@@ -1550,11 +1551,28 @@ def plot_time_perspeed_fb():
 	ax0_list[3].scatter(1, 1, transform = ax0_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 
 	ax0_list[0].set_title("Little CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
-	ax0_list[1].set_ylabel("        Time spent (%)", fontsize = 16, fontweight = "bold")
+	ax0_list[1].set_ylabel("        Time spent\n        per speed (%)", fontsize = 16, fontweight = "bold")
 	ax0_list[2].set_title("Big CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
+	fig.text(x = .5, y = .55, ha = "center", s = "CPU speed (%)", fontweight = "bold", fontsize = 16)
 
 
-	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [2, 22, 1, 2, 22], top = 0.52, bottom = .10)
+	# Rework CDF relative to ideal frequency:
+	for cluster in range(2):
+		# For idle (0 speed), ideal is 0; else ~70%:
+		for fttc_list in fttc_list_list_list[cluster]:
+			speed = fttc_list[0]
+			if (speed == 0):
+				newspeed = 0
+			else:
+				newspeed = speed - maxspeed_dict[cluster] * .7 
+			#end_if
+			fttc_list[0] = newspeed
+		#end_for
+		# Re-sort, by delta relative to ideal speed:
+		fttc_list_list_list[cluster].sort(key = lambda fttc_list:fttc_list[0])
+	#end_for
+
+	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [10, 20, 1, 10, 20], top = 0.45, bottom = .10)
 	#fig.text(x = .5, y = .75, ha = "center", s = "foobar", fontweight = "bold", fontsize = 16)
 
 	ax_list = []
@@ -1579,7 +1597,7 @@ def plot_time_perspeed_fb():
 		fttc_list = next(fttc_iter)
 		speedprev = float(fttc_list[0] * xprop) / maxspeed_dict[cluster]
 		cdfsubtotalprev = fttc_list[1] * yprop
-		cdfsubtotalorig = cdfsubtotalprev
+		ax_list[xplot].plot([0, cdfsubtotalprev], [speedprev, speedprev], color = "blue", linewidth = linewidth)
 		while (True):
 			try:
 				fttc_list = next(fttc_iter)
@@ -1594,9 +1612,7 @@ def plot_time_perspeed_fb():
 			cdfsubtotalprev = cdfsubtotal
 		#end_while
 		# Plot "ideal" inv-DF:
-		ax_list[xplot].plot([0, cdfsubtotalorig], [0, 0], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
-		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalorig], [0, 70], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
-		ax_list[xplot].plot([cdfsubtotalorig, cdfsubtotalprev], [70, 70], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
+		ax_list[xplot].plot([0, cdfsubtotalprev], [0, 0], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
 	#end_for
 
 	ax_list[2].set_visible(False)
@@ -1604,13 +1620,16 @@ def plot_time_perspeed_fb():
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "red", linewidth = 2, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
-	ax_list[1].legend(handles = handle_list, loc = (-.15, .50), fontsize = 16)
-	ax_list[4].legend(handles = handle_list, loc = (-.15, .80), fontsize = 16)
+	ax_list[1].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
+	ax_list[4].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
 
-	ax_list[0].set_xlim(0, .02)
-	ax_list[1].set_xlim(.78, 1.00)
-	ax_list[3].set_xlim(0, .02)
-	ax_list[4].set_xlim(.78, 1.00)
+	ax_list[0].set_xlim(0, .09)
+	ax_list[1].set_xlim(.82, 1.00)
+	ax_list[3].set_xlim(0, .09)
+	ax_list[4].set_xlim(.82, 1.00)
+	for i in range(5):
+		ax_list[i].set_ylim(-58, 58)
+	#end_for
 
 	ax_list[0].spines.right.set_visible(False)
 	ax_list[1].spines.left.set_visible(False)
@@ -1620,16 +1639,14 @@ def plot_time_perspeed_fb():
 	ax_list[4].set_yticks([])
 
 	ax_list[0].tick_params(labelsize = 12)
-	ax_list[0].set_xticks([0])
 	ax_list[1].tick_params(labelsize = 12)
 	ax_list[3].tick_params(labelsize = 12)
-	ax_list[3].set_xticks([0])
 	ax_list[4].tick_params(labelsize = 12)
 
 	ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
 	ax_list[4].set_title("Big CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
 
-	ax_list[0].set_ylabel("CPU speed (%)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("CPU speed (%)\nrelative to ideal", fontsize = 16, fontweight = "bold")
 	ax_list[3].set_yticklabels([])
 
 	ax_list[0].scatter(1, 0, transform = ax_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
@@ -1641,26 +1658,36 @@ def plot_time_perspeed_fb():
 	ax_list[4].scatter(0, 0, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 	ax_list[4].scatter(0, 1, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 
-	p = mpatches.Polygon([[.96, 71], [.998, 71], [.998, 99], [.965, 99]], facecolor = "grey", alpha = alpha)
+	adjx = 0
+	adjy = -70
+	p = mpatches.Polygon([[.96 + adjx, 71 + adjy], [.998 + adjx, 71 + adjy], [.998 + adjx, 99 + adjy], [.965 + adjx, 99 + adjy]], facecolor = "grey", alpha = alpha)
 	ax_list[1].add_patch(p)
-	ax_list[1].annotate("", xy = (.885, 42.5), xytext = (.92, 29), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
-	ax_list[1].annotate("Underperformance", xy = (.90, 23.5), fontsize = 12)
-	p = mpatches.Polygon([[.878, 16.5], [.878, 69], [.953, 69], [.95, 62.5], [.90, 62.5], [.888, 16.5]], facecolor = "grey", alpha = alpha)
-	ax_list[1].add_patch(p)
-	ax_list[1].annotate("", xy = (.98, 84), xytext = (.92, 84), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
-	ax_list[1].annotate("Overperformance", xy = (.828, 82.8), fontsize = 12)
+	ax_list[1].annotate("", xy = (.98 + adjx, 84 + adjy), xytext = (.956, -25.2), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	ax_list[1].annotate("Overperformance", xy = (.895, -33.5), fontsize = 12)
 
-	p = mpatches.Polygon([[.868, 71], [.998, 71], [.998, 99], [.902, 99]], facecolor = "grey", alpha = alpha)
-	ax_list[4].add_patch(p)
-	ax_list[4].annotate("", xy = (.815, 53), xytext = (.835, 32.5), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
-	ax_list[4].annotate("Underperformance", xy = (.83, 27.5), fontsize = 12)
-	p = mpatches.Polygon([[.803, 12.5], [.803, 69], [.834, 69], [.83, 47], [.813, 47], [.805, 12.5]], facecolor = "grey", alpha = alpha)
-	ax_list[4].add_patch(p)
-	ax_list[4].annotate("", xy = (.94, 84), xytext = (.94, 58), arrowprops = dict(facecolor = "black", width = 3, headlength = 15, headwidth = 10))
-	ax_list[4].annotate("Overperformance", xy = (.895, 54), fontsize = 12)
+	adjx = -.876
+	adjy = -70
+	p = mpatches.Polygon([[.878 + adjx, 16.5 + adjy], [.878 + adjx, 69 + adjy], [.953 + adjx, 69 + adjy], [.95 + adjx, 62.5 + adjy], [.90 + adjx, 62.5 + adjy], [.888 + adjx, 16.5 + adjy]], facecolor = "grey", alpha = alpha)
+	ax_list[0].add_patch(p)
+	ax_list[0].annotate("", xy = (.009, -20), xytext = (.92 + adjx, 29 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	ax_list[0].annotate("Underperformance", xy = (.045, -48), fontsize = 12, zorder = 10)
 
-	fig.suptitle("CDF of Average Time per CPU, per Cluster, Default Policy\n(32s FB script) (3 Runs, 4 CPUs per Cluster)", fontsize = 16, fontweight = "bold")
-	fig.supxlabel("CDF of average time per CPU at or below a speed", fontsize = 16, fontweight = "bold")
+	adjx = 0
+	adjy = -70
+	p = mpatches.Polygon([[.868 + adjx, 71 + adjy], [.998 + adjx, 71 + adjy], [.998 + adjx, 99 + adjy], [.902 + adjx, 99 + adjy]], facecolor = "grey", alpha = alpha)
+	ax_list[4].add_patch(p)
+	ax_list[4].annotate("", xy = (.94 + adjx, 84 + adjy), xytext = (.94 + adjx, 58 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	ax_list[4].annotate("Overperformance", xy = (.895, -20), fontsize = 12)
+
+	adjx = -.801
+	adjy = -70
+	p = mpatches.Polygon([[.803 + adjx, 12.5 + adjy], [.803 + adjx, 69 + adjy], [.834 + adjx, 69 + adjy], [.83 + adjx, 47 + adjy], [.813 + adjx, 47 + adjy], [.805 + adjx, 12.5 + adjy]], facecolor = "grey", alpha = alpha)
+	ax_list[3].add_patch(p)
+	ax_list[3].annotate("", xy = (.015, -13.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	ax_list[3].annotate("Underperformance", xy = (.029, -45), fontsize = 12)
+
+	fig.suptitle("Time per CPU Speed, Default Policy (32s FB script) (3 Runs)", fontsize = 16, fontweight = "bold")
+	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .84, bottom = .10)
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
 
