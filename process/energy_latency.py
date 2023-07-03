@@ -1248,7 +1248,7 @@ def plot_freq_over_time_micro_1():
 	filename = sys.argv[1]
 
 	fig, ax = plt.subplots()
-	fig.set_size_inches(12, 8)
+	fig.set_size_inches(12, 6)
 
 	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
 	starttime = eventtime_list[0]
@@ -1279,29 +1279,46 @@ def plot_freq_over_time_micro_1():
 	ax.set_yticks(ytick_list)
 	ax.set_yticklabels(yticklabel_list)
 
-	ax.plot(time_list, freq_list, solid_capstyle = "butt", color = "black", linewidth = 3)
+	# Construct energy-ideal frequency list:
+	ideal_list = []
+	for freq in freq_list:
+		if (freq == 0):
+			ideal_list.append(0)
+		else:
+			ideal_list.append(2.4576 * .7)
+		#end_for
+	#end_for
+
+	ax.plot(time_list, freq_list, solid_capstyle = "butt", color = "blue", linewidth = 3)
 	ax.axis([0, .7, 0, 2.6])
 	ax.set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Nominal CPU speed (% of maximum)", fontsize = 16, fontweight = "bold")
 	ax.tick_params(labelsize = 12)
 
-	ax.plot([0.0, 1.0], [1.72, 1.72], solid_capstyle = "butt", color = "red", linewidth = 10)
-	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
-	ax.annotate("Energy-optimal", xy = (.08, 2.25), fontweight = "bold", fontsize = 16)
-	ax.annotate("CPU speed", xy = (.1, 2.15), fontweight = "bold", fontsize = 16)
+	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "red", linewidth = 3, linestyle = (0, (1, 1)))
+	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
+	ax.annotate("Energy-optimal", xy = (.1, 2.25), fontweight = "bold", fontsize = 12)
+	ax.annotate("CPU speed", xy = (.12, 2.15), fontweight = "bold", fontsize = 12)
 
-	p = mpatches.Polygon([[.1, .29], [.1, 1.67], [.26, 1.67]], facecolor = "blue", alpha = 0.5)
+	p = mpatches.Polygon([[.11, .29], [.11, 1.67], [.26, 1.67]], facecolor = "grey", alpha = 0.3)
 	ax.add_patch(p)
-	p = mpatches.Polygon([[.29, 1.77], [.32, 2.43], [.57, 2.43], [.57, 1.77]], facecolor = "blue", alpha = 0.5)
+	p = mpatches.Polygon([[.29, 1.77], [.32, 2.43], [.57, 2.43], [.57, 1.77]], facecolor = "grey", alpha = 0.3)
 	ax.add_patch(p)
-	ax.annotate("", xy = (.43, 2.1), xytext = (.43, 1.4), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
-	ax.annotate("Wasted Energy", xy = (.36, 1.32), fontweight = "bold", fontsize = 16)
-	ax.annotate("(Overperformance)", xy = (.34, 1.22), fontweight = "bold", fontsize = 16)
-	ax.annotate("", xy = (.155, 1.25), xytext = (.27, .75), arrowprops = dict(facecolor = "black", width = 4, headlength = 20, headwidth = 15))
-	ax.annotate("Both wasted energy", xy = (.275, .75), fontweight = "bold", fontsize = 16)
-	ax.annotate("and poor latency", xy = (.29, .65), fontweight = "bold", fontsize = 16)
+	ax.annotate("", xy = (.43, 2.1), xytext = (.43, 1.4), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
+	ax.annotate("Wasted Energy", xy = (.38, 1.30), fontweight = "bold", fontsize = 12)
+	ax.annotate("(Overperformance)", xy = (.36, 1.20), fontweight = "bold", fontsize = 12)
+	ax.annotate("", xy = (.155, 1.25), xytext = (.27, .95), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
+	ax.annotate("Both wasted energy", xy = (.275, .95), fontweight = "bold", fontsize = 12)
+	ax.annotate("and poor latency", xy = (.29, .85), fontweight = "bold", fontsize = 12)
 
 	ax.set_title("CPU Frequency Over Time for a Continuous Workload", fontsize = 16, fontweight = "bold")
+
+	handle_list = []
+	handle_list.append(Line2D([], [], color = "red", linewidth = 2, linestyle = (0, (1, 1)), label = "Ideal speed"))
+	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual speed"))
+	handle_list.append(Patch(color = "grey", alpha = .3, label = "Wasted energy"))
+	ax.legend(handles = handle_list, loc = "lower center", fontsize = 16)
+
 	fig.savefig("graph_missed_opportunities.pdf", bbox_inches = "tight")
 
 	plt.show()
@@ -2081,10 +2098,10 @@ def quick():
 
 #main()
 #quick()
-plot_energy_runtime_micro()
+#plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-#plot_freq_over_time_micro_1()
+plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
