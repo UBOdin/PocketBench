@@ -2014,7 +2014,7 @@ def plot_energy_varying_sleep_micro():
 
 	fig, ax = plt.subplots()
 
-	color_list = ["0.0", "0.3", "0.6"]
+	color_list = ["red", "blue", "green"]
 	marker_list = ["o", "s", "D"]
 	legendlabel_list = ["thread sleeping", "thread busy ~50%", "thread busy 100%"]
 	xticklabel_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "fixed 100"]
@@ -2070,6 +2070,8 @@ def plot_energy_varying_sleep_micro():
 	#end_for
 	ax.tick_params(labelsize = 16)
 
+	ax.set_ylim(0, 2000)
+
 	ax.set_title("Total Energy per CPU Policy, :30s Process\n (3 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
 	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Total Energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
@@ -2101,9 +2103,9 @@ def quick():
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-plot_freq_over_time_micro_1()
+#plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
-#plot_energy_varying_sleep_micro()
+plot_energy_varying_sleep_micro()
 
