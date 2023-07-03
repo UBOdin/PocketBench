@@ -848,13 +848,24 @@ def plot_energy_runtime_micro():
 
 	x_subplots = 2
 	y_subplots = 2
-	fig, ax_list = plt.subplots(y_subplots, x_subplots)
+	#fig, ax_list_list = plt.subplots(2, 2)
+	fig = plt.figure()
 	fig.set_size_inches(12, 9)
 
-	#color_list = ["red", "blue", "green", "orange", "brown"]
-	color_list = ["0.0", "0.2", "0.4", ".6"]
+	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.88, bottom = .53, wspace = .1)
+	ax0_list = []
+	ax0_list.append(fig.add_subplot(gs0[0]))
+	ax0_list.append(fig.add_subplot(gs0[1]))
+	gs1 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 45], top = 0.40, bottom = .05, wspace = .1)
+	ax1_list = []
+	ax1_list.append(fig.add_subplot(gs1[0]))
+	ax1_list.append(fig.add_subplot(gs1[1]))
+
+	ax_list_list = [ax0_list, ax1_list]
+
+	color_list = ["red", "blue", "green", "orange", "brown"]
 	linestyle_list = ["solid", "dotted", "dashed", "dashdot"]
-	annotate_list = ["default", "30", "40", "50", "60", "70", "80", "90", "100"]
+	annotate_list = ["", "30", "40", "", "60", "", "80", "", "100"]
 	handle_list = []
 
 	readtraces = False
@@ -869,7 +880,7 @@ def plot_energy_runtime_micro():
 		plotdata_file = open(plotfilename + ".txt", "r")
 	#end_if
 
-	for x, cputype in zip(range(x_subplots), cputype_list):
+	for y, cputype in zip(range(2), cputype_list):
 		for cpucount, color, linestyle in zip(range(1, 5), color_list, linestyle_list):
 			# For baseline workload (0 CPUs), set cputype = 0
 			if (cpucount == 0):
@@ -908,28 +919,24 @@ def plot_energy_runtime_micro():
 					energy_err = float(inputline_list[3])
 				#end_if
 
-				#'''
-				for y in range(y_subplots):
+				for x in range(2):
 					if (i == 0):
-						ax_list[y][x].scatter(benchtime_mean, energy_mean, s = 70, color = color, marker = "s") #, label = "CPUs:  " + str(cpucount))
+						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 70, color = color, marker = "s")
 					else:
-						ax_list[y][x].scatter(benchtime_mean, energy_mean, s = 30, color = color)
+						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 30, color = color)
 					#end_if
 					if (i >= 2):
-						ax_list[y][x].plot([benchtime_prev, benchtime_mean], [energy_prev, energy_mean], color = color, linestyle = linestyle)
+						ax_list_list[y][x].plot([benchtime_prev, benchtime_mean], [energy_prev, energy_mean], color = color, linestyle = linestyle)
 					#end_if
-					ax_list[y][x].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, yerr = energy_err, color = color)
-					if (y != 0):
-						ax_list[y][x].annotate(annotate, xy = (benchtime_mean + .015, energy_mean + 10), fontsize = 12)
-					#end_for
+					ax_list_list[y][x].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, yerr = energy_err, color = color)
+					ax_list_list[y][x].annotate(annotate, xy = (benchtime_mean + .015, energy_mean + 10), fontsize = 12)
 				#end_for
 				benchtime_prev = benchtime_mean
 				energy_prev = energy_mean
-				#'''
 
 			#end_for
 
-			if (x == 0):
+			if (y == 0):
 				handle_list.append(Line2D([], [], marker = "s", color = color, linestyle = linestyle, label = str(cpucount) + " CPUs"))
 			#end_if
 
@@ -943,27 +950,39 @@ def plot_energy_runtime_micro():
 	handle_list.append(Line2D([], [], linewidth = 0))
 	handle_list.append(Line2D([], [], linewidth = 0))
 
-	ax_list[0][0].tick_params(labelsize = 16)
-	ax_list[0][0].axis([0, 70, 0, 3000])
-	ax_list[0][0].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
-	ax_list[0][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
-	ax_list[0][0].legend(handles = handle_list, loc = "upper right", fontsize = 16, ncol = 2)
+	ax_list_list[0][0].set_xlim(0, 1)
+	ax_list_list[0][1].set_xlim(7, 23)
+	ax_list_list[1][0].set_xlim(0, 1)
+	ax_list_list[1][1].set_xlim(17, 62)
+	ax_list_list[0][0].set_ylim(0, 2100)
+	ax_list_list[0][1].set_ylim(0, 2100)
+	ax_list_list[1][0].set_ylim(0, 1100)
+	ax_list_list[1][1].set_ylim(0, 1100)
 
-	ax_list[1][0].tick_params(labelsize = 16)
-	ax_list[1][0].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
-	ax_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].spines.right.set_visible(False)
+	ax_list_list[0][1].spines.left.set_visible(False)
+	ax_list_list[0][1].set_yticks([])
+	ax_list_list[1][0].spines.right.set_visible(False)
+	ax_list_list[1][1].spines.left.set_visible(False)
+	ax_list_list[1][1].set_yticks([])
 
-	ax_list[0][1].tick_params(labelsize = 16)
-	ax_list[0][1].axis([0, 70, 0, 3000])
-	ax_list[0][1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
-	ax_list[0][1].legend(handles = handle_list, loc = "upper right", fontsize = 16, ncol = 2)
-	
-	ax_list[1][1].tick_params(labelsize = 16)
-	ax_list[1][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
-	#ax_list[1][1].legend(loc = "upper right", fontsize = 16)
 
-	#fig.suptitle("Runtime and Energy for a Fixed Compute per CPU, Varying CPU policy and CPU Count\n(5 runs) (Variable Energy Measurement)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].tick_params(labelsize = 16)
+	ax_list_list[0][1].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][1].tick_params(labelsize = 16)
+
+	ax_list_list[1][0].tick_params(labelsize = 16)
+	ax_list_list[1][1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][1].tick_params(labelsize = 16)
+
+	ax_list_list[1][1].legend(handles = handle_list, loc = "lower right", fontsize = 16, ncol = 2)
+
 	fig.suptitle("Runtime and Energy for a Fixed Compute per CPU, Varying CPU policy and CPU Count\n(5 runs) (Fixed 75s Energy Measurement)", fontsize = 16, fontweight = "bold")
+	#fig.subplots_adjust(hspace = .3) #top = .84, bottom = .10)
 
 	plt.show()
 	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
@@ -2062,8 +2081,8 @@ def quick():
 
 #main()
 #quick()
-#plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+plot_energy_runtime_micro()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
