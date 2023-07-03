@@ -21,6 +21,9 @@ import statistics
 #label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "performance"]
 label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "fixed 70%", "fixed 80%", "fixed 90%", "fixed 100%"]
 
+datapath = "data_processed/"
+graphpath = "graphs_saved/"
+
 
 def mean_margin(data_list):
 
@@ -875,9 +878,9 @@ def plot_energy_runtime_micro():
 	inputline = ""
 	inputline_list = []
 	if (readtraces == True):
-		plotdata_file = open(plotfilename + ".txt", "w")
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
 	else:
-		plotdata_file = open(plotfilename + ".txt", "r")
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
 	#end_if
 
 	for y, cputype in zip(range(2), cputype_list):
@@ -985,7 +988,7 @@ def plot_energy_runtime_micro():
 	#fig.subplots_adjust(hspace = .3) #top = .84, bottom = .10)
 
 	plt.show()
-	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
 
 	return
 
@@ -1222,7 +1225,7 @@ def plot_freq_over_time_fb_one_cpu():
 
 	fig.suptitle("Frequency Over Time, per CPU, for 1s of Interaction on FB Friends", fontsize = 16, fontweight = "bold")
 	plt.show()
-	fig.savefig("graph_freqtime_flick.pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + "graph_freqtime_flick.pdf", bbox_inches = "tight")
 
 	return
 
@@ -1319,7 +1322,7 @@ def plot_freq_over_time_micro_1():
 	handle_list.append(Patch(color = "grey", alpha = .3, label = "Wasted energy"))
 	ax.legend(handles = handle_list, loc = "lower center", fontsize = 16)
 
-	fig.savefig("graph_missed_opportunities.pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + "graph_missed_opportunities.pdf", bbox_inches = "tight")
 
 	plt.show()
 
@@ -1383,7 +1386,7 @@ def plot_freq_over_time_micro_2():
 
 	fig.suptitle("CPU Speed Over Time, for a Fixed Compute, and Different Delays", fontsize = 16, fontweight = "bold")
 	plt.show()
-	fig.savefig("graph_freqtime_micro.pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + "graph_freqtime_micro.pdf", bbox_inches = "tight")
 
 	return
 
@@ -1492,9 +1495,9 @@ def plot_time_perspeed_fb():
 	inputline = ""
 	inputline_list = []
 	if (readtraces == True):
-		plotdata_file = open(plotfilename + ".txt", "w")
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
 	else:
-		plotdata_file = open(plotfilename + ".txt", "r")
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
 	#end_if
 
 	if (readtraces == True):
@@ -1743,7 +1746,7 @@ def plot_time_perspeed_fb():
 	fig.suptitle("Time per CPU Speed, Default Policy (32s FB script) (3 Runs)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .84, bottom = .10)
-	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
 
 	plt.show()
 	plt.close("all")
@@ -1794,9 +1797,9 @@ def plot_energy_drops_perpol_fb():
 	inputline = ""
 	inputline_list = []
 	if (readtraces == True):
-		plotdata_file = open(plotfilename + ".txt", "w")
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
 	else:
-		plotdata_file = open(plotfilename + ".txt", "r")
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
 	#end_if
 
 	for governor, color, marker in zip(governor_list, color_list, marker_list):
@@ -1875,7 +1878,7 @@ def plot_energy_drops_perpol_fb():
 	fig2.suptitle("Energy and CPU Cyclecount for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
 	fig2.supxlabel("Cycles, total", fontsize = 16, fontweight = "bold")
 	fig2.subplots_adjust(top = 0.90, bottom = 0.09)
-	fig2.savefig("graph_energy_cycles_fb.pdf", bbox_inches = "tight")
+	fig2.savefig(graphpath + "graph_energy_cycles_fb.pdf", bbox_inches = "tight")
 
 	plt.show()
 
@@ -2015,9 +2018,9 @@ def plot_energy_varying_sleep_micro():
 	inputline = ""
 	inputline_list = []
 	if (readtraces == True):
-		plotdata_file = open(plotfilename + ".txt", "w")
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
 	else:
-		plotdata_file = open(plotfilename + ".txt", "r")
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
 	#end_if
 
 	# Get energy data for several runs each of for different governor policies AND for different CPU saturation levels:
@@ -2096,7 +2099,7 @@ def plot_energy_varying_sleep_micro():
 	ax.legend(handles = handle_list, loc = "upper center", fontsize = 16)
 
 	plt.show()
-	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
 
 	return
 
@@ -2119,11 +2122,11 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
-#plot_energy_varying_sleep_micro()
+plot_energy_varying_sleep_micro()
 
