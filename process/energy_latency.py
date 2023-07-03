@@ -1543,7 +1543,7 @@ def plot_time_perspeed_fb():
 	fig = plt.figure()
 	fig.set_size_inches(12, 6)
 
-	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [9, 11], top = 0.85, bottom = .65)
+	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [10, 11], top = 0.85, bottom = .65)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs1[0, 0:2]))
 	ax0_list.append(fig.add_subplot(gs1[1, 0:2]))
@@ -1560,7 +1560,9 @@ def plot_time_perspeed_fb():
 			ax0_list[i].bar(speed, time, color = "blue", linewidth = 2)
 		#end_for
 		# Plot ideal speed:
-		ax0_list[i].plot([70, 70], [0, 100], color = "red", linewidth = 2, linestyle = (0, (1, 1)))
+		ideal = fttc_list_list_list[cluster][0][1] * yprop
+		ax0_list[i].plot([0, 0], [0, ideal], color = "red", linewidth = 2, linestyle = (0, (1, 1)))
+		ax0_list[i].plot([70, 70], [0, 100 - ideal], color = "red", linewidth = 2, linestyle = (0, (1, 1)))
 	#end_for
 
 	ytick_list = []
@@ -1581,9 +1583,9 @@ def plot_time_perspeed_fb():
 	ax0_list[2].set_yticklabels([])
 	ax0_list[3].set_yticklabels([])
 
-	ax0_list[0].set_ylim(79, 88)
+	ax0_list[0].set_ylim(79, 89)
 	ax0_list[1].set_ylim(0, 11)
-	ax0_list[2].set_ylim(79, 88)
+	ax0_list[2].set_ylim(79, 89)
 	ax0_list[3].set_ylim(0, 11)
 
 	ax0_list[0].spines.bottom.set_visible(False)
