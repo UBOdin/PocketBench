@@ -47,6 +47,44 @@ def mean_margin(data_list):
 #end_def
 
 
+def broken_axes_lr(axl, axr):
+
+	# axl = "" -- MPL axis
+	# axr = "" -- MPL axis
+
+	axl.spines.right.set_visible(False)
+	axr.spines.left.set_visible(False)
+	axr.set_yticks([])
+
+	axl.scatter(1, 0, transform = axl.transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	axl.scatter(1, 1, transform = axl.transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	axr.scatter(0, 0, transform = axr.transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	axr.scatter(0, 1, transform = axr.transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+
+	return
+
+#end_def
+
+
+def broken_axes_tb(axt, axb):
+
+	# axt = "" -- MPL axis
+	# axb = "" -- MPL axis
+
+	axt.spines.bottom.set_visible(False)
+	axt.set_xticks([])
+	axb.spines.top.set_visible(False)
+
+	axt.scatter(0, 0, transform = axt.transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	axt.scatter(1, 0, transform = axt.transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	axb.scatter(0, 1, transform = axb.transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	axb.scatter(1, 1, transform = axb.transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+
+	return
+
+#end_def
+
+
 def process_loglines(file_name):
 
 	# file_name = ""
@@ -963,21 +1001,8 @@ def plot_energy_runtime_micro():
 	ax_list_list[1][0].set_ylim(0, 1100)
 	ax_list_list[1][1].set_ylim(0, 1100)
 
-	ax_list_list[0][0].spines.right.set_visible(False)
-	ax_list_list[0][1].spines.left.set_visible(False)
-	ax_list_list[0][1].set_yticks([])
-	ax_list_list[1][0].spines.right.set_visible(False)
-	ax_list_list[1][1].spines.left.set_visible(False)
-	ax_list_list[1][1].set_yticks([])
-
-	ax_list_list[0][0].scatter(1, 0, transform = ax_list_list[0][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list_list[0][0].scatter(1, 1, transform = ax_list_list[0][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list_list[0][1].scatter(0, 0, transform = ax_list_list[0][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list_list[0][1].scatter(0, 1, transform = ax_list_list[0][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list_list[1][0].scatter(1, 0, transform = ax_list_list[1][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list_list[1][0].scatter(1, 1, transform = ax_list_list[1][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list_list[1][1].scatter(0, 0, transform = ax_list_list[1][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list_list[1][1].scatter(0, 1, transform = ax_list_list[1][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	broken_axes_lr(ax_list_list[0][0], ax_list_list[0][1])
+	broken_axes_lr(ax_list_list[1][0], ax_list_list[1][1])
 
 	ax_list_list[0][0].tick_params(labelsize = 16)
 	ax_list_list[0][1].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
@@ -1600,21 +1625,8 @@ def plot_time_perspeed_fb():
 	ax0_list[2].set_ylim(79, 89)
 	ax0_list[3].set_ylim(0, 11)
 
-	ax0_list[0].spines.bottom.set_visible(False)
-	ax0_list[0].set_xticks([])
-	ax0_list[1].spines.top.set_visible(False)
-	ax0_list[2].spines.bottom.set_visible(False)
-	ax0_list[2].set_xticks([])
-	ax0_list[3].spines.top.set_visible(False)
-
-	ax0_list[0].scatter(0, 0, transform = ax0_list[0].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
-	ax0_list[0].scatter(1, 0, transform = ax0_list[0].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
-	ax0_list[1].scatter(0, 1, transform = ax0_list[1].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
-	ax0_list[1].scatter(1, 1, transform = ax0_list[1].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
-	ax0_list[2].scatter(0, 0, transform = ax0_list[2].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
-	ax0_list[2].scatter(1, 0, transform = ax0_list[2].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
-	ax0_list[3].scatter(0, 1, transform = ax0_list[3].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
-	ax0_list[3].scatter(1, 1, transform = ax0_list[3].transAxes, marker = [(-1, -.5), (1, .5)], s = 100, color = "black", clip_on = False)
+	broken_axes_tb(ax0_list[0], ax0_list[1])
+	broken_axes_tb(ax0_list[2], ax0_list[3])
 
 	ax0_list[0].set_title("Little CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
 	ax0_list[1].set_ylabel("        Time spent\n        per speed (%)", fontsize = 16, fontweight = "bold")
@@ -1697,13 +1709,6 @@ def plot_time_perspeed_fb():
 		ax_list[i].set_ylim(-62, 62)
 	#end_for
 
-	ax_list[0].spines.right.set_visible(False)
-	ax_list[1].spines.left.set_visible(False)
-	ax_list[1].set_yticks([])
-	ax_list[3].spines.right.set_visible(False)
-	ax_list[4].spines.left.set_visible(False)
-	ax_list[4].set_yticks([])
-
 	ax_list[0].tick_params(labelsize = 12)
 	ax_list[1].tick_params(labelsize = 12)
 	ax_list[3].tick_params(labelsize = 12)
@@ -1715,14 +1720,8 @@ def plot_time_perspeed_fb():
 	ax_list[0].set_ylabel("CPU speed (%)\nrelative to ideal", fontsize = 16, fontweight = "bold")
 	ax_list[3].set_yticklabels([])
 
-	ax_list[0].scatter(1, 0, transform = ax_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list[0].scatter(1, 1, transform = ax_list[0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list[1].scatter(0, 0, transform = ax_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list[1].scatter(0, 1, transform = ax_list[1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list[3].scatter(1, 0, transform = ax_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list[3].scatter(1, 1, transform = ax_list[3].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list[4].scatter(0, 0, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
-	ax_list[4].scatter(0, 1, transform = ax_list[4].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	broken_axes_lr(ax_list[0], ax_list[1])
+	broken_axes_lr(ax_list[3], ax_list[4])
 
 	adjx = 0
 	adjy = -70
@@ -2132,8 +2131,8 @@ def quick():
 
 #main()
 #quick()
-plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+#plot_energy_runtime_micro()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
