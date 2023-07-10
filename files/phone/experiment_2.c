@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
 	innercount = 20;
 	long long i = 0;
 
-	sleepthread(0, 500);
+	sleepthread(0, 200);
 	while (1) {
 
 		if (i >= batchcount) {
@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
 		i++;
 	}
 	printf("Iter count:  %lld\n", i);
-	sleepthread(0, 500);
+	sleepthread(0, 200);
 
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
