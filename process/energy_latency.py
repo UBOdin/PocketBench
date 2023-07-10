@@ -2037,7 +2037,7 @@ def plot_energy_varying_sleep_micro():
 
 	color_list = ["red", "blue", "green"]
 	marker_list = ["o", "s", "D"]
-	legendlabel_list = ["thread sleeping", "thread busy ~50%", "thread busy 100%"]
+	legendlabel_list = ["continuous sleeping", "periodic 15ms sleeps", "no sleeping"]
 	xticklabel_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "fixed 100"]
 	linestyle_list = ["solid", "dotted", "dashed"]
 	handle_list = []
@@ -2081,6 +2081,8 @@ def plot_energy_varying_sleep_micro():
 	#end_for
 
 	plotdata_file.close()
+
+	ax.plot([.5, .5], [0, 3000], color = "grey", linestyle = "dashed")
 
 	ax.set_xticks(offset_list)
 	ax.set_xticklabels(xticklabel_list)
