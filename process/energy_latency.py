@@ -866,9 +866,10 @@ def plot_energy_runtime_micro():
 
 	ax_list_list = [ax0_list, ax1_list]
 
+	fenergy = "${f}_{pow}$"
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	linestyle_list = ["solid", "dotted", "dashed", "dashdot"]
-	annotate_list = ["", "30", "40", "", "60", "", "80", "", "100"]
+	annotate_list = ["", "30", "40", "", "60", fenergy, "80", "", "100"]
 	handle_list = []
 
 	readtraces = False
@@ -969,6 +970,14 @@ def plot_energy_runtime_micro():
 	ax_list_list[1][1].spines.left.set_visible(False)
 	ax_list_list[1][1].set_yticks([])
 
+	ax_list_list[0][0].scatter(1, 0, transform = ax_list_list[0][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list_list[0][0].scatter(1, 1, transform = ax_list_list[0][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list_list[0][1].scatter(0, 0, transform = ax_list_list[0][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list_list[0][1].scatter(0, 1, transform = ax_list_list[0][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list_list[1][0].scatter(1, 0, transform = ax_list_list[1][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list_list[1][0].scatter(1, 1, transform = ax_list_list[1][0].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list_list[1][1].scatter(0, 0, transform = ax_list_list[1][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
+	ax_list_list[1][1].scatter(0, 1, transform = ax_list_list[1][1].transAxes, marker = [(-.5, -1), (.5, 1)], s = 100, color = "black", clip_on = False)
 
 	ax_list_list[0][0].tick_params(labelsize = 16)
 	ax_list_list[0][1].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
@@ -2123,12 +2132,12 @@ def quick():
 
 #main()
 #quick()
-#plot_energy_runtime_micro()
+plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
-plot_energy_varying_sleep_micro()
+#plot_energy_varying_sleep_micro()
 
