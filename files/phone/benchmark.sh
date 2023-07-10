@@ -3,10 +3,10 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	#echo $1 > $trace_dir/events/power/cpu_idle/enable
+	echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -116,9 +116,9 @@ graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
 #device="nexus6"
 device="pixel2"
-#experiment="microbench"
+experiment="microbench"
 #experiment="uiautomator"
-experiment="simpleapp"
+#experiment="simpleapp"
 
 governor=$1
 frequency=$2
@@ -198,7 +198,8 @@ if [ "$experiment" = "microbench" ]; then
 	cpumask="$(echo $bgdelay | cut -d "-" -f3)"
 	proccount="$(echo $bgdelay | cut -d "-" -f4)"
 	#loopcount="4000000"
-	loopcount="100000000"
+	#loopcount="100000000"
+	loopcount="5000000"
 	#loopcount="30000000"
 
 	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
