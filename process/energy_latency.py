@@ -1291,6 +1291,9 @@ def plot_freq_over_time_micro_1():
 	starttime = eventtime_list[0]
 	endtime = eventtime_list[1]
 
+	print(starttime)
+	print(endtime)
+
 	_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), True)
 	time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
 
@@ -1332,7 +1335,7 @@ def plot_freq_over_time_micro_1():
 	ax.set_ylabel("Nominal CPU speed (% of maximum)", fontsize = 16, fontweight = "bold")
 	ax.tick_params(labelsize = 12)
 
-	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "red", linewidth = 3, linestyle = (0, (1, 1)))
+	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "red", linewidth = 6, linestyle = (0, (1, 1)))
 	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
 	ax.annotate("Energy-optimal", xy = (.1, 2.25), fontweight = "bold", fontsize = 12)
 	ax.annotate("CPU speed", xy = (.12, 2.15), fontweight = "bold", fontsize = 12)
@@ -1351,8 +1354,8 @@ def plot_freq_over_time_micro_1():
 	ax.set_title("CPU Frequency Over Time for a Continuous Workload", fontsize = 16, fontweight = "bold")
 
 	handle_list = []
-	handle_list.append(Line2D([], [], color = "red", linewidth = 2, linestyle = (0, (1, 1)), label = "Ideal speed"))
-	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual speed"))
+	handle_list.append(Line2D([], [], color = "red", linewidth = 6, linestyle = (0, (1, 1)), label = "Ideal speed"))
+	handle_list.append(Line2D([], [], color = "blue", linewidth = 3, label = "Actual speed"))
 	handle_list.append(Patch(color = "grey", alpha = .3, label = "Wasted energy"))
 	ax.legend(handles = handle_list, loc = "lower center", fontsize = 16)
 
@@ -1580,7 +1583,7 @@ def plot_time_perspeed_fb():
 	fig = plt.figure()
 	fig.set_size_inches(12, 6)
 
-	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [10, 11], top = 0.85, bottom = .65)
+	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [10, 22], top = 0.85, bottom = .65)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs1[0, 0:2]))
 	ax0_list.append(fig.add_subplot(gs1[1, 0:2]))
@@ -1596,10 +1599,10 @@ def plot_time_perspeed_fb():
 			time = float(fttc_list[1]) * yprop
 			ax0_list[i].bar(speed, time, color = "blue", linewidth = 2)
 		#end_for
-		# Plot ideal speed:
+		# Plot time that should have been spent at the ideal speed:
 		ideal = fttc_list_list_list[cluster][0][1] * yprop
-		ax0_list[i].plot([0, 0], [0, ideal], color = "red", linewidth = 2, linestyle = (0, (1, 1)))
-		ax0_list[i].plot([70, 70], [0, 100 - ideal], color = "red", linewidth = 2, linestyle = (0, (1, 1)))
+		ax0_list[i].plot([0, 0], [0, ideal], color = "red", linewidth = 4, linestyle = (0, (1, 1)))
+		ax0_list[i].plot([70, 70], [0, 100 - ideal], color = "red", linewidth = 4, linestyle = (0, (1, 1)))
 	#end_for
 
 	ytick_list = []
@@ -1621,9 +1624,9 @@ def plot_time_perspeed_fb():
 	ax0_list[3].set_yticklabels([])
 
 	ax0_list[0].set_ylim(79, 89)
-	ax0_list[1].set_ylim(0, 11)
+	ax0_list[1].set_ylim(0, 22)
 	ax0_list[2].set_ylim(79, 89)
-	ax0_list[3].set_ylim(0, 11)
+	ax0_list[3].set_ylim(0, 22)
 
 	broken_axes_tb(ax0_list[0], ax0_list[1])
 	broken_axes_tb(ax0_list[2], ax0_list[3])
@@ -1631,7 +1634,7 @@ def plot_time_perspeed_fb():
 	ax0_list[0].set_title("Little CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
 	ax0_list[1].set_ylabel("        Time spent\n        per speed (%)", fontsize = 16, fontweight = "bold")
 	ax0_list[2].set_title("Big CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
-	fig.text(x = .5, y = .55, ha = "center", s = "CPU speed (%)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .55, ha = "center", s = "CPU speed (% of maximum)", fontweight = "bold", fontsize = 16)
 
 
 	# Rework CDF relative to ideal frequency:
@@ -1651,7 +1654,6 @@ def plot_time_perspeed_fb():
 	#end_for
 
 	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [10, 20, 1, 10, 20], top = 0.45, bottom = .10)
-	#fig.text(x = .5, y = .75, ha = "center", s = "foobar", fontweight = "bold", fontsize = 16)
 
 	ax_list = []
 	for i in range(5):
@@ -1690,13 +1692,13 @@ def plot_time_perspeed_fb():
 			cdfsubtotalprev = cdfsubtotal
 		#end_while
 		# Plot "ideal" inv-DF:
-		ax_list[xplot].plot([0, cdfsubtotalprev], [0, 0], color = "red", linewidth = linewidth, linestyle = (0, (1, 1)))
+		ax_list[xplot].plot([0, cdfsubtotalprev], [0, 0], color = "red", linewidth = 4, linestyle = (0, (1, 1)))
 	#end_for
 
 	ax_list[2].set_visible(False)
 
 	handle_list = []
-	handle_list.append(Line2D([], [], color = "red", linewidth = 2, linestyle = (0, (1, 1)), label = "Ideal"))
+	handle_list.append(Line2D([], [], color = "red", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
 	ax_list[1].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
 	ax_list[4].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
@@ -1717,7 +1719,7 @@ def plot_time_perspeed_fb():
 	ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
 	ax_list[4].set_title("Big CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
 
-	ax_list[0].set_ylabel("CPU speed (%)\nrelative to ideal", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("CPU speed (%\nof maximum),\nrelative to ideal", fontsize = 16, fontweight = "bold")
 	ax_list[3].set_yticklabels([])
 
 	broken_axes_lr(ax_list[0], ax_list[1])
@@ -2132,9 +2134,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-#plot_freq_over_time_micro_1()
+plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
