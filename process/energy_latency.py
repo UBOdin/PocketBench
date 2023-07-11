@@ -1361,7 +1361,7 @@ def plot_freq_over_time_micro_1():
 	ax.set_ylabel("Nominal CPU speed (% of maximum)", fontsize = 16, fontweight = "bold")
 	ax.tick_params(labelsize = 12)
 
-	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "red", linewidth = 6, linestyle = (0, (1, 1)))
+	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)))
 	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
 	ax.annotate("Energy-optimal", xy = (.1, 2.25), fontweight = "bold", fontsize = 12)
 	ax.annotate("CPU speed", xy = (.12, 2.15), fontweight = "bold", fontsize = 12)
@@ -1380,7 +1380,7 @@ def plot_freq_over_time_micro_1():
 	ax.set_title("CPU Frequency Over Time for a Continuous Workload", fontsize = 16, fontweight = "bold")
 
 	handle_list = []
-	handle_list.append(Line2D([], [], color = "red", linewidth = 6, linestyle = (0, (1, 1)), label = "Ideal speed"))
+	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)), label = "Ideal speed"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 3, label = "Actual speed"))
 	handle_list.append(Patch(color = "grey", alpha = .3, label = "Wasted energy"))
 	ax.legend(handles = handle_list, loc = "lower center", fontsize = 16)
@@ -1645,12 +1645,12 @@ def plot_time_perspeed_fb():
 		#end_for
 		# Plot time that should have been spent at the ideal speed:
 		ideal = fttc_list_list_list[cluster][0][1] * yprop
-		ax0_list[i].plot([0, 0], [0, ideal], color = "red", linewidth = 4, linestyle = (0, (1, 1)))
-		ax0_list[i].plot([70, 70], [0, 100 - ideal], color = "red", linewidth = 4, linestyle = (0, (1, 1)))
+		ax0_list[i].plot([0, 0], [0, ideal], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)))
+		ax0_list[i].plot([70, 70], [0, 100 - ideal], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)))
 	#end_for
 
 	handle_list = []
-	handle_list.append(Line2D([], [], color = "red", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
+	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
 	ax0_list[1].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
 	ax0_list[3].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
@@ -1742,13 +1742,13 @@ def plot_time_perspeed_fb():
 			cdfsubtotalprev = cdfsubtotal
 		#end_while
 		# Plot "ideal" inv-DF:
-		ax_list[xplot].plot([0, cdfsubtotalprev], [0, 0], color = "red", linewidth = 4, linestyle = (0, (1, 1)))
+		ax_list[xplot].plot([0, cdfsubtotalprev], [0, 0], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)))
 	#end_for
 
 	ax_list[2].set_visible(False)
 
 	handle_list = []
-	handle_list.append(Line2D([], [], color = "red", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
+	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
 	ax_list[1].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
 	ax_list[4].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
@@ -2186,9 +2186,9 @@ def quick():
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-#plot_freq_over_time_micro_1()
+plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-plot_benchtime_cycles()
+#plot_benchtime_cycles()
