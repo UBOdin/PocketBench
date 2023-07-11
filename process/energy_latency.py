@@ -1649,6 +1649,12 @@ def plot_time_perspeed_fb():
 		ax0_list[i].plot([70, 70], [0, 100 - ideal], color = "red", linewidth = 4, linestyle = (0, (1, 1)))
 	#end_for
 
+	handle_list = []
+	handle_list.append(Line2D([], [], color = "red", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
+	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
+	ax0_list[1].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
+	ax0_list[3].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
+
 	ytick_list = []
 	yticklabel_list = []
 	for i in range(0, 100, 5):
@@ -2178,11 +2184,11 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-plot_benchtime_cycles()
+#plot_benchtime_cycles()
