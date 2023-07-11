@@ -216,12 +216,12 @@ def process_loglines(file_name):
 				#break
 			#end_if
 
-			'''
+			#'''
 			if ("Cycle data" in logline):
 				perfcycles = int(logline.split("Cycle data:  ")[1])
-				print("cycles")
+				#print("cycles")
 			#end_if
-			'''
+			#'''
 			if ("Macro cycle stats 103" in logline):
 				perfcycles_str = logline.split("Macro cycle stats 103:  ")[1][:-1]
 				perfcycles_list = perfcycles_str.split(" ")
@@ -514,7 +514,102 @@ def bargraph_energy(energy_list):
 #end_def
 
 
-def crossplot_benchtime_cycles(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list):
+# Plots cyclecount and runtime for microbenchmark
+# Tracefiles:  .../20221114/*
+def plot_benchtime_cycles():
+
+	benchtime = 0
+	benchtime_list = []
+	benchtime_mean = 0
+	benchtime_err = 0
+	benchtime_mean_list = []
+	benchtime_err_list = []
+	energy = 0
+	energy_list = []
+	energy_mean = 0
+	energy_err = 0
+	energy_mean_list = []
+	energy_err_list = []
+	coretime_list = []
+	graphdata_list = []
+
+	cycles = 0
+	cycles_list = []
+	cycles_mean = 0
+	cycles_err = 0
+	cycles_mean_list = []
+	cycles_err_list = []
+
+	governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
+
+
+	benchtimeprefix = "micro_SQL_A_oscill_"
+
+	path = sys.argv[1]
+
+	fig, ax = plt.subplots()
+	fig.set_size_inches(12, 6)
+
+	gs = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .30, left = .2, right = .60)
+	zoomax = fig.add_subplot(gs[0,0])
+
+	'''
+	p = mpatches.Ellipse(xy = (7.4, 17.7), width = 2.1, height = 4.2, color = "red")
+	ax.add_patch(p)
+	p = mpatches.Ellipse(xy = (7.4, 17.7), width = 2, height = 4, color = "white")
+	ax.add_patch(p)
+	'''
+
+	label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
+	color_list = ["red", "blue", "green", "orange", "brown"]
+	marker_list = ["o", "v", "^", ">", "<"]
+
+	for governor, label, color, marker in zip(governor_list, label_list, color_list, marker_list):
+		benchtime_list = []
+		cycles_list = []
+		energy_list = []
+		for run in range(0, 5):
+			filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
+			#print(filename)
+			benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
+			benchtime_list.append(benchtime)
+			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
+			print("%f  %d" % (benchtime, cycles))
+		#end_for
+		benchtime_mean, benchtime_err = mean_margin(benchtime_list)
+		cycles_mean, cycles_err = mean_margin(cycles_list)
+		print(benchtime_mean)
+		print(cycles_mean)
+		ax.scatter(benchtime_mean, cycles_mean, s = 100, color = color, label = label, marker = marker)
+		ax.errorbar(benchtime_mean, cycles_mean, xerr = benchtime_err, color = color)
+		ax.errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
+		zoomax.scatter(benchtime_mean, cycles_mean, s = 100, color = color, label = label, marker = marker)
+		zoomax.errorbar(benchtime_mean, cycles_mean, xerr = benchtime_err, color = color)
+		zoomax.errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
+	#end_for
+
+	#zoomax.axis([7.2, 7.6, 17.6, 17.8])
+	zoomax.axis([7.3, 7.5, 17.6, 17.8])
+	zoomax.tick_params(labelsize = 16)
+
+	ax.axis([0, 10.0, 0, 20.0])
+	ax.tick_params(labelsize = 16)
+	ax.set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
+	ax.set_title("Runtime and Cycles for Fixed Compute,\nVarying CPU Policies (5 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
+	ax.legend(loc = "lower right", fontsize = 16)
+
+	ax.annotate("", xy = (7.3, 17.0), xytext = (6.8, 11.8), arrowprops = dict(facecolor = "black", width = 1, headlength = 15, headwidth = 8))
+	ax.annotate("Zoomed", xy = (6.3, 11.0), fontsize = 16)
+
+	plt.show()
+	fig.savefig(graphpath + "graph_oscill_cycles.pdf", bbox_inches = "tight")
+
+	print("Early exit")
+	sys.exit(0)
+
+
+
 
 	# benchtime_mean_list = []
 	# benchtime_err_list = []
@@ -2155,8 +2250,8 @@ def quick():
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
-plot_freq_over_time_micro_2()
+#plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-
+plot_benchtime_cycles()
