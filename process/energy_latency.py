@@ -553,13 +553,6 @@ def plot_benchtime_cycles():
 	gs = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .30, left = .2, right = .60)
 	zoomax = fig.add_subplot(gs[0,0])
 
-	'''
-	p = mpatches.Ellipse(xy = (7.4, 17.7), width = 2.1, height = 4.2, color = "red")
-	ax.add_patch(p)
-	p = mpatches.Ellipse(xy = (7.4, 17.7), width = 2, height = 4, color = "white")
-	ax.add_patch(p)
-	'''
-
 	label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	marker_list = ["o", "v", "^", ">", "<"]
@@ -574,12 +567,9 @@ def plot_benchtime_cycles():
 			benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
 			benchtime_list.append(benchtime)
 			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
-			print("%f  %d" % (benchtime, cycles))
 		#end_for
 		benchtime_mean, benchtime_err = mean_margin(benchtime_list)
 		cycles_mean, cycles_err = mean_margin(cycles_list)
-		print(benchtime_mean)
-		print(cycles_mean)
 		ax.scatter(benchtime_mean, cycles_mean, s = 100, color = color, label = label, marker = marker)
 		ax.errorbar(benchtime_mean, cycles_mean, xerr = benchtime_err, color = color)
 		ax.errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
@@ -588,7 +578,6 @@ def plot_benchtime_cycles():
 		zoomax.errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
 	#end_for
 
-	#zoomax.axis([7.2, 7.6, 17.6, 17.8])
 	zoomax.axis([7.3, 7.5, 17.6, 17.8])
 	zoomax.tick_params(labelsize = 16)
 
@@ -604,64 +593,6 @@ def plot_benchtime_cycles():
 
 	plt.show()
 	fig.savefig(graphpath + "graph_oscill_cycles.pdf", bbox_inches = "tight")
-
-	print("Early exit")
-	sys.exit(0)
-
-
-
-
-	# benchtime_mean_list = []
-	# benchtime_err_list = []
-	# cycles_mean_list = []
-	# cycles_err_list = []
-
-	benchtime = 0
-	benchtime_barcount = len(benchtime_mean_list)
-	cycles = 0
-	cycles_barcount = len(cycles_mean_list)
-	if (benchtime_barcount != cycles_barcount):
-		print("Unmatched counts")
-		sys.exit(1)
-	#end_if
-
-	nplots = 2
-	fig, ax_list = plt.subplots(nplots, 1)
-
-	#label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
-	label_list = ["schedutil", "70-70", "70-100", "100-100"]
-	color_list = ["red", "blue", "green", "orange", "brown"]
-
-	for benchtime_mean, benchtime_err, cycles_mean, cycles_err, label, color in zip(benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list, label_list, color_list):
-		print("%f  %f" % (benchtime_mean, cycles_mean))
-		for i in range(nplots):
-			ax_list[i].scatter(benchtime_mean, cycles_mean, s = 100, color = color, label = label)
-			ax_list[i].errorbar(benchtime_mean, cycles_mean, xerr = benchtime_err, color = color)
-			ax_list[i].errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
-		#end_for
-	#end_for
-
-	#ax_list[0].axis([0, 10, 0, 20])
-	ax_list[0].axis([0, 12, 0, 20])
-	#ax_list[0].axis([0, 30, 0, 25])
-	ax_list[0].tick_params(labelsize = 16)
-	#ax_list[0].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_title("Runtime and Cycles for Fixed Compute,\n5ms delay (5 runs, 90% confidence)", fontsize = 16, fontweight = "bold")
-	ax_list[0].legend(loc = "center left", fontsize = 16)
-
-	#'''
-	#ax_list[1].axis([7.2, 7.8, 17.6, 17.8])
-	ax_list[1].axis([7.0, 11.0, 17.6, 17.8])
-	#ax_list[1].axis([10.0, 30.0, 15.0, 20.0])
-	ax_list[1].tick_params(labelsize = 16)
-	ax_list[1].set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
-	#ax_list[1].set_title("Runtime and Cycles for Fixed Compute,\nVarying CPU Speeds", fontsize = 16, fontweight = "bold")
-	#ax_list[1].legend(loc = "center left", fontsize = 16)
-	#'''
-
-	plt.show()
 
 	return
 
