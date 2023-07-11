@@ -553,7 +553,7 @@ def plot_benchtime_cycles():
 	gs = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .30, left = .2, right = .60)
 	zoomax = fig.add_subplot(gs[0,0])
 
-	label_list = ["system default", "oscillating speed", "steady mean speed", "low speed", "high speed"]
+	label_list = ["system default", "oscillating speed\n{high/low}", "fixed mid speed", "fixed low speed", "fixed high speed"]
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	marker_list = ["o", "v", "^", ">", "<"]
 
@@ -2184,11 +2184,11 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-#plot_benchtime_cycles()
+plot_benchtime_cycles()
