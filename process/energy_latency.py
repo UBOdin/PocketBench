@@ -1381,8 +1381,11 @@ def plot_freq_over_time_micro_2():
 	time_list = []
 	freq_list = []
 
-	fig, ax_list_list = plt.subplots(2, 2)
-	fig.set_size_inches(12, 8)
+	fig, ax_list = plt.subplots(2, 1)
+	fig.set_size_inches(8, 6)
+
+	gs = mpl.gridspec.GridSpec(1, 1, top = 0.82, bottom = .58, left = .45, right = .65)
+	zoomax = fig.add_subplot(gs[0,0])
 
 	targetcpu = 7
 
@@ -1392,36 +1395,51 @@ def plot_freq_over_time_micro_2():
 	delay_list = ["0", "5"]
 
 	for yplot, delay in enumerate(delay_list):
-
 		filename = path + prefix + delay + postfix
 		print(filename)
-		_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list = process_loglines(filename)
+		_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
+		starttime = eventtime_list[0]
+		endtime = eventtime_list[1]
+		_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[targetcpu], [starttime, endtime], int(startfreq_list[int(targetcpu / 4)]), False)
+		time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
 
-		for cpu in range(targetcpu, targetcpu + 1):
-			starttime = eventtime_list[0]
-			endtime = eventtime_list[1]
-			for i in range(2):
-				xplot = i
-				_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), False)
-				time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
-				ax_list_list[yplot][xplot].plot(time_list, freq_list)
-			#end_for
-			ax_list_list[yplot][0].axis([0, 26, 0, 2600000])
-		#end_for
-
+		ax_list[yplot].plot(time_list, freq_list, color = "blue")
+		ax_list[yplot].axis([0, 26, 0, 2600000])
+		ax_list[yplot].tick_params(labelsize = 12)
+		if (delay == "0"):
+			zoomax.plot(time_list, freq_list, color = "blue")
+		#end_if
 	#end_for
 
-	ax_list_list[0][1].axis([0, .5, 0, 2600000])
-	ax_list_list[1][1].axis([5, 7, 0, 2600000])
-	#ax_list_list[i].set_ylabel("CPU speed (Hz)", fontsize = 16, fontweight = "bold")
-	ax_list_list[0][0].set_title("Full Run", fontsize = 16, fontweight = "bold")
-	ax_list_list[0][1].set_title("Zoomed Time Slice", fontsize = 16, fontweight = "bold")
-	ax_list_list[1][0].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
-	ax_list_list[1][1].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
-	ax_list_list[0][0].set_ylabel("CPU speed (Hz)\n(No Delays)", fontsize = 16, fontweight = "bold")
-	ax_list_list[1][0].set_ylabel("CPU speed (Hz)\n(1000 5ms Delays)", fontsize = 16, fontweight = "bold")
+	p = mpatches.Ellipse(xy = (0, 2500000), width = 2.2, height = 3060000, color = "red")
+	ax_list[0].add_patch(p)
+	p = mpatches.Ellipse(xy = (0, 2500000), width = 2, height = 3000000, color = "white")
+	ax_list[0].add_patch(p)
 
-	fig.suptitle("CPU Speed Over Time, for a Fixed Compute, and Different Delays", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_xticklabels([])
+	ytick_list = []
+	yticklabel_list = []
+	for i in range(0, 3000, 500):
+		ytick_list.append(i * 1000)
+		yticklabel_list.append(str(float(i / 1000.0)))
+	#end_for
+	for i in range(2):
+		ax_list[i].set_yticks(ytick_list)
+		ax_list[i].set_yticklabels(yticklabel_list)
+	#end_for
+
+	ax_list[1].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("CPU speed (GHz)\n(No Delays)", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("CPU speed (GHz)\n(1000 5ms Delays)", fontsize = 16, fontweight = "bold")
+
+	ax_list[0].annotate("", xy = (1, 1900000), xytext = (6, 1200000), arrowprops = dict(facecolor = "black", width = 1, headlength = 15, headwidth = 8))
+	ax_list[0].annotate("Zoom:", xy = (6.3, 1100000), fontsize = 16)
+
+	zoomax.axis([0, .5, 0, 2600000])
+	zoomax.set_yticks(ytick_list)
+	zoomax.set_yticklabels(yticklabel_list)
+
+	fig.suptitle("CPU Speed Over Time, for a Fixed Compute,\nWith Different Delays (Ignoring Idling)", fontsize = 16, fontweight = "bold")
 	plt.show()
 	fig.savefig(graphpath + "graph_freqtime_micro.pdf", bbox_inches = "tight")
 
@@ -2136,8 +2154,8 @@ def quick():
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-plot_freq_over_time_micro_1()
-#plot_freq_over_time_micro_2()
+#plot_freq_over_time_micro_1()
+plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
