@@ -1437,9 +1437,7 @@ def plot_freq_over_time_micro_2():
 		#end_if
 	#end_for
 
-	p = mpatches.Ellipse(xy = (0, 2500000), width = 2.2, height = 3060000, color = "red")
-	ax_list[0].add_patch(p)
-	p = mpatches.Ellipse(xy = (0, 2500000), width = 2, height = 3000000, color = "white")
+	p = mpatches.Polygon([[0, 500000], [1, 500000], [1, 2500000], [0, 2500000]], facecolor = "#C0C0C0", edgecolor = "black", alpha = .6) #[0, .4], [500000, 500000], color = "grey")
 	ax_list[0].add_patch(p)
 
 	ax_list[0].set_xticklabels([])
@@ -1461,7 +1459,7 @@ def plot_freq_over_time_micro_2():
 	ax_list[0].annotate("", xy = (1, 1900000), xytext = (6, 1200000), arrowprops = dict(facecolor = "black", width = 1, headlength = 15, headwidth = 8))
 	ax_list[0].annotate("Zoom:", xy = (6.3, 1100000), fontsize = 16)
 
-	zoomax.axis([0, .5, 0, 2600000])
+	zoomax.axis([0, .3, 0, 2600000])
 	zoomax.set_yticks(ytick_list)
 	zoomax.set_yticklabels(yticklabel_list)
 
@@ -2186,8 +2184,8 @@ def quick():
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-plot_freq_over_time_micro_1()
-#plot_freq_over_time_micro_2()
+#plot_freq_over_time_micro_1()
+plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
