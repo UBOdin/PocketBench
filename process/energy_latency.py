@@ -519,26 +519,14 @@ def bargraph_energy(energy_list):
 def plot_benchtime_cycles():
 
 	benchtime = 0
-	benchtime_list = []
 	benchtime_mean = 0
 	benchtime_err = 0
-	benchtime_mean_list = []
-	benchtime_err_list = []
 	energy = 0
-	energy_list = []
 	energy_mean = 0
 	energy_err = 0
-	energy_mean_list = []
-	energy_err_list = []
-	coretime_list = []
-	graphdata_list = []
-
 	cycles = 0
-	cycles_list = []
 	cycles_mean = 0
 	cycles_err = 0
-	cycles_mean_list = []
-	cycles_err_list = []
 
 	governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
 
@@ -563,7 +551,6 @@ def plot_benchtime_cycles():
 		energy_list = []
 		for run in range(0, 5):
 			filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
-			#print(filename)
 			benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
 			benchtime_list.append(benchtime)
 			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
@@ -2185,8 +2172,8 @@ def quick():
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
-plot_freq_over_time_micro_2()
+#plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-#plot_benchtime_cycles()
+plot_benchtime_cycles()
