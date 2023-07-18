@@ -529,57 +529,78 @@ def plot_benchtime_cycles():
 	cycles_err = 0
 
 	governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
-
-
-	benchtimeprefix = "micro_SQL_A_oscill_"
+	prefix = "_SQL_A_oscill_"
 
 	path = sys.argv[1]
 
-	fig, ax = plt.subplots()
-	fig.set_size_inches(12, 6)
+	fig = plt.figure()
+	fig.set_size_inches(8, 4)
 
-	gs = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .30, left = .2, right = .60)
-	zoomax = fig.add_subplot(gs[0,0])
+	heightratio_list_list = [[6, 1], [3, 1]]
+	leftoffset_list = [.12, .62]
+	ax_list_list = []
+	for i, (heightratio_list, leftoffset) in enumerate(zip(heightratio_list_list, leftoffset_list)):
+		ax_list = []
+		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = heightratio_list, left = leftoffset, right = leftoffset + .35, bottom = .3, top = .80)
+		for j in range(2):
+			ax_list.append(fig.add_subplot(gs_list[j, 0]))
+		#end_for
+		ax_list_list.append(ax_list)
+	#end_for
+
 
 	label_list = ["system default", "oscillating speed\n{high/low}", "fixed mid speed", "fixed low speed", "fixed high speed"]
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	marker_list = ["o", "v", "^", ">", "<"]
+	offset_list = [.5, 1.5, 2.5, 3.5, 4.5]
 
-	for governor, label, color, marker in zip(governor_list, label_list, color_list, marker_list):
+	for governor, label, color, marker, offset in zip(governor_list, label_list, color_list, marker_list, offset_list):
 		benchtime_list = []
 		cycles_list = []
 		energy_list = []
 		for run in range(0, 5):
-			filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
+			filename = path + "micro" + prefix + governor + "_1_" + str(run) + ".gz"
 			benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
 			benchtime_list.append(benchtime)
 			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
+			filename = path + "monsoon" + prefix + governor + "_1_" + str(run) + ".csv"
+			energy = 0 #get_energy(filename, 5.0, 25.0)
+			energy_list.append(energy)
 		#end_for
 		benchtime_mean, benchtime_err = mean_margin(benchtime_list)
 		cycles_mean, cycles_err = mean_margin(cycles_list)
-		ax.scatter(benchtime_mean, cycles_mean, s = 100, color = color, label = label, marker = marker)
-		ax.errorbar(benchtime_mean, cycles_mean, xerr = benchtime_err, color = color)
-		ax.errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
-		zoomax.scatter(benchtime_mean, cycles_mean, s = 100, color = color, label = label, marker = marker)
-		zoomax.errorbar(benchtime_mean, cycles_mean, xerr = benchtime_err, color = color)
-		zoomax.errorbar(benchtime_mean, cycles_mean, yerr = cycles_err, color = color)
+		energy_mean, energy_err = mean_margin(energy_list)
+		for i in range(2):
+			ax_list_list[0][i].bar(offset, benchtime_mean, color = color)
+			ax_list_list[0][i].errorbar(offset, benchtime_mean, yerr = benchtime_err, color = "black")
+			ax_list_list[1][i].bar(offset, cycles_mean, color = color)
+			ax_list_list[1][i].errorbar(offset, cycles_mean, cycles_err, color = "black")
+		#end_for
 	#end_for
 
-	zoomax.axis([7.3, 7.5, 17.6, 17.8])
-	zoomax.tick_params(labelsize = 16)
+	ax_list_list[0][0].set_ylim(7.325, 7.475)
+	ax_list_list[0][1].set_ylim(0, .025)
+	ax_list_list[1][0].set_ylim(17.68, 17.74)
+	ax_list_list[1][1].set_ylim(0, .02)
 
-	ax.axis([0, 10.0, 0, 20.0])
-	ax.tick_params(labelsize = 16)
-	ax.set_xlabel("Runtime, seconds", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Cycles, billions", fontsize = 16, fontweight = "bold")
-	ax.set_title("Runtime and Cycles for Fixed Compute,\nVarying CPU Policies (5 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
-	ax.legend(loc = "lower right", fontsize = 16)
+	for i in range(2):
+		broken_axes_tb(ax_list_list[i][0], ax_list_list[i][1])
+		ax_list_list[i][1].set_xticks(offset_list)
+		ax_list_list[i][1].set_xticklabels(label_list)
+		tick_list = ax_list_list[i][1].get_xticklabels()
+		for j in range(len(tick_list)):
+			tick_list[j].set_rotation(45)
+			tick_list[j].set_ha("right")
+		#end_for
+	#end_for
 
-	ax.annotate("", xy = (7.3, 17.0), xytext = (6.8, 11.8), arrowprops = dict(facecolor = "black", width = 1, headlength = 15, headwidth = 8))
-	ax.annotate("Zoomed", xy = (6.3, 11.0), fontsize = 16)
+	fig.text(x = .02, y = .55, rotation = "vertical", va = "center", s = "Runtime, seconds", fontweight = "bold", fontsize = 16)
+	fig.text(x = .52, y = .55, rotation = "vertical", va = "center", s = "Cycles, billions", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .85, ha = "center", s = "Runtime and Cycles for a Fixed Compute,\nVarying CPU Policies (5 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .02, ha = "center", s = "CPU policy", fontweight = "bold", fontsize = 16)
 
 	plt.show()
-	fig.savefig(graphpath + "graph_oscill_cycles.pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + "graph_oscill_cycles.pdf")
 
 	return
 
