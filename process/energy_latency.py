@@ -539,15 +539,14 @@ def plot_benchtime_cycles():
 	heightratio_list_list = [[6, 1], [3, 1]]
 	leftoffset_list = [.12, .62]
 	ax_list_list = []
-	for i, (heightratio_list, leftoffset) in enumerate(zip(heightratio_list_list, leftoffset_list)):
+	for heightratio_list, leftoffset in zip(heightratio_list_list, leftoffset_list):
 		ax_list = []
 		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = heightratio_list, left = leftoffset, right = leftoffset + .35, bottom = .3, top = .80)
-		for j in range(2):
-			ax_list.append(fig.add_subplot(gs_list[j, 0]))
+		for i in range(2):
+			ax_list.append(fig.add_subplot(gs_list[i, 0]))
 		#end_for
 		ax_list_list.append(ax_list)
 	#end_for
-
 
 	label_list = ["system default", "oscillating speed\n{high/low}", "fixed mid speed", "fixed low speed", "fixed high speed"]
 	color_list = ["red", "blue", "green", "orange", "brown"]
@@ -558,7 +557,7 @@ def plot_benchtime_cycles():
 		benchtime_list = []
 		cycles_list = []
 		energy_list = []
-		for run in range(0, 5):
+		for run in range(0, 10):
 			filename = path + "micro" + prefix + governor + "_1_" + str(run) + ".gz"
 			benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
 			benchtime_list.append(benchtime)
