@@ -1415,14 +1415,13 @@ def plot_freq_over_time_micro_2():
 	freq_list = []
 
 	fig = plt.figure()
-	fig.set_size_inches(8, 6)
-	gs = mpl.gridspec.GridSpec(2, 1, top = 0.88, bottom = .10, left = .15, right = .99)
+	gs = mpl.gridspec.GridSpec(2, 1, top = 0.86, bottom = .10, left = .18, right = .99)
 	ax_list = []
 	ax_list.append(fig.add_subplot(gs[0, 0]))
 	ax_list.append(fig.add_subplot(gs[1, 0]))
 
 	# Zoom graph for top plot:
-	gs = mpl.gridspec.GridSpec(1, 1, top = 0.82, bottom = .62, left = .5, right = .7)
+	gs = mpl.gridspec.GridSpec(1, 1, top = 0.8, bottom = .6, left = .57, right = .77)
 	zoomax = fig.add_subplot(gs[0,0])
 
 	targetcpu = 7
@@ -1473,8 +1472,10 @@ def plot_freq_over_time_micro_2():
 	ax_list[0].annotate("Zoom:", xy = (6.3, 1100000), fontsize = 16)
 
 	zoomax.axis([0, .2, 500000, 2600000])
-	zoomax.set_yticks(ytick_list[1:])
-	zoomax.set_yticklabels(yticklabel_list[1:])
+	zoomax.set_xticks([0, .1, .2])
+	zoomax.set_xticklabels(["0.0", "0.1", "0.2"])
+	zoomax.set_yticks([500000, 1500000, 2500000])
+	zoomax.set_yticklabels([".5", "1.5", "2.5"])
 	zoomax.tick_params(labelsize = 16)
 
 	fig.suptitle("CPU Speed Over Time, for a Fixed Compute,\nWith Different Delays (Ignoring Idling)", fontsize = 16, fontweight = "bold")
