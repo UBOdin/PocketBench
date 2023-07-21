@@ -1317,15 +1317,14 @@ def plot_freq_over_time_micro_1():
 	cpu = 7
 	filename = sys.argv[1]
 
-	fig, ax = plt.subplots()
-	fig.set_size_inches(12, 6)
+	fig = plt.figure()
+	fig.set_size_inches(6.4, 5.6)
+	gs = mpl.gridspec.GridSpec(1, 1, top = 0.90, bottom = .13, left = .15, right = .95)
+	ax = fig.add_subplot(gs[0, 0])
 
 	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
 	starttime = eventtime_list[0]
 	endtime = eventtime_list[1]
-
-	print(starttime)
-	print(endtime)
 
 	_, freqtime_tuple_list = make_freqtime_tuple_list_dict(freq_tuple_list_list[cpu], [starttime, endtime], int(startfreq_list[int(cpu / 4)]), True)
 	time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
@@ -1366,25 +1365,25 @@ def plot_freq_over_time_micro_1():
 	ax.axis([0, .7, 0, 2.6])
 	ax.set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Nominal CPU speed (% of maximum)", fontsize = 16, fontweight = "bold")
-	ax.tick_params(labelsize = 12)
+	ax.tick_params(labelsize = 16)
 
 	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)))
 	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
-	ax.annotate("Energy-optimal", xy = (.1, 2.25), fontweight = "bold", fontsize = 12)
-	ax.annotate("CPU speed", xy = (.12, 2.15), fontweight = "bold", fontsize = 12)
+	ax.annotate("Energy-optimal", xy = (.04, 2.3), fontsize = 16)
+	ax.annotate("CPU speed", xy = (.07, 2.15), fontsize = 16)
 
 	p = mpatches.Polygon([[.11, .29], [.11, 1.67], [.26, 1.67]], facecolor = "grey", alpha = 0.3)
 	ax.add_patch(p)
 	p = mpatches.Polygon([[.29, 1.77], [.32, 2.43], [.57, 2.43], [.57, 1.77]], facecolor = "grey", alpha = 0.3)
 	ax.add_patch(p)
-	ax.annotate("", xy = (.43, 2.1), xytext = (.43, 1.4), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
-	ax.annotate("Wasted Energy", xy = (.38, 1.30), fontweight = "bold", fontsize = 12)
-	ax.annotate("(Overperformance)", xy = (.36, 1.20), fontweight = "bold", fontsize = 12)
-	ax.annotate("", xy = (.155, 1.25), xytext = (.27, .95), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
-	ax.annotate("Both wasted energy", xy = (.275, .95), fontweight = "bold", fontsize = 12)
-	ax.annotate("and poor latency", xy = (.29, .85), fontweight = "bold", fontsize = 12)
+	ax.annotate("", xy = (.41, 2.1), xytext = (.41, 1.55), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
+	ax.annotate("Wasted Energy", xy = (.31, 1.43), fontsize = 16)
+	ax.annotate("(Overperformance)", xy = (.27, 1.3), fontsize = 16)
+	ax.annotate("", xy = (.155, 1.25), xytext = (.24, 1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
+	ax.annotate("Both wasted energy", xy = (.25, 1), fontsize = 16)
+	ax.annotate("and poor latency", xy = (.275, .88), fontsize = 16)
 
-	ax.set_title("CPU Frequency Over Time for a Continuous Workload", fontsize = 16, fontweight = "bold")
+	ax.set_title("CPU Frequency Over Time\nfor a Continuous Workload", fontsize = 16, fontweight = "bold")
 
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)), label = "Ideal speed"))
@@ -1392,7 +1391,7 @@ def plot_freq_over_time_micro_1():
 	handle_list.append(Patch(color = "grey", alpha = .3, label = "Wasted energy"))
 	ax.legend(handles = handle_list, loc = "lower center", fontsize = 16)
 
-	fig.savefig(graphpath + "graph_missed_opportunities.pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + "graph_missed_opportunities.pdf")
 
 	plt.show()
 
@@ -2199,8 +2198,8 @@ def quick():
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-#plot_freq_over_time_micro_1()
-plot_freq_over_time_micro_2()
+plot_freq_over_time_micro_1()
+#plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
