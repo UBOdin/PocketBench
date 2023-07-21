@@ -534,7 +534,6 @@ def plot_benchtime_cycles():
 	path = sys.argv[1]
 
 	fig = plt.figure()
-	fig.set_size_inches(8, 4)
 
 	heightratio_list_list = [[6, 1], [3, 1]]
 	leftoffset_list = [.12, .62]
@@ -583,6 +582,8 @@ def plot_benchtime_cycles():
 	ax_list_list[1][1].set_ylim(0, .02)
 
 	for i in range(2):
+		ax_list_list[i][0].tick_params(labelsize = 16)
+		ax_list_list[i][1].tick_params(labelsize = 16)
 		broken_axes_tb(ax_list_list[i][0], ax_list_list[i][1])
 		ax_list_list[i][1].set_xticks(offset_list)
 		ax_list_list[i][1].set_xticklabels(label_list)
@@ -2198,9 +2199,9 @@ def quick():
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
-plot_freq_over_time_micro_1()
+#plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-#plot_benchtime_cycles()
+plot_benchtime_cycles()
