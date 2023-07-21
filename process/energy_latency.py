@@ -1414,10 +1414,15 @@ def plot_freq_over_time_micro_2():
 	time_list = []
 	freq_list = []
 
-	fig, ax_list = plt.subplots(2, 1)
+	fig = plt.figure()
 	fig.set_size_inches(8, 6)
+	gs = mpl.gridspec.GridSpec(2, 1, top = 0.88, bottom = .10, left = .15, right = .99)
+	ax_list = []
+	ax_list.append(fig.add_subplot(gs[0, 0]))
+	ax_list.append(fig.add_subplot(gs[1, 0]))
 
-	gs = mpl.gridspec.GridSpec(1, 1, top = 0.82, bottom = .58, left = .45, right = .65)
+	# Zoom graph for top plot:
+	gs = mpl.gridspec.GridSpec(1, 1, top = 0.82, bottom = .62, left = .5, right = .7)
 	zoomax = fig.add_subplot(gs[0,0])
 
 	targetcpu = 7
@@ -1438,7 +1443,7 @@ def plot_freq_over_time_micro_2():
 
 		ax_list[yplot].plot(time_list, freq_list, color = "blue")
 		ax_list[yplot].axis([0, 26, 0, 2600000])
-		ax_list[yplot].tick_params(labelsize = 12)
+		ax_list[yplot].tick_params(labelsize = 16)
 		if (delay == "0"):
 			zoomax.plot(time_list, freq_list, color = "blue")
 		#end_if
@@ -1460,15 +1465,17 @@ def plot_freq_over_time_micro_2():
 	#end_for
 
 	ax_list[1].set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
-	ax_list[0].set_ylabel("CPU speed (GHz)\n(No Delays)", fontsize = 16, fontweight = "bold")
-	ax_list[1].set_ylabel("CPU speed (GHz)\n(1000 5ms Delays)", fontsize = 16, fontweight = "bold")
+	ax_list[0].set_ylabel("No delays", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("1000 5ms delays", fontsize = 16, fontweight = "bold")
+	fig.text(x = .02, y = .50, rotation = "vertical", va = "center", s = "CPU speed (GHz)", fontweight = "bold", fontsize = 16)
 
 	ax_list[0].annotate("", xy = (1, 1900000), xytext = (6, 1200000), arrowprops = dict(facecolor = "black", width = 1, headlength = 15, headwidth = 8))
 	ax_list[0].annotate("Zoom:", xy = (6.3, 1100000), fontsize = 16)
 
-	zoomax.axis([0, .3, 0, 2600000])
-	zoomax.set_yticks(ytick_list)
-	zoomax.set_yticklabels(yticklabel_list)
+	zoomax.axis([0, .2, 500000, 2600000])
+	zoomax.set_yticks(ytick_list[1:])
+	zoomax.set_yticklabels(yticklabel_list[1:])
+	zoomax.tick_params(labelsize = 16)
 
 	fig.suptitle("CPU Speed Over Time, for a Fixed Compute,\nWith Different Delays (Ignoring Idling)", fontsize = 16, fontweight = "bold")
 	plt.show()
@@ -2192,8 +2199,8 @@ def quick():
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
-#plot_freq_over_time_micro_2()
+plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-plot_benchtime_cycles()
+#plot_benchtime_cycles()
