@@ -923,9 +923,8 @@ def plot_energy_runtime_micro():
 
 	x_subplots = 2
 	y_subplots = 2
-	#fig, ax_list_list = plt.subplots(2, 2)
 	fig = plt.figure()
-	fig.set_size_inches(12, 9)
+	fig.set_size_inches(6.4, 6.4)
 
 	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.88, bottom = .53, wspace = .1)
 	ax0_list = []
@@ -1052,7 +1051,7 @@ def plot_energy_runtime_micro():
 
 	ax_list_list[1][1].legend(handles = handle_list, loc = "lower right", fontsize = 16, ncol = 2)
 
-	fig.suptitle("Runtime and Energy for a Fixed Compute per CPU, Varying CPU policy and CPU Count\n(5 runs) (Fixed 75s Energy Measurement)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Runtime and Energy for a Fixed Compute per CPU,\nVarying CPU policy and CPU Count\n(5 runs) (Fixed 75s Energy Measurement)", fontsize = 16, fontweight = "bold")
 	#fig.subplots_adjust(hspace = .3) #top = .84, bottom = .10)
 
 	plt.show()
@@ -2196,7 +2195,7 @@ def quick():
 
 #main()
 #quick()
-#plot_energy_runtime_micro()
+plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -2204,4 +2203,4 @@ def quick():
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-plot_benchtime_cycles()
+#plot_benchtime_cycles()
