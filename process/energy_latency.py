@@ -2223,55 +2223,50 @@ def plot_energy_varying_sleep_micro():
 #end_def
 
 
+# Plots simple showcase of some benefits of the system.
+# No tracefiles; data hardcoded
 def plot_showcase():
 
 	print("Hello World")
 
 	# fb_energy, fb_jank
-	label_list = ["FB interaction,\nenergy", "FB interaction,\n screen drops", "microbench,\nenergy", "microbench,\nruntime", "Codebase,\nlines"]
-	default_list = [5467.595496732798, 3.303406015058286, 100, 100, 100]
-	kiss_list = [4845.992575065505, 2.749247811944834, 80, 40, 20]
+	label_list = ["Facebook\ninteraction,\nenergy", "Facebook\ninteraction,\nscreen drops", "Codebase,\nlines"]
+	default_list = [5467.595496732798, 3.303406015058286, 100]
+	kiss_list = [4845.992575065505, 2.749247811944834, 20]
 	offset_list = range(len(label_list))
+	color_list = ["blue", "blue", "white"]  #TBD codeline count
 	tick_list = []
+	ratio = 0.0
 
 	fig = plt.figure()
+	fig.set_size_inches(6.4, 3.2)
 
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .17, right = .99, bottom = .33, top = .78)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .17, right = .99, bottom = .35, top = .85)
 	ax = fig.add_subplot(gs_list[0, 0])
 
-	for offset, default, kiss in zip(offset_list, default_list, kiss_list):
-		ax.bar(offset + .5 - .15, 1, width = .3, color = "red")
-		ax.bar(offset + .5 + .15, kiss / default, width = .3, color = "blue")
+	for offset, default, kiss, color in zip(offset_list, default_list, kiss_list, color_list):
+		ratio = (default - kiss) / default  # % less than (improvement)
+		ax.bar(offset + .5, ratio, width = .7, color = color)
 		tick_list.append(float(offset + .5))
 	#end_for
 
 	ax.set_xticks(tick_list, labels = label_list)
-	ticklabel_list = ax.get_xticklabels()
-	for j in range(len(ticklabel_list)):
-		ticklabel_list[j].set_rotation(45)
-		ticklabel_list[j].set_ha("right")
-	#end_for
 
 	ytick_list = []
 	yticklabel_list = []
-	for i in range(-10, 110, 10):
+	for i in range(0, 120, 20):
 		ytick_list.append(float(i / 100.0))
 		yticklabel_list.append(str(i))
 	#end_for
 	ax.set_yticks(ytick_list, labels = yticklabel_list)
 
-	ax.axis([-.5, 5.5, 0, 1.1])
+	ax.axis([-.5 + .25, 3.5 - .25, 0, 1.1])
 	ax.tick_params(labelsize = 16)
 
-	fig.text(x = .01, y = .50, rotation = "vertical", va = "center", s = "Performance, relative", fontweight = "bold", fontsize = 16)
-	fig.text(x = .05, y = .50, rotation = "vertical", va = "center", s = "to default (%)", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .02, ha = "center", s = "System metric", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .92, ha = "center", s = "The Cost of Complexity", fontweight = "bold", fontsize = 16)
-
-	handle_list = []
-	handle_list.append(Patch(color = "red", label = "System Default"))
-	handle_list.append(Patch(color = "blue", label = "Keep It Simple"))
-	fig.legend(handles = handle_list, loc = (.15, .80), fontsize = 16, ncol = 2)
+	fig.text(x = .01, y = .60, rotation = "vertical", va = "center", s = "% Improvement,", fontweight = "bold", fontsize = 16)
+	fig.text(x = .05, y = .60, rotation = "vertical", va = "center", s = "relative to default", fontweight = "bold", fontsize = 16)
+	fig.text(x = .58, y = .02, ha = "center", s = "System metric", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .92, ha = "center", s = "The Benefits of Simplicity", fontweight = "bold", fontsize = 16)
 
 	plt.show()
 	fig.savefig(graphpath + "graph_showcase.pdf")
