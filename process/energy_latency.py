@@ -529,9 +529,7 @@ def plot_benchtime_cycles():
 	cycles_err = 0
 	cycles_err_list = []
 
-	#governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
 	governor_list = ["schedutil_none", "oscillate_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
-	#prefix = "_SQL_A_oscill_"
 	prefix = "_1000-0-f0-1_"
 
 	path = sys.argv[1]
@@ -546,7 +544,7 @@ def plot_benchtime_cycles():
 	xend = .15
 	barw = .065
 	ax_list_list = [[], []]
-	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [4, 1], left = .16, right = .16 + (4 * barw + 2 * barw * xend), bottom = .3, top = .80)
+	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [10, 1], left = .16, right = .16 + (4 * barw + 2 * barw * xend), bottom = .3, top = .80)
 	for i in range(2):
 		ax_list_list[0].append(fig.add_subplot(gs_list[i, 0]))
 	#end_for
@@ -596,6 +594,7 @@ def plot_benchtime_cycles():
 		#end_for
 	#end_for
 
+	#'''
 	# N.b. iterating horizontally, i.e. x axis:
 	for i in range(2):
 		ax_list_list[i][0].tick_params(labelsize = 12)
@@ -612,19 +611,19 @@ def plot_benchtime_cycles():
 
 	# switch displayed y labels from GHz to %:
 	ytick_list = []
-	for i in range(0, 102, 1):
+	for i in range(0, 110, 1):
 		ytick_list.append(float(i / 100.0))
 	#end_for
 	ax_list_list[0][0].set_yticks(ytick_list)
 	ytick_list = []
-	for i in range(0, 1002, 1):
+	for i in range(0, 1010, 1):
 		ytick_list.append(float(i / 1000.0))
 	#end_for
 	ax_list_list[1][0].set_yticks(ytick_list)
 
 	ax_list_list[0][0].set_xlim(1 - xend, 5 + xend)
 	ax_list_list[0][1].set_xlim(1 - xend, 5 + xend)
-	ax_list_list[0][0].set_ylim(.98, 1.02)
+	ax_list_list[0][0].set_ylim(.95, 1.05)
 	ax_list_list[0][1].set_ylim(0, .01)
 
 	ax_list_list[1][0].set_xlim(0 - xend, 5 + xend)
@@ -633,14 +632,15 @@ def plot_benchtime_cycles():
 	ax_list_list[1][1].set_ylim(0, .001)
 
 
-	fig.text(x = .28, y = .81, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
-	fig.text(x = .78, y = .81, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
+	fig.text(x = .28, y = .82, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .82, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
 	fig.text(x = .01, y = .52, rotation = "vertical", va = "center", s = "Runtime, relative", fontweight = "bold", fontsize = 16)
 	fig.text(x = .05, y = .52, rotation = "vertical", va = "center", s = "to midspeed", fontweight = "bold", fontsize = 16)
 	fig.text(x = .475, y = .52, rotation = "vertical", va = "center", s = "Cycles, relative", fontweight = "bold", fontsize = 16)
 	fig.text(x = .515, y = .52, rotation = "vertical", va = "center", s = "to default", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .90, ha = "center", s = "Runtime and Cycles for a Fixed Compute,\nVarying CPU Policies (10 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .02, ha = "center", s = "CPU policy (Speed in MHz)", fontweight = "bold", fontsize = 16)
+	#'''
 
 	plt.show()
 	fig.savefig(graphpath + "graph_oscill_cycles.pdf")
