@@ -535,24 +535,24 @@ def plot_benchtime_cycles():
 
 	fig = plt.figure()
 
-	heightratio_list_list = [[6, 1], [3, 1]]
-	leftoffset_list = [.12, .62]
-	ax_list_list = []
-	for heightratio_list, leftoffset in zip(heightratio_list_list, leftoffset_list):
-		ax_list = []
-		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = heightratio_list, left = leftoffset, right = leftoffset + .35, bottom = .3, top = .80)
-		for i in range(2):
-			ax_list.append(fig.add_subplot(gs_list[i, 0]))
-		#end_for
-		ax_list_list.append(ax_list)
+	xend = .15
+	barw = .06
+	ax_list_list = [[], []]
+	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [6, 1], left = .18, right = .18 + (4 * barw + 2 * barw * xend), bottom = .3, top = .75)
+	for i in range(2):
+		ax_list_list[0].append(fig.add_subplot(gs_list[i, 0]))
+	#end_for
+	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [3, 1], left = .66, right = .66 + (5 * barw + 2 * barw * xend), bottom = .3, top = .75)
+	for i in range(2):
+		ax_list_list[1].append(fig.add_subplot(gs_list[i, 0]))
 	#end_for
 
-	label_list = ["system default", "oscillating speed\n{high/low}", "fixed mid speed", "fixed low speed", "fixed high speed"]
+	label_list_list = [["default", "oscillate lo-hi", "mid 1824.0", "low 1747.2", "high 1900.8"], ["default", "oscillate lo-hi", "mid 2342.4", "low 2323.2", "high 2361.6"]]
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	marker_list = ["o", "v", "^", ">", "<"]
 	offset_list = [.5, 1.5, 2.5, 3.5, 4.5]
 
-	for governor, label, color, marker, offset in zip(governor_list, label_list, color_list, marker_list, offset_list):
+	for governor, color, marker, offset in zip(governor_list, color_list, marker_list, offset_list):
 		benchtime_list = []
 		cycles_list = []
 		energy_list = []
@@ -569,24 +569,22 @@ def plot_benchtime_cycles():
 		cycles_mean, cycles_err = mean_margin(cycles_list)
 		energy_mean, energy_err = mean_margin(energy_list)
 		for i in range(2):
-			ax_list_list[0][i].bar(offset, benchtime_mean, color = color)
-			ax_list_list[0][i].errorbar(offset, benchtime_mean, yerr = benchtime_err, color = "black")
-			ax_list_list[1][i].bar(offset, cycles_mean, color = color)
+			# Skip default policy for runtime graph:
+			if (governor != "schedutil_none"):
+				ax_list_list[0][i].bar(offset, benchtime_mean, color = color, width = .8)
+				ax_list_list[0][i].errorbar(offset, benchtime_mean, yerr = benchtime_err, color = "black")
+			#end_if
+			ax_list_list[1][i].bar(offset, cycles_mean, color = color, width = .8)
 			ax_list_list[1][i].errorbar(offset, cycles_mean, cycles_err, color = "black")
 		#end_for
 	#end_for
 
-	ax_list_list[0][0].set_ylim(7.325, 7.475)
-	ax_list_list[0][1].set_ylim(0, .025)
-	ax_list_list[1][0].set_ylim(17.68, 17.74)
-	ax_list_list[1][1].set_ylim(0, .02)
-
 	for i in range(2):
-		ax_list_list[i][0].tick_params(labelsize = 16)
-		ax_list_list[i][1].tick_params(labelsize = 16)
+		ax_list_list[i][0].tick_params(labelsize = 12)
+		ax_list_list[i][1].tick_params(labelsize = 12)
 		broken_axes_tb(ax_list_list[i][0], ax_list_list[i][1])
 		ax_list_list[i][1].set_xticks(offset_list)
-		ax_list_list[i][1].set_xticklabels(label_list)
+		ax_list_list[i][1].set_xticklabels(label_list_list[1])
 		tick_list = ax_list_list[i][1].get_xticklabels()
 		for j in range(len(tick_list)):
 			tick_list[j].set_rotation(45)
@@ -594,10 +592,22 @@ def plot_benchtime_cycles():
 		#end_for
 	#end_for
 
-	fig.text(x = .02, y = .55, rotation = "vertical", va = "center", s = "Runtime, seconds", fontweight = "bold", fontsize = 16)
-	fig.text(x = .52, y = .55, rotation = "vertical", va = "center", s = "Cycles, billions", fontweight = "bold", fontsize = 16)
+	ax_list_list[0][0].set_xlim(1 - xend, 5 + xend)
+	ax_list_list[0][1].set_xlim(1 - xend, 5 + xend)
+	ax_list_list[0][0].set_ylim(7.325, 7.475)
+	ax_list_list[1][0].set_xlim(0 - xend, 5 + xend)
+	ax_list_list[1][1].set_xlim(0 - xend, 5 + xend)
+	ax_list_list[0][1].set_ylim(0, .025)
+	ax_list_list[1][0].set_ylim(17.68, 17.74)
+	ax_list_list[1][1].set_ylim(0, .02)
+
+	fig.text(x = .28, y = .77, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .77, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
+
+	fig.text(x = .05, y = .52, rotation = "vertical", va = "center", s = "Runtime, seconds", fontweight = "bold", fontsize = 16)
+	fig.text(x = .53, y = .52, rotation = "vertical", va = "center", s = "Cycles, billions", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .85, ha = "center", s = "Runtime and Cycles for a Fixed Compute,\nVarying CPU Policies (5 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .02, ha = "center", s = "CPU policy", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .02, ha = "center", s = "CPU policy (Speed in MHz)", fontweight = "bold", fontsize = 16)
 
 	plt.show()
 	fig.savefig(graphpath + "graph_oscill_cycles.pdf")
@@ -2195,7 +2205,7 @@ def quick():
 
 #main()
 #quick()
-plot_energy_runtime_micro()
+#plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -2203,4 +2213,4 @@ plot_energy_runtime_micro()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-#plot_benchtime_cycles()
+plot_benchtime_cycles()
