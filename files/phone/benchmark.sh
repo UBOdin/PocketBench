@@ -3,10 +3,10 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	echo $1 > $trace_dir/events/power/cpu_idle/enable
+	#echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -168,8 +168,12 @@ rm /data/results.pipe
 mknod /data/results.pipe p
 chmod 777 /data/results.pipe
 
-# Set governor as selected:
-set_governor "$governor"
+# Set governor as selected (use userspace if oscillating):
+if [ "$governor" = "oscillate" ]; then
+	set_governor "userspace"
+else
+	set_governor "$governor"
+fi
 toggle_events 1
 
 # Turn on tracing:
@@ -181,7 +185,7 @@ echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
 if [ "$experiment" = "microbench" ]; then
 
 	# Start background task to oscillate CPU frequencies:
-	if [ "$bgdelay" = "oscill" ]; then
+	if [ "$governor" = "oscillate" ]; then
 		oscspeeds=$(echo $frequency | tr "-" " ")
 		echo "Oscillate speeds:  $oscspeeds" >> $trace_log
 		sh /data/oscillate.sh $oscspeeds &
@@ -198,8 +202,8 @@ if [ "$experiment" = "microbench" ]; then
 	cpumask="$(echo $bgdelay | cut -d "-" -f3)"
 	proccount="$(echo $bgdelay | cut -d "-" -f4)"
 	#loopcount="4000000"
-	#loopcount="100000000"
-	loopcount="5000000"
+	loopcount="100000000"
+	#loopcount="5000000"
 	#loopcount="30000000"
 
 	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
@@ -222,7 +226,7 @@ if [ "$experiment" = "microbench" ]; then
 	get_idledata
 	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
 
-	if [ "$bgdelay" = "oscill" ]; then
+	if [ "$governor" = "oscillate" ]; then
 		kill -9 $bgpid
 	fi
 
