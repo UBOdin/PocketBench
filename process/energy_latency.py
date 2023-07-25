@@ -2223,6 +2223,62 @@ def plot_energy_varying_sleep_micro():
 #end_def
 
 
+def plot_showcase():
+
+	print("Hello World")
+
+	# fb_energy, fb_jank
+	label_list = ["FB interaction,\nenergy", "FB interaction,\n screen drops", "microbench,\nenergy", "microbench,\nruntime", "Codebase,\nlines"]
+	default_list = [5467.595496732798, 3.303406015058286, 100, 100, 100]
+	kiss_list = [4845.992575065505, 2.749247811944834, 80, 40, 20]
+	offset_list = range(len(label_list))
+	tick_list = []
+
+	fig = plt.figure()
+
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .17, right = .99, bottom = .33, top = .78)
+	ax = fig.add_subplot(gs_list[0, 0])
+
+	for offset, default, kiss in zip(offset_list, default_list, kiss_list):
+		ax.bar(offset + .5 - .15, 1, width = .3, color = "red")
+		ax.bar(offset + .5 + .15, kiss / default, width = .3, color = "blue")
+		tick_list.append(float(offset + .5))
+	#end_for
+
+	ax.set_xticks(tick_list, labels = label_list)
+	ticklabel_list = ax.get_xticklabels()
+	for j in range(len(ticklabel_list)):
+		ticklabel_list[j].set_rotation(45)
+		ticklabel_list[j].set_ha("right")
+	#end_for
+
+	ytick_list = []
+	yticklabel_list = []
+	for i in range(-10, 110, 10):
+		ytick_list.append(float(i / 100.0))
+		yticklabel_list.append(str(i))
+	#end_for
+	ax.set_yticks(ytick_list, labels = yticklabel_list)
+
+	ax.axis([-.5, 5.5, 0, 1.1])
+	ax.tick_params(labelsize = 16)
+
+	fig.text(x = .01, y = .50, rotation = "vertical", va = "center", s = "Performance, relative", fontweight = "bold", fontsize = 16)
+	fig.text(x = .05, y = .50, rotation = "vertical", va = "center", s = "to default (%)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .02, ha = "center", s = "System metric", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .92, ha = "center", s = "The Cost of Complexity", fontweight = "bold", fontsize = 16)
+
+	handle_list = []
+	handle_list.append(Patch(color = "red", label = "System Default"))
+	handle_list.append(Patch(color = "blue", label = "Keep It Simple"))
+	fig.legend(handles = handle_list, loc = (.15, .80), fontsize = 16, ncol = 2)
+
+	plt.show()
+	fig.savefig(graphpath + "graph_showcase.pdf")
+
+#end_def
+
+
 def quick():
 
 	filename = ""
@@ -2246,4 +2302,5 @@ def quick():
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-plot_benchtime_cycles()
+#plot_benchtime_cycles()
+plot_showcase()
