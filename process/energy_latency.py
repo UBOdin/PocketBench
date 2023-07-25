@@ -520,65 +520,83 @@ def plot_benchtime_cycles():
 
 	benchtime = 0
 	benchtime_mean = 0
+	benchtime_mean_list = []
 	benchtime_err = 0
-	energy = 0
-	energy_mean = 0
-	energy_err = 0
+	benchtime_err_list = []
 	cycles = 0
 	cycles_mean = 0
+	cycles_mean_list = []
 	cycles_err = 0
+	cycles_err_list = []
 
-	governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
-	prefix = "_SQL_A_oscill_"
+	#governor_list = ["schedutil_none", "userspace_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
+	governor_list = ["schedutil_none", "oscillate_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
+	#prefix = "_SQL_A_oscill_"
+	prefix = "_1000-0-f0-1_"
 
 	path = sys.argv[1]
-
-	fig = plt.figure()
-
-	xend = .15
-	barw = .06
-	ax_list_list = [[], []]
-	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [6, 1], left = .18, right = .18 + (4 * barw + 2 * barw * xend), bottom = .3, top = .75)
-	for i in range(2):
-		ax_list_list[0].append(fig.add_subplot(gs_list[i, 0]))
-	#end_for
-	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [3, 1], left = .66, right = .66 + (5 * barw + 2 * barw * xend), bottom = .3, top = .75)
-	for i in range(2):
-		ax_list_list[1].append(fig.add_subplot(gs_list[i, 0]))
-	#end_for
 
 	label_list_list = [["default", "oscillate lo-hi", "mid 1824.0", "low 1747.2", "high 1900.8"], ["default", "oscillate lo-hi", "mid 2342.4", "low 2323.2", "high 2361.6"]]
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	marker_list = ["o", "v", "^", ">", "<"]
 	offset_list = [.5, 1.5, 2.5, 3.5, 4.5]
 
-	for governor, color, marker, offset in zip(governor_list, color_list, marker_list, offset_list):
+	fig = plt.figure()
+
+	xend = .15
+	barw = .065
+	ax_list_list = [[], []]
+	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [4, 1], left = .16, right = .16 + (4 * barw + 2 * barw * xend), bottom = .3, top = .80)
+	for i in range(2):
+		ax_list_list[0].append(fig.add_subplot(gs_list[i, 0]))
+	#end_for
+	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [4, 1], left = .64, right = .64 + (5 * barw + 2 * barw * xend), bottom = .3, top = .80)
+	for i in range(2):
+		ax_list_list[1].append(fig.add_subplot(gs_list[i, 0]))
+	#end_for
+
+	for governor in governor_list:
 		benchtime_list = []
 		cycles_list = []
-		energy_list = []
 		for run in range(0, 10):
-			filename = path + "micro" + prefix + governor + "_1_" + str(run) + ".gz"
+			#filename = path + "micro" + prefix + governor + "_1_" + str(run) + ".gz"
+			filename = path + "micro" + prefix + governor + "_" + str(run) + ".gz"
 			benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
 			benchtime_list.append(benchtime)
 			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
-			filename = path + "monsoon" + prefix + governor + "_1_" + str(run) + ".csv"
-			energy = 0 #get_energy(filename, 5.0, 25.0)
-			energy_list.append(energy)
+
+			print("%f  %f" % (benchtime, cycles))
+
 		#end_for
 		benchtime_mean, benchtime_err = mean_margin(benchtime_list)
 		cycles_mean, cycles_err = mean_margin(cycles_list)
-		energy_mean, energy_err = mean_margin(energy_list)
-		for i in range(2):
+
+		print(governor)
+		print("%f  %f" % (benchtime_mean, cycles_mean))
+
+		benchtime_mean_list.append(benchtime_mean)
+		benchtime_err_list.append(benchtime_err)
+		cycles_mean_list.append(cycles_mean)
+		cycles_err_list.append(cycles_err)
+	#end_for
+
+	benchtime_norm = benchtime_mean_list[2]  # Fixed midspeed setting
+	cycles_norm = cycles_mean_list[0]  # Default policy setting
+
+	# N.b. iterating vertically, i.e. y axis:
+	for i in range(2):
+		for governor, benchtime_mean, benchtime_err, cycles_mean, cycles_err, color, marker, offset in zip(governor_list, benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list, color_list, marker_list, offset_list):
 			# Skip default policy for runtime graph:
 			if (governor != "schedutil_none"):
-				ax_list_list[0][i].bar(offset, benchtime_mean, color = color, width = .8)
-				ax_list_list[0][i].errorbar(offset, benchtime_mean, yerr = benchtime_err, color = "black")
+				ax_list_list[0][i].bar(offset, benchtime_mean / benchtime_norm, color = color, width = .8)
+				ax_list_list[0][i].errorbar(offset, benchtime_mean / benchtime_norm, yerr = benchtime_err / benchtime_norm, color = "black")
 			#end_if
-			ax_list_list[1][i].bar(offset, cycles_mean, color = color, width = .8)
-			ax_list_list[1][i].errorbar(offset, cycles_mean, cycles_err, color = "black")
+			ax_list_list[1][i].bar(offset, cycles_mean / cycles_norm, color = color, width = .8)
+			ax_list_list[1][i].errorbar(offset, cycles_mean / cycles_norm, cycles_err / cycles_norm, color = "black")
 		#end_for
 	#end_for
 
+	# N.b. iterating horizontally, i.e. x axis:
 	for i in range(2):
 		ax_list_list[i][0].tick_params(labelsize = 12)
 		ax_list_list[i][1].tick_params(labelsize = 12)
@@ -592,21 +610,36 @@ def plot_benchtime_cycles():
 		#end_for
 	#end_for
 
+	# switch displayed y labels from GHz to %:
+	ytick_list = []
+	for i in range(0, 102, 1):
+		ytick_list.append(float(i / 100.0))
+	#end_for
+	ax_list_list[0][0].set_yticks(ytick_list)
+	ytick_list = []
+	for i in range(0, 1002, 1):
+		ytick_list.append(float(i / 1000.0))
+	#end_for
+	ax_list_list[1][0].set_yticks(ytick_list)
+
 	ax_list_list[0][0].set_xlim(1 - xend, 5 + xend)
 	ax_list_list[0][1].set_xlim(1 - xend, 5 + xend)
-	ax_list_list[0][0].set_ylim(7.325, 7.475)
+	ax_list_list[0][0].set_ylim(.98, 1.02)
+	ax_list_list[0][1].set_ylim(0, .01)
+
 	ax_list_list[1][0].set_xlim(0 - xend, 5 + xend)
 	ax_list_list[1][1].set_xlim(0 - xend, 5 + xend)
-	ax_list_list[0][1].set_ylim(0, .025)
-	ax_list_list[1][0].set_ylim(17.68, 17.74)
-	ax_list_list[1][1].set_ylim(0, .02)
+	ax_list_list[1][0].set_ylim(.998, 1.002)
+	ax_list_list[1][1].set_ylim(0, .001)
 
-	fig.text(x = .28, y = .77, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
-	fig.text(x = .78, y = .77, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
 
-	fig.text(x = .05, y = .52, rotation = "vertical", va = "center", s = "Runtime, seconds", fontweight = "bold", fontsize = 16)
-	fig.text(x = .53, y = .52, rotation = "vertical", va = "center", s = "Cycles, billions", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .85, ha = "center", s = "Runtime and Cycles for a Fixed Compute,\nVarying CPU Policies (5 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .28, y = .81, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .81, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
+	fig.text(x = .01, y = .52, rotation = "vertical", va = "center", s = "Runtime, relative", fontweight = "bold", fontsize = 16)
+	fig.text(x = .05, y = .52, rotation = "vertical", va = "center", s = "to midspeed", fontweight = "bold", fontsize = 16)
+	fig.text(x = .475, y = .52, rotation = "vertical", va = "center", s = "Cycles, relative", fontweight = "bold", fontsize = 16)
+	fig.text(x = .515, y = .52, rotation = "vertical", va = "center", s = "to default", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .90, ha = "center", s = "Runtime and Cycles for a Fixed Compute,\nVarying CPU Policies (10 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .02, ha = "center", s = "CPU policy (Speed in MHz)", fontweight = "bold", fontsize = 16)
 
 	plt.show()
