@@ -1880,7 +1880,7 @@ def plot_time_perspeed_fb():
 	ax_list[3].annotate("", xy = (.015, -13.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
 	fig.text(x = .585, y = .145,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
-	fig.suptitle("Time per CPU Speed, Default Policy (32s FB script) (3 Runs)", fontsize = 16, fontweight = "bold")
+	fig.suptitle("Time per CPU Speed, Default Policy (32s scripted Facebook interaction) (3 Runs)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .84, bottom = .10)
 	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
@@ -2312,12 +2312,12 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-plot_benchtime_cycles()
+#plot_benchtime_cycles()
 #plot_showcase()
