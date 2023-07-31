@@ -967,13 +967,13 @@ def plot_energy_runtime_micro():
 	x_subplots = 2
 	y_subplots = 2
 	fig = plt.figure()
-	fig.set_size_inches(6.4, 6.4)
+	fig.set_size_inches(12.8, 4.8)
 
-	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.88, bottom = .53, wspace = .1)
+	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.80, bottom = .05, left = .05, right = .40)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs0[0]))
 	ax0_list.append(fig.add_subplot(gs0[1]))
-	gs1 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 45], top = 0.40, bottom = .05, wspace = .1)
+	gs1 = mpl.gridspec.GridSpec(1, 2, width_ratios = [5, 50], top = 0.80, bottom = .05, left = .50, right = .85)
 	ax1_list = []
 	ax1_list.append(fig.add_subplot(gs1[0]))
 	ax1_list.append(fig.add_subplot(gs1[1]))
@@ -1065,8 +1065,6 @@ def plot_energy_runtime_micro():
 
 	handle_list.append(Line2D([], [], marker = "s", markersize = 7, color = "0.0", linewidth = 0, label = "Default"))
 	handle_list.append(Line2D([], [], marker = "o", markersize = 5, color = "0.0", linewidth = 0, label = "Fixed Speed"))
-	handle_list.append(Line2D([], [], linewidth = 0))
-	handle_list.append(Line2D([], [], linewidth = 0))
 
 	ax_list_list[0][0].set_xlim(0, 1)
 	ax_list_list[0][1].set_xlim(7, 23)
@@ -1094,8 +1092,7 @@ def plot_energy_runtime_micro():
 
 	ax_list_list[1][1].legend(handles = handle_list, loc = "lower right", fontsize = 16, ncol = 2)
 
-	fig.suptitle("Runtime and Energy for a Fixed Compute per CPU,\nVarying CPU policy and CPU Count\n(5 runs) (Fixed 75s Energy Measurement)", fontsize = 16, fontweight = "bold")
-	#fig.subplots_adjust(hspace = .3) #top = .84, bottom = .10)
+	fig.text(x = .45, y = .90, ha = "center", s = "Runtime and Energy for a Fixed Compute per CPU, Varying CPU policy and\nCPU Count (5 runs) (Fixed 75s Energy Measurement)", fontsize = 16, fontweight = "bold")
 
 	plt.show()
 	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
@@ -2289,7 +2286,7 @@ def quick():
 
 #main()
 #quick()
-#plot_energy_runtime_micro()
+plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -2298,4 +2295,4 @@ def quick():
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
-plot_showcase()
+#plot_showcase()
