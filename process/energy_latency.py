@@ -515,22 +515,28 @@ def bargraph_energy(energy_list):
 
 
 # Plots cyclecount and runtime for microbenchmark
-# Tracefiles:  .../20221114/*
+# Tracefiles:  .../20221114/* or .../20230724/oscillating_runs/*
 def plot_benchtime_cycles():
 
 	benchtime = 0
 	benchtime_mean = 0
 	benchtime_mean_list = []
+	benchtime_mean_list_list = []
 	benchtime_err = 0
 	benchtime_err_list = []
+	benchtime_err_list_list = []
 	cycles = 0
 	cycles_mean = 0
 	cycles_mean_list = []
+	cycles_mean_list_list = []
 	cycles_err = 0
 	cycles_err_list = []
+	cycles_err_list_list = []
 
 	governor_list = ["schedutil_none", "oscillate_oscillate", "userspace_mid", "userspace_low", "userspace_high"]
-	prefix = "_1000-0-f0-1_"
+	#prefix = "_1000-0-f0-1_"
+	prefix = "micro_1000-0-"
+	cpumask_list = ["0f", "f0"]
 
 	path = sys.argv[1]
 
@@ -540,105 +546,123 @@ def plot_benchtime_cycles():
 	offset_list = [.5, 1.5, 2.5, 3.5, 4.5]
 
 	fig = plt.figure()
+	fig.set_size_inches(12.8, 4.3)
 
-	xend = .15
-	barw = .065
-	ax_list_list = [[], []]
-	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [10, 1], left = .16, right = .16 + (4 * barw + 2 * barw * xend), bottom = .3, top = .80)
-	for i in range(2):
-		ax_list_list[0].append(fig.add_subplot(gs_list[i, 0]))
-	#end_for
-	gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [4, 1], left = .64, right = .64 + (5 * barw + 2 * barw * xend), bottom = .3, top = .80)
-	for i in range(2):
-		ax_list_list[1].append(fig.add_subplot(gs_list[i, 0]))
-	#end_for
-
-	for governor in governor_list:
-		benchtime_list = []
-		cycles_list = []
-		for run in range(0, 10):
-			#filename = path + "micro" + prefix + governor + "_1_" + str(run) + ".gz"
-			filename = path + "micro" + prefix + governor + "_" + str(run) + ".gz"
-			benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
-			benchtime_list.append(benchtime)
-			cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
-
-			print("%f  %f" % (benchtime, cycles))
-
+	ax_list_list_list = []
+	cpuoffset_list = [0.0, 0.51]
+	# Per-CPU cluster girds (horizontal):
+	for cpuoffset in cpuoffset_list:
+		xend = .075
+		barw = .031
+		ax_list_list = [[], []]
+		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [10, 1], left = .09 + cpuoffset, right = .09 + cpuoffset + (4 * barw + 2 * barw * xend), bottom = .3, top = .78)
+		for i in range(2):
+			ax_list_list[0].append(fig.add_subplot(gs_list[i, 0]))
 		#end_for
-		benchtime_mean, benchtime_err = mean_margin(benchtime_list)
-		cycles_mean, cycles_err = mean_margin(cycles_list)
-
-		print(governor)
-		print("%f  %f" % (benchtime_mean, cycles_mean))
-
-		benchtime_mean_list.append(benchtime_mean)
-		benchtime_err_list.append(benchtime_err)
-		cycles_mean_list.append(cycles_mean)
-		cycles_err_list.append(cycles_err)
-	#end_for
-
-	benchtime_norm = benchtime_mean_list[2]  # Fixed midspeed setting
-	cycles_norm = cycles_mean_list[0]  # Default policy setting
-
-	# N.b. iterating vertically, i.e. y axis:
-	for i in range(2):
-		for governor, benchtime_mean, benchtime_err, cycles_mean, cycles_err, color, marker, offset in zip(governor_list, benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list, color_list, marker_list, offset_list):
-			# Skip default policy for runtime graph:
-			if (governor != "schedutil_none"):
-				ax_list_list[0][i].bar(offset, benchtime_mean / benchtime_norm, color = color, width = .8)
-				ax_list_list[0][i].errorbar(offset, benchtime_mean / benchtime_norm, yerr = benchtime_err / benchtime_norm, color = "black")
-			#end_if
-			ax_list_list[1][i].bar(offset, cycles_mean / cycles_norm, color = color, width = .8)
-			ax_list_list[1][i].errorbar(offset, cycles_mean / cycles_norm, cycles_err / cycles_norm, color = "black")
+		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [4, 1], left = .32 + cpuoffset, right = .32 + cpuoffset + (5 * barw + 2 * barw * xend), bottom = .3, top = .78)
+		for i in range(2):
+			ax_list_list[1].append(fig.add_subplot(gs_list[i, 0]))
 		#end_for
+		ax_list_list_list.append(ax_list_list)
 	#end_for
 
-	#'''
-	# N.b. iterating horizontally, i.e. x axis:
-	for i in range(2):
-		ax_list_list[i][0].tick_params(labelsize = 12)
-		ax_list_list[i][1].tick_params(labelsize = 12)
-		broken_axes_tb(ax_list_list[i][0], ax_list_list[i][1])
-		ax_list_list[i][1].set_xticks(offset_list)
-		ax_list_list[i][1].set_xticklabels(label_list_list[1])
-		tick_list = ax_list_list[i][1].get_xticklabels()
-		for j in range(len(tick_list)):
-			tick_list[j].set_rotation(45)
-			tick_list[j].set_ha("right")
+	for cpumask in cpumask_list:
+		benchtime_mean_list = []
+		benchtime_err_list = []
+		cycles_mean_list = []
+		cycles_err_list = []
+		for governor in governor_list:
+			benchtime_list = []
+			cycles_list = []
+			for run in range(0, 10):
+				filename = path + prefix + cpumask + "-1_" + governor + "_" + str(run) + ".gz"
+				benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
+				benchtime_list.append(benchtime)
+				cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
+				#print("%f  %f" % (benchtime, cycles))
+			#end_for
+			benchtime_mean, benchtime_err = mean_margin(benchtime_list)
+			cycles_mean, cycles_err = mean_margin(cycles_list)
+			#print(governor)
+			#print("%f  %f" % (benchtime_mean, cycles_mean))
+			benchtime_mean_list.append(benchtime_mean)
+			benchtime_err_list.append(benchtime_err)
+			cycles_mean_list.append(cycles_mean)
+			cycles_err_list.append(cycles_err)
 		#end_for
+		benchtime_mean_list_list.append(benchtime_mean_list)
+		benchtime_err_list_list.append(benchtime_err_list)
+		cycles_mean_list_list.append(cycles_mean_list)
+		cycles_err_list_list.append(cycles_err_list)
 	#end_for
 
-	# switch displayed y labels from GHz to %:
-	ytick_list = []
-	for i in range(0, 110, 1):
-		ytick_list.append(float(i / 100.0))
+	# Per-CPU cluster plots (horizontal):
+	for benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list, ax_list_list, cpuoffset in zip(benchtime_mean_list_list, benchtime_err_list_list, cycles_mean_list_list, cycles_err_list_list, ax_list_list_list, cpuoffset_list):
+
+		benchtime_norm = benchtime_mean_list[2]  # Relative to fixed midspeed setting
+		cycles_norm = cycles_mean_list[0]  # Default policy setting
+
+		# N.b. iterating vertically, i.e. y axis:
+		for i in range(2):
+			for governor, benchtime_mean, benchtime_err, cycles_mean, cycles_err, color, marker, offset in zip(governor_list, benchtime_mean_list, benchtime_err_list, cycles_mean_list, cycles_err_list, color_list, marker_list, offset_list):
+				# Skip default policy for runtime graph:
+				if (governor != "schedutil_none"):
+					ax_list_list[0][i].bar(offset, benchtime_mean / benchtime_norm, color = color, width = .8)
+					ax_list_list[0][i].errorbar(offset, benchtime_mean / benchtime_norm, yerr = benchtime_err / benchtime_norm, color = "black")
+				#end_if
+				ax_list_list[1][i].bar(offset, cycles_mean / cycles_norm, color = color, width = .8)
+				ax_list_list[1][i].errorbar(offset, cycles_mean / cycles_norm, cycles_err / cycles_norm, color = "black")
+			#end_for
+		#end_for
+
+		# N.b. iterating horizontally, i.e. x axis:
+		for i in range(2):
+			ax_list_list[i][0].tick_params(labelsize = 12)
+			ax_list_list[i][1].tick_params(labelsize = 12)
+			broken_axes_tb(ax_list_list[i][0], ax_list_list[i][1])
+			ax_list_list[i][1].set_xticks(offset_list)
+			ax_list_list[i][1].set_xticklabels(label_list_list[1])
+			tick_list = ax_list_list[i][1].get_xticklabels()
+			for j in range(len(tick_list)):
+				tick_list[j].set_rotation(45)
+				tick_list[j].set_ha("right")
+			#end_for
+		#end_for
+
+		# switch displayed y labels from GHz to %:
+		ytick_list = []
+		for i in range(0, 110, 1):
+			ytick_list.append(float(i / 100.0))
+		#end_for
+		ax_list_list[0][0].set_yticks(ytick_list)
+		ytick_list = []
+		for i in range(0, 1010, 1):
+			ytick_list.append(float(i / 1000.0))
+		#end_for
+		ax_list_list[1][0].set_yticks(ytick_list)
+
+		ax_list_list[0][0].set_xlim(1 - xend, 5 + xend)
+		ax_list_list[0][1].set_xlim(1 - xend, 5 + xend)
+		ax_list_list[0][0].set_ylim(.95, 1.05)
+		ax_list_list[0][1].set_ylim(0, .01)
+
+		ax_list_list[1][0].set_xlim(0 - xend, 5 + xend)
+		ax_list_list[1][1].set_xlim(0 - xend, 5 + xend)
+		ax_list_list[1][0].set_ylim(.998, 1.002)
+		ax_list_list[1][1].set_ylim(0, .001)
+
+		fig.text(x = .12 + cpuoffset, y = .82, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
+		fig.text(x = .38 + cpuoffset, y = .82, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
+		fig.text(x = .01 + cpuoffset, y = .52, rotation = "vertical", va = "center", s = "Runtime, relative", fontweight = "bold", fontsize = 16)
+		fig.text(x = .03 + cpuoffset, y = .52, rotation = "vertical", va = "center", s = "to midspeed", fontweight = "bold", fontsize = 16)
+		fig.text(x = .235 + cpuoffset, y = .52, rotation = "vertical", va = "center", s = "Cycles, relative", fontweight = "bold", fontsize = 16)
+		fig.text(x = .255 + cpuoffset, y = .52, rotation = "vertical", va = "center", s = "to default", fontweight = "bold", fontsize = 16)
+
 	#end_for
-	ax_list_list[0][0].set_yticks(ytick_list)
-	ytick_list = []
-	for i in range(0, 1010, 1):
-		ytick_list.append(float(i / 1000.0))
-	#end_for
-	ax_list_list[1][0].set_yticks(ytick_list)
 
-	ax_list_list[0][0].set_xlim(1 - xend, 5 + xend)
-	ax_list_list[0][1].set_xlim(1 - xend, 5 + xend)
-	ax_list_list[0][0].set_ylim(.95, 1.05)
-	ax_list_list[0][1].set_ylim(0, .01)
-
-	ax_list_list[1][0].set_xlim(0 - xend, 5 + xend)
-	ax_list_list[1][1].set_xlim(0 - xend, 5 + xend)
-	ax_list_list[1][0].set_ylim(.998, 1.002)
-	ax_list_list[1][1].set_ylim(0, .001)
-
-
-	fig.text(x = .28, y = .82, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
-	fig.text(x = .78, y = .82, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
-	fig.text(x = .01, y = .52, rotation = "vertical", va = "center", s = "Runtime, relative", fontweight = "bold", fontsize = 16)
-	fig.text(x = .05, y = .52, rotation = "vertical", va = "center", s = "to midspeed", fontweight = "bold", fontsize = 16)
-	fig.text(x = .475, y = .52, rotation = "vertical", va = "center", s = "Cycles, relative", fontweight = "bold", fontsize = 16)
-	fig.text(x = .515, y = .52, rotation = "vertical", va = "center", s = "to default", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .90, ha = "center", s = "Runtime and Cycles for a Fixed Compute,\nVarying CPU Policies (10 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .25, y = .88, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .75, y = .88, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .95, ha = "center", s = "Runtime and Cycles for a Fixed Compute, Varying CPU Policies (10 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .02, ha = "center", s = "CPU policy (Speed in MHz)", fontweight = "bold", fontsize = 16)
 	#'''
 
@@ -2287,7 +2311,7 @@ def quick():
 
 #main()
 #quick()
-plot_energy_runtime_micro()
+#plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -2295,5 +2319,5 @@ plot_energy_runtime_micro()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
-#plot_benchtime_cycles()
+plot_benchtime_cycles()
 #plot_showcase()
