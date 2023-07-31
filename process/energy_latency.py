@@ -978,7 +978,7 @@ def plot_energy_runtime_micro():
 	ax1_list.append(fig.add_subplot(gs1[0]))
 	ax1_list.append(fig.add_subplot(gs1[1]))
 
-	ax_list_list = [ax0_list, ax1_list]
+	ax_list_list = [ax1_list, ax0_list]
 
 	fenergy = "${f}_{pow}$"
 	color_list = ["red", "blue", "green", "orange", "brown"]
@@ -1068,8 +1068,8 @@ def plot_energy_runtime_micro():
 
 	ax_list_list[0][0].set_xlim(0, 1)
 	ax_list_list[0][1].set_xlim(7, 23)
-	ax_list_list[1][0].set_xlim(0, 1)
-	ax_list_list[1][1].set_xlim(17, 62)
+	ax_list_list[1][0].set_xlim(0, 5)
+	ax_list_list[1][1].set_xlim(15, 65)
 	ax_list_list[0][0].set_ylim(0, 2100)
 	ax_list_list[0][1].set_ylim(0, 2100)
 	ax_list_list[1][0].set_ylim(0, 1100)
@@ -1087,10 +1087,11 @@ def plot_energy_runtime_micro():
 	ax_list_list[1][0].tick_params(labelsize = 16)
 	ax_list_list[1][1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+
 	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][1].tick_params(labelsize = 16)
 
-	ax_list_list[1][1].legend(handles = handle_list, loc = "lower right", fontsize = 16, ncol = 2)
+	fig.legend(handles = handle_list, loc = (.11, .16), fontsize = 16, ncol = 2)
 
 	fig.text(x = .45, y = .90, ha = "center", s = "Runtime and Energy for a Fixed Compute per CPU, Varying CPU policy and\nCPU Count (5 runs) (Fixed 75s Energy Measurement)", fontsize = 16, fontweight = "bold")
 
