@@ -24,6 +24,10 @@ label_list = ["schedutil", "fixed 30%", "fixed 40%", "fixed 50%", "fixed 60%", "
 datapath = "data_processed/"
 graphpath = "graphs_saved/"
 
+# Huge kludge:  Should parameterize process_loglines() in lieu:
+markerstart = "FORK_SART"
+markerend = "FORK_END"
+
 
 def mean_margin(data_list):
 
@@ -193,12 +197,12 @@ def process_loglines(file_name):
 		if (eventtype == "tracing_mark_write"):
 
 			#if ("friend_flick_end 2" in logline):
-			if ("SQL_START" in logline):
+			if (markerstart in logline):
 				starttime = float(time)
 			#end_if
 
 			#if ("friend_flick_start 3" in logline):
-			if ("SQL_END" in logline):
+			if (markerend in logline):
 				endtime = float(time)
 			#end_if
 
@@ -1038,7 +1042,7 @@ def plot_energy_runtime_micro():
 					for run in range(0, 5):
 						filename = path + benchtimeprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
 						print(filename)
-						benchtime, _, _, cycles, _, _, _ = process_loglines(filename)
+						benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
 						benchtime_list.append(benchtime)
 						cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
 						filename = path + energyprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
@@ -1395,7 +1399,7 @@ def plot_freq_over_time_micro_1():
 	time_list, freq_list = make_time_list_freq_list(freqtime_tuple_list, starttime)
 
 	# rework plot data:  time offset and speed magnitude
-	timebase = .1
+	timebase = .15
 	newtime_list = []
 	newfreq_list = []
 	for time, freq in zip(time_list, freq_list):
@@ -1647,7 +1651,13 @@ def plot_time_perspeed_fb():
 	prefix = ""
 	path = sys.argv[1]
 
-	readtraces = False
+	# Android app traces use "SQL_*" markers (plot requires ftrace log):
+	global markerstart
+	markerstart = "SQL_START"
+	global markerend
+	markerend = "SQL_END"
+
+	readtraces = True
 	plotfilename = "graph_time_per_freq_fb"
 	outputline = ""
 	inputline = ""
@@ -1949,7 +1959,7 @@ def plot_energy_drops_perpol_fb():
 			for run in range(0, 10):
 				ftracefilename = path + ftraceprefix + governor + "_" + str(run) + ".gz"
 				print(ftracefilename)
-				benchtime, _, graphdata_list, cycles, _, _, _ = process_loglines(ftracefilename)
+				benchtime, _, graphdata_list, cycles, _, _, _, _, _ = process_loglines(ftracefilename)
 				jank = 100.0 * (float(graphdata_list[1]) / float(graphdata_list[0]))
 				jank_list.append(jank)
 				cycles_list.append(cycles)
@@ -2004,7 +2014,7 @@ def plot_energy_drops_perpol_fb():
 	fig.suptitle("Energy and Screendrops for Different CPU Policies, for FB (10 runs)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("Screen Drop (%)", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = 0.90, bottom = 0.07)
-	fig.savefig(plotfilename + ".pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
 
 	ax2_list[0].set_title("Zero centered", fontsize = 16, fontweight = "bold")
 	ax2_list[1].set_title("Zoomed", fontsize = 16, fontweight = "bold")
