@@ -2255,6 +2255,117 @@ def plot_energy_varying_sleep_micro():
 #end_def
 
 
+# Plots drops per CPU policy
+# Tracefile:  .../20220628/fb_batch/*
+def plot_drops_perspeed_fb():
+
+	# jank_mean_list = []
+	# jank_err_list = []
+	# benchname = ""
+	jank_mean = 0.0
+	jank_err = 0.0
+	barcount = 0
+	offset_list = []
+	color_list = []
+	ticklabel_list = []
+
+	jank = 0.0
+	jank_list = []
+	filename = ""
+	prefix = "micro_SQL_A_0ms_"
+	fenergy = "${f}_{pow}$"
+
+	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
+	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
+
+	path = sys.argv[1]
+
+	'''
+	barcount = len(jank_mean_list)
+	offset_list = np.arange(0, barcount)
+	color_list.append("red")
+	for i in range(barcount - 1):
+		color_list.append("blue")
+	#end_for
+	'''
+
+	readtraces = False
+	plotfilename = "graph_jank_perspeed_fb"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
+	#end_if
+
+	fig = plt.figure()
+	fig.set_size_inches(6.4, 4.8)
+
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .95, bottom = .30, top = .85)
+	ax = fig.add_subplot(gs_list[0, 0])
+
+	offset_list = []
+	for i in range(0, 90, 10):
+		offset_list.append(str(i - 5))
+	#end_for
+
+	for governor, offset in zip(governor_list, offset_list):
+
+		if (readtraces == True):
+			jank_list = []
+			for run in range(10):
+				filename = path + prefix + governor + "_1_" + str(run) + ".gz"
+				print(filename)
+				_, _, graphdata_list, _, _, _, _, _, _ = process_loglines(filename)
+				jank = 100.0 * (float(graphdata_list[1]) / float(graphdata_list[0]))
+				jank_list.append(jank)
+			#end_for
+			jank_mean, jank_err = mean_margin(jank_list)
+			outputline = str(jank_mean) + "," + str(jank_err) + "\n"
+			plotdata_file.write(outputline)
+		else:
+			inputline = plotdata_file.readline()
+			inputline_list = inputline.split(",")
+			assert(len(inputline_list) == 2)
+			jank_mean = float(inputline_list[0])
+			jank_err = float(inputline_list[1])
+		#end_if
+
+		if (governor == "schedutil_none"):
+			color = "red"
+		else:
+			color = "blue"
+		#end_if
+
+		ax.bar(offset, jank_mean, color = color)
+		ax.errorbar(offset, jank_mean, color = "black", yerr = jank_err, elinewidth = 2, capsize = 10, capthick = 2)
+
+	#end_for
+
+	ax.tick_params(labelsize = 16)
+	ax.set_xticks(offset_list, labels = label_list)
+
+	tick_list = ax.get_xticklabels()
+	for tick in tick_list:
+		tick.set_rotation(45)
+		tick.set_ha("right")
+	#end_for
+
+	ax.set_title("Framedrops Per CPU Policy, :30 FB\nInteraction (10 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
+	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Dropped frames (% of total)", fontsize = 16, fontweight = "bold")
+
+	plt.show()
+	fig.savefig(graphpath + plotfilename + ".pdf")
+
+	return
+
+
+#end_def
+
+
 # Plots simple showcase of some benefits of the system.
 # No tracefiles; data hardcoded
 def plot_showcase():
@@ -2322,7 +2433,7 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
@@ -2330,4 +2441,5 @@ plot_time_perspeed_fb()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
+plot_drops_perspeed_fb()
 #plot_showcase()
