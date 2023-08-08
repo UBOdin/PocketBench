@@ -322,14 +322,14 @@ def process_loglines(file_name):
 	eventtime_list.append(starttime)
 	eventtime_list.append(endtime)
 
-	#'''
+	'''
 	if (len(idledata_list) != 8 * 3 * 2):
 		print("Unexpected length")
 		sys.exit(1)
 	#end
-	#'''
+	'''
 
-	#'''
+	'''
 	idlefloat_list = []
 	for e in idledata_list:
 		idlefloat_list.append(float(e) / 1000000)
@@ -349,7 +349,7 @@ def process_loglines(file_name):
 	#print(idledata_list)
 	#print(idlefloat_list)
 	#print(runtime_list)
-	#'''
+	'''
 	#print("Early exit")
 	#sys.exit(0)
 	#'''
