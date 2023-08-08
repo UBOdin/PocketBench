@@ -322,14 +322,14 @@ def process_loglines(file_name):
 	eventtime_list.append(starttime)
 	eventtime_list.append(endtime)
 
-	'''
+	#'''
 	if (len(idledata_list) != 8 * 3 * 2):
 		print("Unexpected length")
 		sys.exit(1)
 	#end
-	'''
+	#'''
 
-	'''
+	#'''
 	idlefloat_list = []
 	for e in idledata_list:
 		idlefloat_list.append(float(e) / 1000000)
@@ -343,13 +343,13 @@ def process_loglines(file_name):
 		idledelta = idleend - idlestart
 		newidle_list.append(idledelta)
 		runtime_list.append(endtime - starttime - idledelta)
-		print("%d  %f  %f  %f  %f  %f  %f" % (i, idlestart, idleend, idledelta, endtime, starttime, endtime - starttime))
+		#print("%d  %f  %f  %f  %f  %f  %f" % (i, idlestart, idleend, idledelta, endtime, starttime, endtime - starttime))
 	#end_for
 
-	print(idledata_list)
-	print(idlefloat_list)
-	print(runtime_list)
-	'''
+	#print(idledata_list)
+	#print(idlefloat_list)
+	#print(runtime_list)
+	#'''
 	#print("Early exit")
 	#sys.exit(0)
 	#'''
@@ -1014,7 +1014,7 @@ def plot_energy_runtime_micro():
 	annotate_list = ["", "30", "40", "", "60", fenergy, "80", "", "100"]
 	handle_list = []
 
-	readtraces = False
+	readtraces = True
 	#plotfilename = "graph_u_varylen_multicore"
 	plotfilename = "graph_u_fixedlen_multicore"
 	outputline = ""
@@ -1039,7 +1039,7 @@ def plot_energy_runtime_micro():
 					benchtime_list = []
 					cycles_list = []
 					energy_list = []
-					for run in range(0, 5):
+					for run in range(0, 1):
 						filename = path + benchtimeprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
 						print(filename)
 						benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
@@ -2280,15 +2280,6 @@ def plot_drops_perspeed_fb():
 
 	path = sys.argv[1]
 
-	'''
-	barcount = len(jank_mean_list)
-	offset_list = np.arange(0, barcount)
-	color_list.append("red")
-	for i in range(barcount - 1):
-		color_list.append("blue")
-	#end_for
-	'''
-
 	readtraces = False
 	plotfilename = "graph_jank_perspeed_fb"
 	outputline = ""
@@ -2362,6 +2353,136 @@ def plot_drops_perspeed_fb():
 
 	return
 
+
+#end_def
+
+
+# Plots runtime (nonidletime) per CPU policy
+# Tracefile:  .../20230206/fb_runs/*
+def plot_nonidletime_fb():
+
+	fenergy = "${f}_{pow}$"
+	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
+	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
+
+	benchtimeprefix = "/micro_normal_"
+
+	path = sys.argv[1]
+
+	# Android app traces use "SQL_*" markers (plot requires ftrace log):
+	global markerstart
+	markerstart = "SQL_START"
+	global markerend
+	markerend = "SQL_END"
+
+	readtraces = False
+	plotfilename = "graph_nonidletime_fb"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
+	#end_if
+
+	fig = plt.figure()
+	fig.set_size_inches(12.8, 4.8)
+
+	ax_list = []
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .30, top = .81)
+	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .30, top = .81)
+	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+
+	offset_list = []
+	for i in range(0, 90, 10):
+		offset_list.append(str(i - 5))
+	#end_for
+
+	for governor, offset in zip(governor_list, offset_list):
+		if (readtraces == True):
+			proplittle_list =[]
+			propbig_list = []
+			for run in range(0, 3):
+				filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
+				print(filename)
+				benchtime, runtime_list, _, _, _, _, _, _, _ = process_loglines(filename)
+				#print(benchtime)
+				#print(runtime_list)
+				totallittle = 0.0
+				totalbig = 0.0
+				for i in range(4):
+					totallittle += runtime_list[i]
+					totalbig += runtime_list[i + 4]
+				#end_for
+				print("%f  %f" % (totallittle, totalbig))
+				proplittle = totallittle * 100.0 / (benchtime * 4)
+				propbig = totalbig * 100.0 / (benchtime * 4)
+				print("%f  %f" % (proplittle, propbig))
+				proplittle_list.append(proplittle)
+				propbig_list.append(propbig)
+			#end_for
+			meanlittle, errlittle = mean_margin(proplittle_list)
+			meanbig, errbig = mean_margin(propbig_list)
+			outputline = str(meanlittle) + "," + str(errlittle) + "," + str(meanbig) + "," + str(errbig) + "\n"
+			plotdata_file.write(outputline)
+		else:
+			inputline = plotdata_file.readline()
+			inputline_list = inputline.split(",")
+			assert(len(inputline_list) == 4)
+			meanlittle = float(inputline_list[0])
+			errlittle = float(inputline_list[1])
+			meanbig = float(inputline_list[2])
+			errbig = float(inputline_list[3])
+		#end_if
+
+		print("%f  %f" % (meanlittle, meanbig))
+
+		if (governor == "schedutil_none"):
+			color = "red"
+		else:
+			color = "blue"
+		#end_if
+
+		ax_list[0].bar(offset, meanlittle, color = color)
+		ax_list[0].errorbar(offset, meanlittle, color = "black", yerr = errlittle, elinewidth = 2, capsize = 10, capthick = 2)
+		ax_list[1].bar(offset, meanbig, color = color)
+		ax_list[1].errorbar(offset, meanbig, color = "black", yerr = errbig, elinewidth = 2, capsize = 10, capthick = 2)
+
+	#end_for
+
+	ytick_list = []
+	yticklabel_list = []
+	for i in range(0, 100, 5):
+		ytick_list.append(i)
+		yticklabel_list.append(str(i))
+	#end_for
+	ax_list[0].set_yticks(ytick_list, labels = yticklabel_list)
+	ax_list[1].set_yticks(ytick_list, labels = [])
+
+	for i in range(2):
+		ax_list[i].tick_params(labelsize = 16)
+		ax_list[i].set_xticks(offset_list, labels = label_list)
+		tick_list = ax_list[i].get_xticklabels()
+		for tick in tick_list:
+			tick.set_rotation(45)
+			tick.set_ha("right")
+		#end_for
+		ax_list[i].set_ylim(0, 27)
+	#end_for
+
+	#ax.set_title("Framedrops Per CPU Policy, :30 FB\nInteraction (10 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
+	fig.text(x = .01, y = .32, rotation = "vertical", s = "Per-CPU non-idle", fontsize = 16, fontweight = "bold")
+	fig.text(x = .03, y = .31, rotation = "vertical", s = "time (%), average", fontsize = 16, fontweight = "bold")
+
+	fig.text(x = .31, y = .83, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .83, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .90, ha = "center", s = "CPU Non-Idle Time, Varying CPU Policies,\n:30 FB interaction (3 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .05, ha = "center", s = "Governor policy", fontweight = "bold", fontsize = 16)
+
+	plt.show()
+	fig.savefig(graphpath + plotfilename + ".pdf")
 
 #end_def
 
@@ -2441,5 +2562,6 @@ def quick():
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
-plot_drops_perspeed_fb()
+#plot_drops_perspeed_fb()
+plot_nonidletime_fb()
 #plot_showcase()
