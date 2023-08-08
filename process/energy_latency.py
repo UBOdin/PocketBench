@@ -25,7 +25,7 @@ datapath = "data_processed/"
 graphpath = "graphs_saved/"
 
 # Huge kludge:  Should parameterize process_loglines() in lieu:
-markerstart = "FORK_SART"
+markerstart = "FORK_START"
 markerend = "FORK_END"
 
 
