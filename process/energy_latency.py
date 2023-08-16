@@ -552,7 +552,7 @@ def plot_benchtime_cycles():
 	offset_list = [.5, 1.5, 2.5, 3.5, 4.5]
 
 	fig = plt.figure()
-	fig.set_size_inches(12.8, 4.3)
+	fig.set_size_inches(12.8, 4.8)
 
 	ax_list_list_list = []
 	cpuoffset_list = [0.0, 0.51]
@@ -561,11 +561,11 @@ def plot_benchtime_cycles():
 		xend = .075
 		barw = .031
 		ax_list_list = [[], []]
-		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [10, 1], left = .09 + cpuoffset, right = .09 + cpuoffset + (4 * barw + 2 * barw * xend), bottom = .3, top = .78)
+		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [10, 1], left = .09 + cpuoffset, right = .09 + cpuoffset + (4 * barw + 2 * barw * xend), bottom = .3, top = .85)
 		for i in range(2):
 			ax_list_list[0].append(fig.add_subplot(gs_list[i, 0]))
 		#end_for
-		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [4, 1], left = .32 + cpuoffset, right = .32 + cpuoffset + (5 * barw + 2 * barw * xend), bottom = .3, top = .78)
+		gs_list = mpl.gridspec.GridSpec(2, 1, height_ratios = [4, 1], left = .32 + cpuoffset, right = .32 + cpuoffset + (5 * barw + 2 * barw * xend), bottom = .3, top = .85)
 		for i in range(2):
 			ax_list_list[1].append(fig.add_subplot(gs_list[i, 0]))
 		#end_for
@@ -657,8 +657,8 @@ def plot_benchtime_cycles():
 		ax_list_list[1][0].set_ylim(.998, 1.002)
 		ax_list_list[1][1].set_ylim(0, .001)
 
-		fig.text(x = .12 + cpuoffset, y = .82, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
-		fig.text(x = .38 + cpuoffset, y = .82, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
+		fig.text(x = .12 + cpuoffset, y = .89, ha = "center", s = "Hardware Overhead", fontweight = "bold", fontsize = 16)
+		fig.text(x = .38 + cpuoffset, y = .89, ha = "center", s = "Software Overhead", fontweight = "bold", fontsize = 16)
 		fig.text(x = .01 + cpuoffset, y = .52, rotation = "vertical", va = "center", s = "Runtime, relative", fontweight = "bold", fontsize = 16)
 		fig.text(x = .03 + cpuoffset, y = .52, rotation = "vertical", va = "center", s = "to midspeed", fontweight = "bold", fontsize = 16)
 		fig.text(x = .235 + cpuoffset, y = .52, rotation = "vertical", va = "center", s = "Cycles, relative", fontweight = "bold", fontsize = 16)
@@ -666,11 +666,9 @@ def plot_benchtime_cycles():
 
 	#end_for
 
-	fig.text(x = .25, y = .88, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
-	fig.text(x = .75, y = .88, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .95, ha = "center", s = "Runtime and Cycles for a Fixed Compute, Varying CPU Policies (10 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .25, y = .95, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .75, y = .95, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .02, ha = "center", s = "CPU policy (Speed in MHz)", fontweight = "bold", fontsize = 16)
-	#'''
 
 	plt.show()
 	fig.savefig(graphpath + "graph_oscill_cycles.pdf")
@@ -1120,9 +1118,7 @@ def plot_energy_runtime_micro():
 	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][1].tick_params(labelsize = 16)
 
-	fig.legend(handles = handle_list, loc = (.11, .16), fontsize = 16, ncol = 2)
-
-	fig.text(x = .45, y = .90, ha = "center", s = "Runtime and Energy for a Fixed Compute per CPU, Varying CPU policy and\nCPU Count (5 runs) (Fixed 75s Energy Measurement)", fontsize = 16, fontweight = "bold")
+	fig.legend(handles = handle_list, loc = (.11, .18), fontsize = 16, ncol = 2)
 
 	plt.show()
 	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
@@ -1388,8 +1384,8 @@ def plot_freq_over_time_micro_1():
 	filename = sys.argv[1]
 
 	fig = plt.figure()
-	fig.set_size_inches(6.4, 5.6)
-	gs = mpl.gridspec.GridSpec(1, 1, top = 0.90, bottom = .13, left = .15, right = .95)
+	fig.set_size_inches(6.4, 4.8)
+	gs = mpl.gridspec.GridSpec(1, 1, top = 0.99, bottom = .12, left = .15, right = .95)
 	ax = fig.add_subplot(gs[0, 0])
 
 	_, _, _, _, eventtime_list, freq_tuple_list_list, startfreq_list, _, _ = process_loglines(filename)
@@ -1434,7 +1430,7 @@ def plot_freq_over_time_micro_1():
 	ax.plot(time_list, freq_list, solid_capstyle = "butt", color = "blue", linewidth = 3)
 	ax.axis([0, .7, 0, 2.6])
 	ax.set_xlabel("Time (s)", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Nominal CPU speed (% of maximum)", fontsize = 16, fontweight = "bold")
+	fig.text(x = .03, y = .50, va = "center", s = "Nominal CPU speed (% of maximum)", rotation = "vertical", fontsize = 16, fontweight = "bold")
 	ax.tick_params(labelsize = 16)
 
 	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)))
@@ -1449,9 +1445,6 @@ def plot_freq_over_time_micro_1():
 	ax.annotate("Overperformance", xy = (.28, 1.43), fontsize = 16)
 	ax.annotate("", xy = (.155, 1.25), xytext = (.24, 1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
 	ax.annotate("Underperformance", xy = (.25, .95), fontsize = 16)
-	#ax.annotate("and poor latency", xy = (.275, .88), fontsize = 16)
-
-	ax.set_title("CPU Frequency Over Time\nfor a Continuous Workload", fontsize = 16, fontweight = "bold")
 
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)), label = "Ideal speed"))
@@ -1656,7 +1649,7 @@ def plot_time_perspeed_fb():
 	global markerend
 	markerend = "SQL_END"
 
-	readtraces = True
+	readtraces = False
 	plotfilename = "graph_time_per_freq_fb"
 	outputline = ""
 	inputline = ""
@@ -1768,7 +1761,7 @@ def plot_time_perspeed_fb():
 	broken_axes_tb(ax0_list[2], ax0_list[3])
 
 	ax0_list[0].set_title("Little CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
-	ax0_list[1].set_ylabel("        Time spent\n        per speed (%)", fontsize = 16, fontweight = "bold")
+	ax0_list[1].set_ylabel("      Time spent\n      per speed (%)", fontsize = 16, fontweight = "bold")
 	ax0_list[2].set_title("Big CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
 	fig.text(x = .5, y = .55, ha = "center", s = "CPU speed (% of maximum)", fontweight = "bold", fontsize = 16)
 
@@ -1889,7 +1882,6 @@ def plot_time_perspeed_fb():
 	ax_list[3].annotate("", xy = (.015, -13.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
 	fig.text(x = .585, y = .145,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
-	fig.suptitle("Time per CPU Speed, Default Policy (32s scripted Facebook interaction) (3 Runs)", fontsize = 16, fontweight = "bold")
 	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .84, bottom = .10)
 	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
@@ -2241,7 +2233,6 @@ def plot_energy_varying_sleep_micro():
 
 	ax.set_ylim(0, 2000)
 
-	ax.set_title("Total Energy per CPU Policy, :30s Process\n (3 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
 	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
 	ax.set_ylabel("Total Energy ($\mu Ah$)", fontsize = 16, fontweight = "bold")
 	ax.legend(handles = handle_list, loc = "upper center", fontsize = 16)
@@ -2290,9 +2281,9 @@ def plot_drops_perspeed_fb():
 	#end_if
 
 	fig = plt.figure()
-	fig.set_size_inches(6.4, 4.8)
+	fig.set_size_inches(6.4, 4.0)
 
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .95, bottom = .30, top = .85)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .95, bottom = .35, top = .99)
 	ax = fig.add_subplot(gs_list[0, 0])
 
 	offset_list = []
@@ -2342,9 +2333,8 @@ def plot_drops_perspeed_fb():
 		tick.set_ha("right")
 	#end_for
 
-	ax.set_title("Framedrops Per CPU Policy, :30 FB\nInteraction (10 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
 	ax.set_xlabel("Governor Policy", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Dropped frames (% of total)", fontsize = 16, fontweight = "bold")
+	fig.text(x = .01, y = .50, va = "center", rotation = "vertical", s = "Dropped frames (% of total)", fontsize = 16, fontweight = "bold")
 
 	plt.show()
 	fig.savefig(graphpath + plotfilename + ".pdf")
@@ -2384,12 +2374,12 @@ def plot_nonidletime_fb():
 	#end_if
 
 	fig = plt.figure()
-	fig.set_size_inches(12.8, 4.8)
+	fig.set_size_inches(12.8, 4.0)
 
 	ax_list = []
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .30, top = .81)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .35, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .30, top = .81)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .35, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
 
 	offset_list = []
@@ -2469,13 +2459,11 @@ def plot_nonidletime_fb():
 		ax_list[i].set_ylim(0, 27)
 	#end_for
 
-	#ax.set_title("Framedrops Per CPU Policy, :30 FB\nInteraction (10 Runs, 90% Confidence)", fontsize = 16, fontweight = "bold")
 	fig.text(x = .01, y = .32, rotation = "vertical", s = "Per-CPU non-idle", fontsize = 16, fontweight = "bold")
 	fig.text(x = .03, y = .31, rotation = "vertical", s = "time (%), average", fontsize = 16, fontweight = "bold")
 
-	fig.text(x = .31, y = .83, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
-	fig.text(x = .78, y = .83, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .90, ha = "center", s = "CPU Non-Idle Time, Varying CPU Policies, :30 FB interaction (3 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .93, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .05, ha = "center", s = "Governor policy", fontweight = "bold", fontsize = 16)
 
 	plt.show()
@@ -2550,7 +2538,7 @@ def quick():
 
 #main()
 #quick()
-plot_energy_runtime_micro()
+#plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -2559,6 +2547,6 @@ plot_energy_runtime_micro()
 #plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
-#plot_drops_perspeed_fb()
+plot_drops_perspeed_fb()
 #plot_nonidletime_fb()
 #plot_showcase()
