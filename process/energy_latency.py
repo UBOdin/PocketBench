@@ -28,6 +28,8 @@ graphpath = "graphs_saved/"
 markerstart = "FORK_START"
 markerend = "FORK_END"
 
+fenergy = "$\mathscr{F}_{pow}$"
+
 
 def mean_margin(data_list):
 
@@ -1008,13 +1010,12 @@ def plot_energy_runtime_micro():
 
 	ax_list_list = [ax1_list, ax0_list]
 
-	fenergy = "${f}_{pow}$"
 	color_list = ["red", "blue", "green", "orange", "brown"]
 	linestyle_list = ["solid", "dotted", "dashed", "dashdot"]
-	annotate_list = ["", "30", "40", "", "60", fenergy, "80", "", "100"]
+	annotate_list = ["", "30", "40", "", "60", "", "80", "", "100"]
 	handle_list = []
 
-	readtraces = True
+	readtraces = False
 	#plotfilename = "graph_u_varylen_multicore"
 	plotfilename = "graph_u_fixedlen_multicore"
 	outputline = ""
@@ -1039,7 +1040,7 @@ def plot_energy_runtime_micro():
 					benchtime_list = []
 					cycles_list = []
 					energy_list = []
-					for run in range(0, 1):
+					for run in range(0, 5):
 						filename = path + benchtimeprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
 						print(filename)
 						benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
@@ -1438,19 +1439,17 @@ def plot_freq_over_time_micro_1():
 
 	ax.plot(time_list, ideal_list, solid_capstyle = "butt", color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)))
 	ax.annotate("", xy = (.155, 1.72), xytext = (.155, 2.1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
-	ax.annotate("Energy-optimal", xy = (.04, 2.3), fontsize = 16)
-	ax.annotate("CPU speed", xy = (.07, 2.15), fontsize = 16)
+	ax.annotate(fenergy, xy = (.12, 2.15), fontsize = 16)
 
 	p = mpatches.Polygon([[.11, .29], [.11, 1.67], [.26, 1.67]], facecolor = "grey", alpha = 0.3)
 	ax.add_patch(p)
 	p = mpatches.Polygon([[.29, 1.77], [.32, 2.43], [.57, 2.43], [.57, 1.77]], facecolor = "grey", alpha = 0.3)
 	ax.add_patch(p)
 	ax.annotate("", xy = (.41, 2.1), xytext = (.41, 1.55), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
-	ax.annotate("Wasted Energy", xy = (.31, 1.43), fontsize = 16)
-	ax.annotate("(Overperformance)", xy = (.27, 1.3), fontsize = 16)
+	ax.annotate("Overperformance", xy = (.28, 1.43), fontsize = 16)
 	ax.annotate("", xy = (.155, 1.25), xytext = (.24, 1), arrowprops = dict(facecolor = "black", width = 3, headlength = 20, headwidth = 12))
-	ax.annotate("Both wasted energy", xy = (.25, 1), fontsize = 16)
-	ax.annotate("and poor latency", xy = (.275, .88), fontsize = 16)
+	ax.annotate("Underperformance", xy = (.25, .95), fontsize = 16)
+	#ax.annotate("and poor latency", xy = (.275, .88), fontsize = 16)
 
 	ax.set_title("CPU Frequency Over Time\nfor a Continuous Workload", fontsize = 16, fontweight = "bold")
 
@@ -1458,7 +1457,7 @@ def plot_freq_over_time_micro_1():
 	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 6, linestyle = (0, (1, 1)), label = "Ideal speed"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 3, label = "Actual speed"))
 	handle_list.append(Patch(color = "grey", alpha = .3, label = "Wasted energy"))
-	ax.legend(handles = handle_list, loc = "lower center", fontsize = 16)
+	ax.legend(handles = handle_list, loc = (.28, .02), fontsize = 16)
 
 	fig.savefig(graphpath + "graph_missed_opportunities.pdf")
 
@@ -2273,7 +2272,6 @@ def plot_drops_perspeed_fb():
 	jank_list = []
 	filename = ""
 	prefix = "micro_SQL_A_0ms_"
-	fenergy = "${f}_{pow}$"
 
 	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
 	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
@@ -2361,7 +2359,6 @@ def plot_drops_perspeed_fb():
 # Tracefile:  .../20230206/fb_runs/*
 def plot_nonidletime_fb():
 
-	fenergy = "${f}_{pow}$"
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
 	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
 
@@ -2553,7 +2550,7 @@ def quick():
 
 #main()
 #quick()
-#plot_energy_runtime_micro()
+plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -2563,5 +2560,5 @@ def quick():
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
 #plot_drops_perspeed_fb()
-plot_nonidletime_fb()
+#plot_nonidletime_fb()
 #plot_showcase()
