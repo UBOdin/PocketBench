@@ -2478,7 +2478,7 @@ def plot_nonidletime_fb():
 
 	fig.text(x = .31, y = .83, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
 	fig.text(x = .78, y = .83, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .90, ha = "center", s = "CPU Non-Idle Time, Varying CPU Policies,\n:30 FB interaction (3 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .90, ha = "center", s = "CPU Non-Idle Time, Varying CPU Policies, :30 FB interaction (3 Runs, 90% Confidence)", fontweight = "bold", fontsize = 16)
 	fig.text(x = .5, y = .05, ha = "center", s = "Governor policy", fontweight = "bold", fontsize = 16)
 
 	plt.show()
