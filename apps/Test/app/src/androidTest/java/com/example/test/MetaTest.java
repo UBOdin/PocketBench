@@ -45,6 +45,8 @@ public class MetaTest {
     @Before
     public void startMainActivityFromHomeScreen() {
 
+        startcount(0);
+
         trace_marker("FLAG123 Start Home");
 
         // Initialize UiDevice instance
@@ -86,6 +88,8 @@ public class MetaTest {
         //Log.d(logflag, "After");
         trace_marker("FLAG123 After wait appear");
 
+        stopcount(1);
+
     }
 
     /*
@@ -100,6 +104,7 @@ public class MetaTest {
 
         trace_marker("FLAG123 Start App Script test");
         trace_marker("FLAG123 Start FB");
+        stopcount(2);
         try {
             // Navigate to friends list:
             Thread.sleep(1000);
@@ -111,7 +116,9 @@ public class MetaTest {
             // Scroll through friends list:
             Thread.sleep(500);
             for (int i = 0; i < 5; i++) {
+                trace_marker("friend_flick_start " + i);
                 device.swipe(500, 1200, 500, 800, 10);
+                trace_marker("friend_flick_end " + i);
                 Thread.sleep(500);
             }
             // Go back to app home:
@@ -122,7 +129,9 @@ public class MetaTest {
             Thread.sleep(500);
             // Scroll through feed:
             for (int i = 0; i < 20; i++) {
+                trace_marker("feed_flick_start " + i);
                 device.swipe(500, 1300, 500, 600, 10);
+                trace_marker("feed_flick_end " + i);
                 Thread.sleep(500);
             }
         } catch (Exception e) {
@@ -130,6 +139,8 @@ public class MetaTest {
         }
         trace_marker("FLAG123 End FB");
         trace_marker("FLAG123 End App Script Test");
+
+        stopcount(103);
 
     }
 
