@@ -222,11 +222,12 @@ def process_loglines(file_name):
 				#break
 			#end_if
 
-			#'''
+			'''
 			if ("Cycle data" in logline):
 				perfcycles = int(logline.split("Cycle data:  ")[1])
-				#print("cycles")
+				print("cycles")
 			#end_if
+			'''
 			#'''
 			if ("Macro cycle stats 103" in logline):
 				perfcycles_str = logline.split("Macro cycle stats 103:  ")[1][:-1]
@@ -237,6 +238,7 @@ def process_loglines(file_name):
 				#end_for
 				print("cycles:  " + str(perfcycles))
 			#end_if
+			#'''
 
 			if ("CPU FREQ" in logline):
 				temp_list = logline.split("CPU FREQ  ")[1].split(" ")
@@ -2025,6 +2027,8 @@ def plot_energy_drops_perpol_fb():
 #end_def
 
 
+# Plots coldstart time for Spotify under different policies
+# Tracefiles:  .../20230321/energy_runtime_coldstart_spot/*
 def plot_energy_hintperf_spot():
 
 	governor_list = ["normal_schedutil_none", "normal_userspace_70-70", "boost_schedutil_none", "boost_userspace_70-70"]
@@ -2544,9 +2548,9 @@ def quick():
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
-#plot_energy_hintperf_spot()
+plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
-plot_drops_perspeed_fb()
+#plot_drops_perspeed_fb()
 #plot_nonidletime_fb()
 #plot_showcase()
