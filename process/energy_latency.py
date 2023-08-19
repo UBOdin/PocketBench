@@ -1920,7 +1920,7 @@ def plot_time_perspeed_yt():
 	global markerend
 	markerend = "SQL_END"
 
-	readtraces = True
+	readtraces = False
 	plotfilename = "graph_time_per_freq_yt"
 	outputline = ""
 	inputline = ""
@@ -1933,7 +1933,7 @@ def plot_time_perspeed_yt():
 
 	if (readtraces == True):
 		runcount = 5
-		for run in range(runcount):
+		for run in range(0, runcount):
 			filename = path + prefix + str(run) + ".gz"
 			plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
 		#end_for
