@@ -1932,7 +1932,7 @@ def plot_time_perspeed_yt():
 	#end_if
 
 	if (readtraces == True):
-		runcount = 5
+		runcount = 10
 		for run in range(0, runcount):
 			filename = path + prefix + str(run) + ".gz"
 			plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
@@ -2668,7 +2668,7 @@ def plot_drops_perspeed_yt():
 
 		if (readtraces == True):
 			jank_list = []
-			for run in range(0, 5):
+			for run in range(0, 10):
 				filename = path + prefix + governor + "_" + str(run) + ".gz"
 				print(filename)
 				_, _, graphdata_list, _, _, _, _, _, _ = process_loglines(filename)
@@ -2891,7 +2891,7 @@ def plot_nonidletime_yt():
 		if (readtraces == True):
 			proplittle_list =[]
 			propbig_list = []
-			for run in range(0, 5):
+			for run in range(0, 10):
 				filename = path + benchtimeprefix + governor + "_" + str(run) + ".gz"
 				print(filename)
 				benchtime, runtime_list, _, _, _, _, _, _, _ = process_loglines(filename)
@@ -3040,7 +3040,7 @@ def quick():
 #quick()
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
-#plot_time_perspeed_yt()
+plot_time_perspeed_yt()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
