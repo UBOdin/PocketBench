@@ -1625,8 +1625,7 @@ def plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycle
 
 
 # Plots time spent per frequency for fb (default policy)
-# Tracefile:  .../20230206/fb_runs/* OR .../20230214/fb_runs_ioblock/*
-# (n.b. filename tweak to latter directory -- started omitting threadcount parameter
+# Tracefile:  .../20230820/facebook_runs/*  (old:  .../20230206/fb_runs/* OR .../20230214/fb_runs_ioblock/*)
 def plot_time_perspeed_fb():
 
 	filename = ""
@@ -2519,7 +2518,7 @@ def plot_energy_varying_sleep_micro():
 
 
 # Plots drops per CPU policy
-# Tracefile:  .../20220628/fb_batch/*
+# Tracefile:  .../20230820/facebook_runs/*  (OLD:  .../20220628/fb_batch/*) 
 def plot_drops_perspeed_fb():
 
 	# jank_mean_list = []
@@ -2719,7 +2718,7 @@ def plot_drops_perspeed_yt():
 
 
 # Plots runtime (nonidletime) per CPU policy
-# Tracefile:  .../20230206/fb_runs/*
+# Tracefile:  .../20230820/facebook_runs/*  (OLD:  .../20230206/fb_runs/*)
 def plot_nonidletime_fb():
 
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
