@@ -326,14 +326,14 @@ def process_loglines(file_name):
 	eventtime_list.append(starttime)
 	eventtime_list.append(endtime)
 
-	#'''
+	'''
 	if (len(idledata_list) != 8 * 3 * 2):
 		print("Unexpected length")
 		sys.exit(1)
 	#end
-	#'''
+	'''
 
-	#'''
+	'''
 	idlefloat_list = []
 	for e in idledata_list:
 		idlefloat_list.append(float(e) / 1000000)
@@ -353,7 +353,7 @@ def process_loglines(file_name):
 	#print(idledata_list)
 	#print(idlefloat_list)
 	#print(runtime_list)
-	#'''
+	'''
 	#print("Early exit")
 	#sys.exit(0)
 	#'''
@@ -2323,6 +2323,18 @@ def plot_energy_hintperf_spot():
 
 	path = sys.argv[1]
 
+	readtraces = False
+	plotfilename = "graph_energy_perf_coldstart_spot"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
+	#end_if
+
+
 	fig, ax_list_list = plt.subplots(2, 2)
 
 	for governor, color, marker, label in zip(governor_list, color_list, marker_list, label_list):
@@ -2331,31 +2343,35 @@ def plot_energy_hintperf_spot():
 		ttfd_list = []
 		energy_list = []
 
-		for run in range(5):
-
-			ftracefilename = path + ftraceprefix + governor + "_" + str(run) + ".gz"
-			print(ftracefilename)
-			benchtime, _, _, _, _, _, _, ttid, ttfd = process_loglines(ftracefilename)
-			ttid_list.append(ttid)
-			ttfd_list.append(ttfd)
-
-			#'''
-			energyfilename = path + energyprefix + governor + "_" + str(run) + ".csv"
-			print(energyfilename)
-			#energy = get_energy(energyfilename, 5.0, 55.0) #benchtime + 15.0)
-			energy = get_energy(energyfilename, 12.0, 12.0 + ttfd + 10.0)
-			energy_list.append(energy)
-			#'''
-
-			print(ttid)
-			print(ttfd)
-			print(energy)
-
-		#end_for
-
-		ttid_mean, ttid_err = mean_margin(ttid_list)
-		ttfd_mean, ttfd_err = mean_margin(ttfd_list)
-		energy_mean, energy_err = mean_margin(energy_list)
+		if (readtraces == True):
+			for run in range(5):
+				ftracefilename = path + ftraceprefix + governor + "_" + str(run) + ".gz"
+				print(ftracefilename)
+				benchtime, _, _, _, _, _, _, ttid, ttfd = process_loglines(ftracefilename)
+				ttid_list.append(ttid)
+				ttfd_list.append(ttfd)
+				energyfilename = path + energyprefix + governor + "_" + str(run) + ".csv"
+				#print(energyfilename)
+				#energy = get_energy(energyfilename, 5.0, 55.0) #benchtime + 15.0)
+				energy = get_energy(energyfilename, 12.0, 12.0 + ttfd + 10.0)
+				energy_list.append(energy)
+			#end_for
+			ttid_mean, ttid_err = mean_margin(ttid_list)
+			ttfd_mean, ttfd_err = mean_margin(ttfd_list)
+			energy_mean, energy_err = mean_margin(energy_list)
+			outputline = str(energy_mean) + "," + str(energy_err) + "," + str(ttid_mean) + "," + str(ttid_err) + "," + str(ttfd_mean) + "," + str(ttfd_err) + "\n"
+			plotdata_file.write(outputline)
+		else:
+			inputline = plotdata_file.readline()
+			inputline_list = inputline.split(",")
+			assert(len(inputline_list) == 6)
+			energy_mean = float(inputline_list[0])
+			energy_err = float(inputline_list[1])
+			ttid_mean = float(inputline_list[2])
+			ttid_err = float(inputline_list[3])
+			ttfd_mean = float(inputline_list[4])
+			ttfd_err = float(inputline_list[5])
+		#end_if
 
 		for yplot in range(0, 2):
 			ax_list_list[yplot, 0].scatter(ttid_mean, energy_mean, marker = marker, s = 200)
@@ -2396,6 +2412,7 @@ def plot_energy_hintperf_spot():
 	fig.suptitle("Runtime and Energy Use for Spotify App Coldstart (5 runs)", fontsize = 16, fontweight = "bold")
 
 	plt.show()
+	fig.savefig(graphpath + plotfilename)
 
 	return
 
@@ -2993,10 +3010,10 @@ def quick():
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
-#plot_energy_hintperf_spot()
+plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
 #plot_drops_perspeed_fb()
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
-plot_nonidletime_yt()
+#plot_nonidletime_yt()
