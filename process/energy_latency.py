@@ -2538,7 +2538,7 @@ def plot_drops_perspeed_fb():
 	prefix = "micro_normal_"
 
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
-	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
+	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
 
 	path = sys.argv[1]
 
@@ -2638,7 +2638,7 @@ def plot_drops_perspeed_yt():
 	prefix = "micro_normal_"
 
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
-	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
+	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
 
 	path = sys.argv[1]
 
@@ -2723,7 +2723,7 @@ def plot_drops_perspeed_yt():
 def plot_nonidletime_fb():
 
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
-	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
+	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
 
 	benchtimeprefix = "/micro_normal_"
 
@@ -2850,7 +2850,7 @@ def plot_nonidletime_fb():
 def plot_nonidletime_yt():
 
 	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
-	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
+	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
 
 	benchtimeprefix = "/micro_normal_"
 
@@ -3039,7 +3039,7 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -3051,5 +3051,5 @@ plot_time_perspeed_fb()
 #plot_drops_perspeed_fb()
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
-#plot_nonidletime_yt()
+plot_nonidletime_yt()
 #plot_showcase()
