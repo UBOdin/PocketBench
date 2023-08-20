@@ -1662,7 +1662,7 @@ def plot_time_perspeed_fb():
 	#end_if
 
 	if (readtraces == True):
-		runcount = 3
+		runcount = 10
 		for run in range(0, runcount):
 			filename = path + prefix + str(run) + ".gz"
 			plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
@@ -2535,9 +2535,9 @@ def plot_drops_perspeed_fb():
 	jank = 0.0
 	jank_list = []
 	filename = ""
-	prefix = "micro_SQL_A_0ms_"
+	prefix = "micro_normal_"
 
-	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
+	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
 	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", fenergy, "Fixed 80", "Fixed 90", "Fixed 100"]
 
 	path = sys.argv[1]
@@ -2569,7 +2569,7 @@ def plot_drops_perspeed_fb():
 		if (readtraces == True):
 			jank_list = []
 			for run in range(10):
-				filename = path + prefix + governor + "_1_" + str(run) + ".gz"
+				filename = path + prefix + governor + "_" + str(run) + ".gz"
 				print(filename)
 				_, _, graphdata_list, _, _, _, _, _, _ = process_loglines(filename)
 				jank = 100.0 * (float(graphdata_list[1]) / float(graphdata_list[0]))
@@ -2764,8 +2764,8 @@ def plot_nonidletime_fb():
 		if (readtraces == True):
 			proplittle_list =[]
 			propbig_list = []
-			for run in range(0, 3):
-				filename = path + benchtimeprefix + governor + "_1_" + str(run) + ".gz"
+			for run in range(0, 10):
+				filename = path + benchtimeprefix + governor + "_" + str(run) + ".gz"
 				print(filename)
 				benchtime, runtime_list, _, _, _, _, _, _, _ = process_loglines(filename)
 				#print(benchtime)
@@ -3039,8 +3039,8 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
-plot_time_perspeed_yt()
+plot_time_perspeed_fb()
+#plot_time_perspeed_yt()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
