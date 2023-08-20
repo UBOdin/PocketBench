@@ -2972,57 +2972,6 @@ def plot_nonidletime_yt():
 #end_def
 
 
-# Plots simple showcase of some benefits of the system.
-# No tracefiles; data hardcoded
-def plot_showcase():
-
-	print("Hello World")
-
-	# fb_energy, fb_jank
-	label_list = ["Facebook\ninteraction,\nenergy", "Facebook\ninteraction,\nscreen drops", "Codebase,\nlines"]
-	default_list = [5467.595496732798, 3.303406015058286, 100]
-	kiss_list = [4845.992575065505, 2.749247811944834, 20]
-	offset_list = range(len(label_list))
-	color_list = ["blue", "blue", "white"]  #TBD codeline count
-	tick_list = []
-	ratio = 0.0
-
-	fig = plt.figure()
-	fig.set_size_inches(6.4, 3.2)
-
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .17, right = .99, bottom = .35, top = .85)
-	ax = fig.add_subplot(gs_list[0, 0])
-
-	for offset, default, kiss, color in zip(offset_list, default_list, kiss_list, color_list):
-		ratio = (default - kiss) / default  # % less than (improvement)
-		ax.bar(offset + .5, ratio, width = .7, color = color)
-		tick_list.append(float(offset + .5))
-	#end_for
-
-	ax.set_xticks(tick_list, labels = label_list)
-
-	ytick_list = []
-	yticklabel_list = []
-	for i in range(0, 120, 20):
-		ytick_list.append(float(i / 100.0))
-		yticklabel_list.append(str(i))
-	#end_for
-	ax.set_yticks(ytick_list, labels = yticklabel_list)
-
-	ax.axis([-.5 + .25, 3.5 - .25, 0, 1.1])
-	ax.tick_params(labelsize = 16)
-
-	fig.text(x = .01, y = .60, rotation = "vertical", va = "center", s = "% Improvement,", fontweight = "bold", fontsize = 16)
-	fig.text(x = .05, y = .60, rotation = "vertical", va = "center", s = "relative to default", fontweight = "bold", fontsize = 16)
-	fig.text(x = .58, y = .02, ha = "center", s = "System metric", fontweight = "bold", fontsize = 16)
-	fig.text(x = .5, y = .92, ha = "center", s = "The Benefits of Simplicity", fontweight = "bold", fontsize = 16)
-
-	plt.show()
-	fig.savefig(graphpath + "graph_showcase.pdf")
-
-#end_def
-
-
 def quick():
 
 	filename = ""
@@ -3052,4 +3001,3 @@ def quick():
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
 plot_nonidletime_yt()
-#plot_showcase()
