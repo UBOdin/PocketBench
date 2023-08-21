@@ -2319,7 +2319,7 @@ def plot_energy_hintperf_spot():
 
 	color_list = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive"]
 	marker_list = ["v", "^", ">", "<"]
-	label_list = ["Default, no hint", "Fixed 70, no hint", "Default, with hint", "Fixed 70, with hint"]
+	label_list = ["Default", "Fixed 70", "Default, 2s boost", "Fixed 70, 2s boost"]
 
 	path = sys.argv[1]
 
@@ -2335,7 +2335,17 @@ def plot_energy_hintperf_spot():
 	#end_if
 
 
-	fig, ax_list_list = plt.subplots(2, 2)
+	fig = plt.figure()
+	fig.set_size_inches(12.8, 4.8)
+	gs = mpl.gridspec.GridSpec(1, 2, top = 0.85, bottom = .15, left = .10, right = .98, wspace = .10)
+	ax_list_list = [[], []]
+	ax_list_list[0].append(fig.add_subplot(gs[0, 0]))
+	gs_zoom0 = mpl.gridspec.GridSpec(1, 1, top = .80, bottom = .25, left = .30, right = .50)
+	ax_list_list[0].append(fig.add_subplot(gs_zoom0[0, 0]))
+	ax_list_list[1].append(fig.add_subplot(gs[0, 1]))
+	gs_zoom1 = mpl.gridspec.GridSpec(1, 1, top = .80, bottom = .25, left = .63, right = .83)
+	ax_list_list[1].append(fig.add_subplot(gs_zoom1[0, 0]))
+
 
 	for governor, color, marker, label in zip(governor_list, color_list, marker_list, label_list):
 
@@ -2373,11 +2383,11 @@ def plot_energy_hintperf_spot():
 			ttfd_err = float(inputline_list[5])
 		#end_if
 
-		for yplot in range(0, 2):
-			ax_list_list[yplot, 0].scatter(ttid_mean, energy_mean, marker = marker, s = 200)
-			ax_list_list[yplot, 0].errorbar(ttid_mean, energy_mean, xerr = ttid_err, yerr = energy_err)
-			ax_list_list[yplot, 1].scatter(ttfd_mean, energy_mean, marker = marker, s = 200)
-			ax_list_list[yplot, 1].errorbar(ttfd_mean, energy_mean, xerr = ttfd_err, yerr = energy_err)
+		for i in range(0, 2):
+			ax_list_list[0][i].scatter(ttid_mean, energy_mean, marker = marker, s = 200)
+			ax_list_list[0][i].errorbar(ttid_mean, energy_mean, xerr = ttid_err, yerr = energy_err)
+			ax_list_list[1][i].scatter(ttfd_mean, energy_mean, marker = marker, s = 200)
+			ax_list_list[1][i].errorbar(ttfd_mean, energy_mean, xerr = ttfd_err, yerr = energy_err)
 		#end_for
 
 	#end_for
@@ -2387,7 +2397,25 @@ def plot_energy_hintperf_spot():
 		handle_list.append(Line2D([], [], marker = marker, markersize = 15, color = color, label = label, linewidth = 0))
 	#end_for
 
+	fig.legend(handles = handle_list, loc = (.08, .90), fontsize = 16, ncol = 4)
 
+	ax_list_list[0][0].axis([0, 2.5, 0, 1200])
+	ax_list_list[0][1].axis([.50, .70, 925, 1100])
+	ax_list_list[1][0].axis([0, 2.5, 0, 1200])
+	ax_list_list[1][1].axis([1.7, 2.3, 925, 1100])
+
+	ax_list_list[0][0].tick_params(labelsize = 16)
+	ax_list_list[0][1].tick_params(labelsize = 16)
+	ax_list_list[1][0].tick_params(labelsize = 16)
+	ax_list_list[1][1].tick_params(labelsize = 16)
+
+	ax_list_list[0][0].set_xlabel("Time to initial display (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].set_ylabel("Energy ($\mu$Ah)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_xlabel("Time to full drawn (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_yticklabels([])
+
+
+	'''
 	ax_list_list[0, 0].tick_params(labelsize = 16)
 	ax_list_list[0, 1].tick_params(labelsize = 16)
 	ax_list_list[1, 0].tick_params(labelsize = 16)
@@ -2410,9 +2438,10 @@ def plot_energy_hintperf_spot():
 	ax_list_list[0, 1].legend(handles = handle_list, loc = "lower left", fontsize = 16)
 
 	fig.suptitle("Runtime and Energy Use for Spotify App Coldstart (5 runs)", fontsize = 16, fontweight = "bold")
+	'''
 
 	plt.show()
-	fig.savefig(graphpath + plotfilename)
+	fig.savefig(graphpath + plotfilename + ".pdf")
 
 	return
 
