@@ -2493,7 +2493,7 @@ def plot_energy_varying_sleep_micro():
 
 	color_list = ["red", "blue", "green"]
 	marker_list = ["o", "s", "D"]
-	legendlabel_list = ["continuous sleeping", "periodic 15ms sleeps", "no sleeping"]
+	legendlabel_list = ["no sleeping", "periodic 15ms sleeps", "continuous sleeping"]
 	xticklabel_list = ["default", "fixed 30", "fixed 40", "fixed 50", "fixed 60", "fixed 70", "fixed 80", "fixed 90", "fixed 100"]
 	linestyle_list = ["solid", "dotted", "dashed"]
 	handle_list = []
@@ -3039,8 +3039,8 @@ def quick():
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
-plot_energy_hintperf_spot()
-#plot_energy_varying_sleep_micro()
+#plot_energy_hintperf_spot()
+plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
 #plot_drops_perspeed_fb()
 #plot_drops_perspeed_yt()
