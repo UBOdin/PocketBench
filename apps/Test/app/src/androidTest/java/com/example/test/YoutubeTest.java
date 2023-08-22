@@ -132,7 +132,7 @@ public class YoutubeTest {
             for (int i = 0; i < inputtext.length(); i++) {
                 char_ascii = inputtext.charAt(i);
                 // only supports lower case and space:
-                if ((char_ascii >= 'a') && (char_ascii < 'z')) {
+                if ((char_ascii >= 'a') && (char_ascii <= 'z')) {
                     //Thread.sleep(500);
                     device.pressKeyCode(char_ascii - 68);
                 } else if (char_ascii == ' ') {
