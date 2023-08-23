@@ -13,6 +13,7 @@ toggle_events() {
 set_governor() {
 
 	local governor="$1"
+	local frequency="$2"
 	if [ "$device" = "nexus6" ]; then
 		# Turn on all CPUs and set governor as selected:
 		for i in $cpus; do
@@ -32,6 +33,17 @@ set_governor() {
 			echo "$governor" > $cpu_dir/cpufreq/policy${cluster}/scaling_governor
 			errtrap $? "ERR Invalid governor"
 		done
+		if [ "$governor" = "schedutil" ]; then
+			# Extract the big-little min-max speeds from the uber-parameter:
+			freq_lmin="$(echo $frequency | cut -d "-" -f1)"
+			freq_bmin="$(echo $frequency | cut -d "-" -f2)"
+			freq_lmax="$(echo $frequency | cut -d "-" -f3)"
+			freq_bmax="$(echo $frequency | cut -d "-" -f4)"
+			echo "$freq_lmin" > $cpu_dir/cpufreq/policy0/scaling_min_freq
+			echo "$freq_bmin" > $cpu_dir/cpufreq/policy4/scaling_min_freq
+			echo "$freq_lmax" > $cpu_dir/cpufreq/policy0/scaling_max_freq
+			echo "$freq_bmax" > $cpu_dir/cpufreq/policy4/scaling_max_freq
+		fi
 		if [ "$governor" = "userspace" ]; then
 			# Extract the specific big-little speeds from the uber-parameter:
 			freq_little="$(echo $frequency | cut -d "-" -f1)"
@@ -64,7 +76,7 @@ send_wakeup() {
 error_exit() {
 
 	toggle_events 0
-	set_governor "$default"  # FIXME:  infinite loop if this fails
+	set_governor "$default" "$deffreq"  # FIXME:  infinite loop if this fails
 	echo "$1" >> $logfile
 	echo "ERR" > $errfile
 	send_wakeup
@@ -152,6 +164,7 @@ if [ "$device" = "nexus6" ]; then
 	cpus="0 1 2 3"
 else
 	default="schedutil"
+	deffreq="300000-300000-1900800-2457600"
 	cpus="0 1 2 3 4 5 6 7"
 fi
 
@@ -170,9 +183,9 @@ chmod 777 /data/results.pipe
 
 # Set governor as selected (use userspace if oscillating):
 if [ "$governor" = "oscillate" ]; then
-	set_governor "userspace"
+	set_governor "userspace" "$frequency"
 else
-	set_governor "$governor"
+	set_governor "$governor" "$frequency"
 fi
 toggle_events 1
 
@@ -248,11 +261,11 @@ if [ "$experiment" = "simpleapp" ]; then
 	echo "before start" >> $trace_log
 	# repurpose $bgdelay:
 	if [ "$bgdelay" = "boost" ]; then
-		set_governor "performance"
+		set_governor "performance" "none"
 	fi
 	am start -a android.intent.action.MAIN -c andorid.intent.category.LAUNCHER -n $pkgname/.MainActivity
 	sleep 2
-	set_governor "$governor"
+	set_governor "$governor" "$frequency"
 	echo "after start" >> $trace_log
 	sleep 5
 	logcat -d > $alogcat_file
@@ -358,11 +371,13 @@ fi
 echo "Received benchmark app finished signal" >> $logfile
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 printf "Governor used:  %s\n" "$governor" >> $trace_log
-cat $cpu_dir/cpu0/cpufreq/scaling_setspeed >> $trace_log
-cat $cpu_dir/cpu4/cpufreq/scaling_setspeed >> $trace_log
+cat $cpu_dir/cpufreq/policy0/scaling_min_freq >> $trace_log
+cat $cpu_dir/cpufreq/policy4/scaling_min_freq >> $trace_log
+cat $cpu_dir/cpufreq/policy0/scaling_max_freq >> $trace_log
+cat $cpu_dir/cpufreq/policy4/scaling_max_freq >> $trace_log
 
 toggle_events 0
-set_governor "$default"
+set_governor "$default" "$deffreq"
 
 # Sanity check that we are still on battery:
 dumpsys battery > /data/power.txt
