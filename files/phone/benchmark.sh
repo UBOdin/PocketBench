@@ -3,10 +3,10 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	#echo $1 > $trace_dir/events/power/cpu_idle/enable
+	echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -116,8 +116,8 @@ graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
 #device="nexus6"
 device="pixel2"
-experiment="microbench"
-#experiment="uiautomator"
+#experiment="microbench"
+experiment="uiautomator"
 #experiment="simpleapp"
 
 governor=$1
@@ -275,12 +275,19 @@ if [ "$experiment" = "uiautomator" ]; then
 		bgpid="$!"
 	fi
 
-	pkgname="com.facebook.katana"
-	pkgtest="com.example.test.MetaTest"
+	#pkgname="com.facebook.katana"
+	#pkgtest="com.example.test.MetaTest"
+
 	#pkgname= TDB
 	#pkgtest="com.example.test.TempleTest"
 	#pkgname="com.google.android.calculator"
 	#pkgtest="com.example.test.CalcTest"
+
+	pkgname="com.google.android.youtube"
+	pkgtest="com.example.test.YoutubeTest"
+
+	#pkgname="com.spotify.music"
+	#pkgtest="com.example.test.SpotifyTest"
 
 	get_cpufreq
 	echo "CPU FREQ $cpufreqconcat" >> $trace_log
