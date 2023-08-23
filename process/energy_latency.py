@@ -2996,10 +2996,10 @@ def plot_nonidletime_yt():
 	for i in range(2):
 		ax_list[i].tick_params(labelsize = 16)
 		ax_list[i].set_xticks(offset_list, labels = label_list)
-		tick_list = ax_list[i].get_xticklabels()
-		for tick in tick_list:
-			tick.set_rotation(45)
-			tick.set_ha("right")
+		ticklabel_list = ax_list[i].get_xticklabels()
+		for ticklabel in ticklabel_list:
+			ticklabel.set_rotation(45)
+			ticklabel.set_ha("right")
 		#end_for
 		ax_list[i].set_ylim(0, 27)
 	#end_for
@@ -3013,6 +3013,152 @@ def plot_nonidletime_yt():
 
 	plt.show()
 	fig.savefig(graphpath + plotfilename + ".pdf")
+
+#end_def
+
+
+def plot_energy_jank_all():
+
+	benchtime = 0.0
+	jank = 0.0
+	jank_list = []
+	jank_mean = 0.0
+	jank_err = 0.0
+	energy = 0.0
+	energy_list = []
+	energy_mean = 0.0
+	energy_err = 0.0
+
+	#apppath_list = ["facebook_runs/", "youtube_runs/", "spotify_runs/"]
+	apppath_list = ["youtube_runs/", "facebook_runs/", "spotify_runs/"]
+	governor_list = ["schedutil_def-def", "schedutil_70-def", "schedutil_75-def", "userspace_70-70", "ioblock_70-def", "ioblock_75-def", "ioblock_70-70", "performance_def-def"]
+	xticklabel_list = ["Default", "Schedutil [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
+
+	path = sys.argv[1]
+
+	# Android app traces use "SQL_*" markers (plot requires ftrace log):
+	global markerstart
+	markerstart = "SQL_START"
+	global markerend
+	markerend = "SQL_END"
+
+	readtraces = False
+	plotfilename = "graph_energy_jank_all"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
+	#end_if
+
+	#'''
+	fig = plt.figure()
+	fig.set_size_inches(12.8, 4.0)
+
+	ax_list = []
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .35, top = .90)
+	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .35, top = .90)
+	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+	#'''
+	'''
+	ax_list = []
+	fig, ax = plt.subplots()
+	fig.set_size_inches(12.8, 4.0)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .35, top = .90)
+	# TODO finish
+
+	ax_list.append(ax)
+	fig2, ax2 = plt.subplots()
+	fig2.set_size_inches(12.8, 4.0)
+	ax_list.append(ax2)
+	'''
+
+	appoffset_list = [0, 10, 20]
+	govoffset_list = []
+	for i in range (8):
+		govoffset_list.append(float(i) + .5)
+	#end_for
+
+	xtick_list = []
+	adj_list = []  # hack
+
+	for apppath, appoffset in zip(apppath_list, appoffset_list):
+		for governor, govoffset, xticklabel in zip(governor_list, govoffset_list, xticklabel_list):
+
+			if (readtraces == True):
+				jank_list = []
+				energy_list = []
+				for run in range(0, 10):
+					filename = path + apppath + "micro_normal_" + governor + "_" + str(run) + ".gz"
+					benchtime, _, graphdata_list, _, _, _, _, _, _ = process_loglines(filename)
+					jank = 100.0 * (float(graphdata_list[1]) / float(graphdata_list[0]))
+					jank_list.append(jank)
+					energyfilename = path + apppath + "monsoon_normal_" + governor + "_" + str(run) + ".csv"
+					energy = get_energy(energyfilename, 5.0, 65.0) #benchtime + 15.0)
+					energy_list.append(energy)
+
+					print("%s  %f  %f  %f" % (filename, benchtime, jank, energy))
+
+				#end_for
+				jank_mean, jank_err = mean_margin(jank_list)
+				energy_mean, energy_err = mean_margin(energy_list)
+				outputline = str(jank_mean) + "," + str(jank_err) + "," + str(energy_mean) + "," + str(energy_err) + "\n"
+				plotdata_file.write(outputline)
+			else:
+
+				if (apppath == "youtube_runs/"):
+					inputline = plotdata_file.readline()
+					inputline_list = inputline.split(",")
+					print(inputline_list)
+					assert(len(inputline_list) == 4)
+					jank_mean = float(inputline_list[0])
+					jank_err = float(inputline_list[1])
+					energy_mean = float(inputline_list[2])
+					energy_err = float(inputline_list[3])
+				else:
+					jank_mean = 0
+					jank_err = 0
+					energy_mean = 0
+					energy_err = 0
+				#end_if
+
+			#end_if
+
+			if ((govoffset == 2.5) or (govoffset == 5.5)):
+				continue
+			#end_if
+
+			offset = appoffset + govoffset
+			xtick_list.append(offset)
+			adj_list.append(xticklabel)  # hack
+			ax_list[0].bar(offset, jank_mean)
+			ax_list[0].errorbar(offset, jank_mean, yerr = jank_err, color = "black")
+			ax_list[1].bar(offset, energy_mean)
+			ax_list[1].errorbar(offset, energy_mean, yerr = energy_err, color = "black")
+
+		#end_for
+	#end_for
+
+	for i in range(2):
+		ax_list[i].tick_params(labelsize = 16)
+		ax_list[i].set_xticks(xtick_list, labels = adj_list)
+		ticklabel_list = ax_list[i].get_xticklabels()
+		for ticklabel in ticklabel_list:
+			ticklabel.set_rotation(45)
+			ticklabel.set_ha("right")
+		#end_for
+		ax_list[i].set_xlabel("CPU policy", fontsize = 16, fontweight = "bold")
+	#end_for
+
+	ax_list[0].set_ylabel("Screendrops (%)", fontsize = 16, fontweight = "bold")
+	ax_list[1].set_ylabel("Energy ($\mu$Ah)", fontsize = 16, fontweight = "bold")
+
+	plt.show()
+
+	return
 
 #end_def
 
@@ -3040,9 +3186,12 @@ def quick():
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
 #plot_energy_hintperf_spot()
-plot_energy_varying_sleep_micro()
+#plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
 #plot_drops_perspeed_fb()
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
+plot_energy_jank_all()
+
+
