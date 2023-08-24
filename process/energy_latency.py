@@ -1984,7 +1984,7 @@ def plot_time_perspeed_yt():
 		fttc_list_list_list[cluster].sort(key = lambda fttc_list:fttc_list[0])
 	#end_for
 
-	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [18, 12, 1, 18, 12], top = 0.88, bottom = .20, wspace = .20)
+	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [18, 12, 1, 18, 12], top = 0.88, bottom = .20, wspace = .20, left = .10, right = .98)
 
 	ax_list = []
 	for i in range(5):
@@ -2031,8 +2031,8 @@ def plot_time_perspeed_yt():
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
-	fig.legend(handles = handle_list, loc = (.25, .60), fontsize = 16)
-	fig.legend(handles = handle_list, loc = (.67, .60), fontsize = 16)
+	fig.legend(handles = handle_list, loc = (.24, .60), fontsize = 16)
+	fig.legend(handles = handle_list, loc = (.72, .60), fontsize = 16)
 
 
 	ax_list[0].set_xlim(0, .18)
@@ -2049,7 +2049,7 @@ def plot_time_perspeed_yt():
 	ax_list[4].tick_params(labelsize = 12)
 
 	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs (average)", fontweight = "bold", fontsize = 16)
-	fig.text(x = .73, y = .93, ha = "center", s = "Big CPUs (average)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .93, ha = "center", s = "Big CPUs (average)", fontweight = "bold", fontsize = 16)
 
 	ax_list[0].set_ylabel("CPU speed (%\nof maximum),\nrelative to ideal", fontsize = 16, fontweight = "bold")
 	ax_list[3].set_yticklabels([])
