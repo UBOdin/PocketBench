@@ -2077,6 +2077,198 @@ def plot_time_perspeed_yt():
 #end_def
 
 
+# Plots time spent per frequency for spotify (default policy)
+# Tracefile:  .../20230820/spotify_runs/*
+def plot_time_perspeed_spot():
+
+	filename = ""
+	freqtimetotalcluster_dict_list = [{}, {}]
+	freqtimetotalcluster_dict = {}
+	fttc_list_list_list = [[], []]
+	fttc_list = []
+	maxspeed_dict = {}
+	perfcycles_list = []
+	cluster = 0
+	runcount = 0
+
+	maxspeed_dict = {0:1900800, 1:2457600}  # 10% CPU freq to norm speeds
+
+	prefix = ""
+	path = sys.argv[1]
+
+	# Android app traces use "SQL_*" markers (plot requires ftrace log):
+	global markerstart
+	markerstart = "SQL_START"
+	global markerend
+	markerend = "SQL_END"
+
+	readtraces = False
+	plotfilename = "graph_time_per_freq_spot"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
+	#end_if
+
+	if (readtraces == True):
+		runcount = 10
+		for run in range(0, runcount):
+			filename = path + prefix + str(run) + ".gz"
+			plot_time_perfreq_percpu(filename, freqtimetotalcluster_dict_list, perfcycles_list)
+		#end_for
+		for cluster in range(2):
+			freqtimetotalcluster_dict = freqtimetotalcluster_dict_list[cluster]
+			# Construct (unsorted) list of [speed, timespent] lists:
+			# to save out (rather than working with the original dict):
+			timetotal = 0.0
+			for speed in freqtimetotalcluster_dict:
+				time = freqtimetotalcluster_dict[speed]  # total time per speed (of all CPUs in cluster and all runs)
+				timepcpr = time / (runcount * 4)  # Average time per speed (for 1 CPU and 1 run)
+				timetotal += timepcpr
+				fttc_list_list_list[cluster].append([speed, timepcpr])
+			#end_for
+			# Sort list of [speed, timespent] lists by speed:
+			fttc_list_list_list[cluster].sort(key = lambda fttc_list:fttc_list[0])
+			# Norm total time of [speed, timespent] lists to (0, 1):
+			for fttc_list in fttc_list_list_list[cluster]:
+				fttc_list[1] /= timetotal
+			#end_for
+			for fttc_list in fttc_list_list_list[cluster]:
+				outputline = str(cluster) + "," + str(fttc_list[0]) + "," + str(fttc_list[1]) + "\n"
+				plotdata_file.write(outputline)
+			#end_for
+		#end_for
+	else:
+		while (True):
+			inputline = plotdata_file.readline()
+			if (inputline == ""):
+				break
+			#end_if
+			inputline_list = inputline.split(",")
+			assert(len(inputline_list) == 3)
+			cluster = int(inputline_list[0])
+			fttc_list_list_list[cluster].append([int(inputline_list[1]), float(inputline_list[2])])
+		#end_while
+	#end_if
+	plotdata_file.close()
+
+
+	fig = plt.figure()
+	fig.set_size_inches(12.8, 3.2)
+
+	# Rework CDF relative to ideal frequency:
+	for cluster in range(2):
+		# For idle (0 speed), ideal is 0; else ~70%:
+		for fttc_list in fttc_list_list_list[cluster]:
+			speed = fttc_list[0]
+			if (speed == 0):
+				newspeed = 0
+			else:
+				newspeed = speed - maxspeed_dict[cluster] * .7
+			#end_if
+			fttc_list[0] = newspeed
+		#end_for
+		# Re-sort, by delta relative to ideal speed:
+		fttc_list_list_list[cluster].sort(key = lambda fttc_list:fttc_list[0])
+	#end_for
+
+	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [18, 12, 1, 18, 12], top = 0.88, bottom = .20, wspace = .20, left = .10, right = .98)
+
+	ax_list = []
+	for i in range(5):
+		ax = fig.add_subplot(gs2[i])
+		ax_list.append(ax)
+	#end_for
+
+	linewidth = 2
+	alpha = .3
+
+	xprop = 100  # CPU speed proportion (out of)
+	yprop = 1  # time spent proportion (out of)
+	# Plot identical graphs in plots (0, 1) and in (3, 4).  Plot 2 is a dummy spacer (ignore).
+	for xplot in [0, 1, 3, 4]:
+		if (xplot < 2):
+			cluster = 0
+		elif (xplot > 2):
+			cluster = 1
+		#end_if
+		fttc_iter = iter(fttc_list_list_list[cluster])
+		fttc_list = next(fttc_iter)
+		speedprev = float(fttc_list[0] * xprop) / maxspeed_dict[cluster]
+		cdfsubtotalprev = fttc_list[1] * yprop
+		ax_list[xplot].plot([0, cdfsubtotalprev], [speedprev, speedprev], color = "blue", linewidth = linewidth)
+		while (True):
+			try:
+				fttc_list = next(fttc_iter)
+			except StopIteration:
+				break
+			#end_try
+			speed = float(fttc_list[0] * xprop) / maxspeed_dict[cluster]
+			cdfsubtotal = cdfsubtotalprev + fttc_list[1] * yprop
+			ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotalprev], [speedprev, speed], color = "blue", linewidth = linewidth)
+			ax_list[xplot].plot([cdfsubtotalprev, cdfsubtotal], [speed, speed], color = "blue", linewidth = linewidth)
+			speedprev = speed
+			cdfsubtotalprev = cdfsubtotal
+		#end_while
+		# Plot "ideal" inv-DF:
+		ax_list[xplot].plot([0, cdfsubtotalprev], [0, 0], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)))
+	#end_for
+
+	ax_list[2].set_visible(False)
+
+	handle_list = []
+	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
+	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
+	fig.legend(handles = handle_list, loc = (.24, .60), fontsize = 16)
+	fig.legend(handles = handle_list, loc = (.72, .60), fontsize = 16)
+
+	xtick_list = []
+	for i in range(0, 105, 5):
+		xtick_list.append(float(i / 100.0))
+	#end_for
+	ax_list[0].set_xticks(xtick_list)
+	ax_list[1].set_xticks(xtick_list)
+	ax_list[3].set_xticks(xtick_list)
+	ax_list[4].set_xticks(xtick_list)
+
+	ax_list[0].set_xlim(0, .18)
+	ax_list[1].set_xlim(.88, 1.00)
+	ax_list[3].set_xlim(0, .18)
+	ax_list[4].set_xlim(.88, 1.00)
+	for i in range(5):
+		ax_list[i].set_ylim(-62, 62)
+	#end_for
+
+	ax_list[0].tick_params(labelsize = 16)
+	ax_list[1].tick_params(labelsize = 16)
+	ax_list[3].tick_params(labelsize = 16)
+	ax_list[4].tick_params(labelsize = 16)
+
+	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs (average)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .93, ha = "center", s = "Big CPUs (average)", fontweight = "bold", fontsize = 16)
+
+	ax_list[0].set_ylabel("CPU speed (%\nof maximum),\nrelative to ideal", fontsize = 16, fontweight = "bold")
+	ax_list[3].set_yticklabels([])
+
+	broken_axes_lr(ax_list[0], ax_list[1])
+	broken_axes_lr(ax_list[3], ax_list[4])
+
+	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
+	fig.subplots_adjust(top = .84, bottom = .10)
+	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
+
+	plt.show()
+	plt.close("all")
+
+	return
+
+#end_def
+
+
+
 # Plots time energy and screendrops per CPU policy (Second plot:  energy and cycles per CPU policy)
 # Tracefile:  .../20230214/fb_runs_ioblock/*
 # Summary post-processed data file:  graph_energy_jank_fb.txt  
@@ -3236,7 +3428,8 @@ def quick():
 #quick()
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
-plot_time_perspeed_yt()
+#plot_time_perspeed_yt()
+plot_time_perspeed_spot()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
