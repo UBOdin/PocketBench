@@ -3148,10 +3148,11 @@ def plot_energy_jank_all():
 	energy_mean = 0.0
 	energy_err = 0.0
 
-	#apppath_list = ["facebook_runs/", "youtube_runs/", "spotify_runs/"]
-	apppath_list = ["youtube_runs/", "facebook_runs/", "spotify_runs/"]
+	apppath_list = ["facebook_runs/", "youtube_runs/", "spotify_runs/"]
 	governor_list = ["schedutil_def-def", "schedutil_70-def", "schedutil_75-def", "userspace_70-70", "ioblock_70-def", "ioblock_75-def", "ioblock_70-70", "performance_def-def"]
-	xticklabel_list = ["Default", "Schedutil [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
+	#xticklabel_list = ["Default", "Schedutil [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
+	xticklabel_list = ["Default", "SU [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
+
 
 	path = sys.argv[1]
 
@@ -3172,7 +3173,7 @@ def plot_energy_jank_all():
 		plotdata_file = open(datapath + plotfilename + ".txt", "r")
 	#end_if
 
-	#'''
+	'''
 	fig = plt.figure()
 	fig.set_size_inches(12.8, 4.0)
 
@@ -3181,19 +3182,18 @@ def plot_energy_jank_all():
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
 	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .35, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+	'''
 	#'''
-	'''
 	ax_list = []
-	fig, ax = plt.subplots()
+	fig = plt.figure()
 	fig.set_size_inches(12.8, 4.0)
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .35, top = .90)
-	# TODO finish
-
-	ax_list.append(ax)
-	fig2, ax2 = plt.subplots()
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .90, bottom = .40, top = .90)
+	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+	fig2 = plt.figure()
 	fig2.set_size_inches(12.8, 4.0)
-	ax_list.append(ax2)
-	'''
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .90, bottom = .40, top = .90)
+	ax_list.append(fig2.add_subplot(gs_list[0, 0]))
+	#'''
 
 	appoffset_list = [0, 10, 20]
 	govoffset_list = []
@@ -3227,8 +3227,12 @@ def plot_energy_jank_all():
 				outputline = str(jank_mean) + "," + str(jank_err) + "," + str(energy_mean) + "," + str(energy_err) + "\n"
 				plotdata_file.write(outputline)
 			else:
-
-				if (apppath == "youtube_runs/"):
+				if (apppath == "spotify_runs/"):
+					jank_mean = 0
+					jank_err = 0
+					energy_mean = 0
+					energy_err = 0
+				else:
 					inputline = plotdata_file.readline()
 					inputline_list = inputline.split(",")
 					print(inputline_list)
@@ -3237,11 +3241,6 @@ def plot_energy_jank_all():
 					jank_err = float(inputline_list[1])
 					energy_mean = float(inputline_list[2])
 					energy_err = float(inputline_list[3])
-				else:
-					jank_mean = 0
-					jank_err = 0
-					energy_mean = 0
-					energy_err = 0
 				#end_if
 
 			#end_if
@@ -3253,9 +3252,16 @@ def plot_energy_jank_all():
 			offset = appoffset + govoffset
 			xtick_list.append(offset)
 			adj_list.append(xticklabel)  # hack
-			ax_list[0].bar(offset, jank_mean)
+
+			if (governor == "schedutil_def-def"):
+				color = "red"
+			else:
+				color = "blue"
+			#end_if
+
+			ax_list[0].bar(offset, jank_mean, color = color)
 			ax_list[0].errorbar(offset, jank_mean, yerr = jank_err, color = "black")
-			ax_list[1].bar(offset, energy_mean)
+			ax_list[1].bar(offset, energy_mean, color = color)
 			ax_list[1].errorbar(offset, energy_mean, yerr = energy_err, color = "black")
 
 		#end_for
@@ -3275,7 +3281,17 @@ def plot_energy_jank_all():
 	ax_list[0].set_ylabel("Screendrops (%)", fontsize = 16, fontweight = "bold")
 	ax_list[1].set_ylabel("Energy ($\mu$Ah)", fontsize = 16, fontweight = "bold")
 
+	fig.text(x = .25, y = .92, ha = "center", s = "Facebook", fontsize = 16, fontweight = "bold")
+	fig.text(x = .50, y = .92, ha = "center", s = "Youtube", fontsize = 16, fontweight = "bold")
+	fig.text(x = .75, y = .92, ha = "center", s = "Spotify", fontsize = 16, fontweight = "bold")
+
+	fig2.text(x = .25, y = .92, ha = "center", s = "Facebook", fontsize = 16, fontweight = "bold")
+	fig2.text(x = .50, y = .92, ha = "center", s = "Youtube", fontsize = 16, fontweight = "bold")
+	fig2.text(x = .75, y = .92, ha = "center", s = "Spotify", fontsize = 16, fontweight = "bold")
+
 	plt.show()
+	fig.savefig(graphpath + "graph_jank_allapps.pdf")
+	fig2.savefig(graphpath + "graph_energy_allapps.pdf")
 
 	return
 
@@ -3298,7 +3314,7 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -3312,6 +3328,6 @@ plot_time_perspeed_fb()
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
 #plot_nonidletime_spot()
-#plot_energy_jank_all()
+plot_energy_jank_all()
 
 
