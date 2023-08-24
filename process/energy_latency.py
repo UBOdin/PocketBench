@@ -1856,29 +1856,21 @@ def plot_time_perspeed_fb():
 
 	adjx = 0
 	adjy = -70
-	p = mpatches.Polygon([[.96 + adjx, 71 + adjy], [.998 + adjx, 71 + adjy], [.998 + adjx, 99 + adjy], [.965 + adjx, 99 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[1].add_patch(p)
 	ax_list[1].annotate("", xy = (.98 + adjx, 84 + adjy), xytext = (.956, -25.2), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
 	ax_list[1].annotate("Overperformance", xy = (.895, -33.5), fontsize = 12)
 
 	adjx = -.876
 	adjy = -70
-	p = mpatches.Polygon([[.878 + adjx, 16.5 + adjy], [.878 + adjx, 69 + adjy], [.953 + adjx, 69 + adjy], [.95 + adjx, 62.5 + adjy], [.90 + adjx, 62.5 + adjy], [.888 + adjx, 16.5 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[0].add_patch(p)
 	ax_list[0].annotate("", xy = (.009, -20), xytext = (.92 + adjx, 29 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
 	fig.text(x = .18, y = .135,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
 	adjx = 0
 	adjy = -70
-	p = mpatches.Polygon([[.868 + adjx, 71 + adjy], [.998 + adjx, 71 + adjy], [.998 + adjx, 99 + adjy], [.902 + adjx, 99 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[4].add_patch(p)
 	ax_list[4].annotate("", xy = (.94 + adjx, 84 + adjy), xytext = (.94 + adjx, 58 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
 	ax_list[4].annotate("Overperformance", xy = (.895, -20), fontsize = 12)
 
 	adjx = -.801
 	adjy = -70
-	p = mpatches.Polygon([[.803 + adjx, 12.5 + adjy], [.803 + adjx, 69 + adjy], [.834 + adjx, 69 + adjy], [.83 + adjx, 47 + adjy], [.813 + adjx, 47 + adjy], [.805 + adjx, 12.5 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[3].add_patch(p)
 	ax_list[3].annotate("", xy = (.015, -13.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
 	fig.text(x = .585, y = .145,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
@@ -3306,7 +3298,7 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
@@ -3319,7 +3311,7 @@ def quick():
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
-plot_nonidletime_spot()
+#plot_nonidletime_spot()
 #plot_energy_jank_all()
 
 
