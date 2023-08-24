@@ -1706,7 +1706,7 @@ def plot_time_perspeed_fb():
 	fig = plt.figure()
 	fig.set_size_inches(12, 6)
 
-	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [10, 22], top = 0.85, bottom = .65)
+	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [10, 22], top = 0.85, bottom = .65, left = .10, right = .98)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs1[0, 0:2]))
 	ax0_list.append(fig.add_subplot(gs1[1, 0:2]))
@@ -1731,8 +1731,8 @@ def plot_time_perspeed_fb():
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
-	ax0_list[1].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
-	ax0_list[3].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
+	ax0_list[1].legend(handles = handle_list, loc = (.35, .60), fontsize = 16)
+	ax0_list[3].legend(handles = handle_list, loc = (.35, .60), fontsize = 16)
 
 	ytick_list = []
 	yticklabel_list = []
@@ -1782,7 +1782,7 @@ def plot_time_perspeed_fb():
 		fttc_list_list_list[cluster].sort(key = lambda fttc_list:fttc_list[0])
 	#end_for
 
-	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [10, 20, 1, 10, 20], top = 0.45, bottom = .10)
+	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [12, 18, 1, 12, 18], top = 0.45, bottom = .10, left = .10, right = .98)
 
 	ax_list = []
 	for i in range(5):
@@ -1829,12 +1829,12 @@ def plot_time_perspeed_fb():
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
-	ax_list[1].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
-	ax_list[4].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
+	ax_list[1].legend(handles = handle_list, loc = (-.20, .60), fontsize = 16)
+	ax_list[4].legend(handles = handle_list, loc = (-.30, .60), fontsize = 16)
 
-	ax_list[0].set_xlim(0, .09)
+	ax_list[0].set_xlim(0, .12)
 	ax_list[1].set_xlim(.82, 1.00)
-	ax_list[3].set_xlim(0, .09)
+	ax_list[3].set_xlim(0, .12)
 	ax_list[4].set_xlim(.82, 1.00)
 	for i in range(5):
 		ax_list[i].set_ylim(-62, 62)
@@ -1845,8 +1845,11 @@ def plot_time_perspeed_fb():
 	ax_list[3].tick_params(labelsize = 12)
 	ax_list[4].tick_params(labelsize = 12)
 
-	ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
-	ax_list[4].set_title("Big CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
+	#ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
+	#ax_list[4].set_title("Big CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
+
+	fig.text(x = .31, y = .48, ha = "center", s = "Little CPUs (average)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .48, ha = "center", s = "Big CPUs (average)", fontweight = "bold", fontsize = 16)
 
 	ax_list[0].set_ylabel("CPU speed (%\nof maximum),\nrelative to ideal", fontsize = 16, fontweight = "bold")
 	ax_list[3].set_yticklabels([])
@@ -1856,23 +1859,23 @@ def plot_time_perspeed_fb():
 
 	adjx = 0
 	adjy = -70
-	ax_list[1].annotate("", xy = (.98 + adjx, 84 + adjy), xytext = (.956, -25.2), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	ax_list[1].annotate("", xy = (0.985 + adjx, 85 + adjy), xytext = (.956, -25.2), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
 	ax_list[1].annotate("Overperformance", xy = (.895, -33.5), fontsize = 12)
 
 	adjx = -.876
 	adjy = -70
-	ax_list[0].annotate("", xy = (.009, -20), xytext = (.92 + adjx, 29 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	fig.text(x = .18, y = .135,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
+	ax_list[0].annotate("", xy = (.023, -26), xytext = (.94 + adjx, 33 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	fig.text(x = .183, y = .160, s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
 	adjx = 0
 	adjy = -70
-	ax_list[4].annotate("", xy = (.94 + adjx, 84 + adjy), xytext = (.94 + adjx, 58 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	ax_list[4].annotate("Overperformance", xy = (.895, -20), fontsize = 12)
+	ax_list[4].annotate("", xy = (.94 + adjx, 87 + adjy), xytext = (.94 + adjx, 58 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	ax_list[4].annotate("Overperformance", xy = (.890, -23), fontsize = 12)
 
 	adjx = -.801
 	adjy = -70
-	ax_list[3].annotate("", xy = (.015, -13.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	fig.text(x = .585, y = .145,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
+	ax_list[3].annotate("", xy = (.013, -10.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
+	fig.text(x = .62, y = .145,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
 	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .84, bottom = .10)
@@ -3427,9 +3430,9 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-#plot_time_perspeed_fb()
+plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
-plot_time_perspeed_spot()
+#plot_time_perspeed_spot()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
