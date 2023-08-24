@@ -1736,7 +1736,7 @@ def plot_time_perspeed_fb():
 
 	ytick_list = []
 	yticklabel_list = []
-	for i in range(0, 100, 5):
+	for i in range(0, 110, 10):
 		ytick_list.append(i)
 		yticklabel_list.append(str(i))
 	#end_for
@@ -1747,8 +1747,10 @@ def plot_time_perspeed_fb():
 
 	ax0_list[0].set_yticklabels(yticklabel_list)
 	ax0_list[1].set_yticklabels(yticklabel_list)
-	ax0_list[0].tick_params(labelsize = 12)
-	ax0_list[1].tick_params(labelsize = 12)
+	for i in range(4):
+		ax0_list[i].tick_params(labelsize = 16)
+	#end_for
+
 	ax0_list[2].set_yticklabels([])
 	ax0_list[3].set_yticklabels([])
 
@@ -1832,6 +1834,26 @@ def plot_time_perspeed_fb():
 	ax_list[1].legend(handles = handle_list, loc = (-.20, .60), fontsize = 16)
 	ax_list[4].legend(handles = handle_list, loc = (-.30, .60), fontsize = 16)
 
+	ytick_list = []
+	yticklabel_list = []
+	for i in range(-100, 120, 20):
+		ytick_list.append(i)
+		yticklabel_list.append(str(i))
+	#end_for
+	ax_list[0].set_yticks(ytick_list)
+	ax_list[3].set_yticks(ytick_list)
+
+	xtick_list = []
+	xticklabel_list = []
+	for i in range(0, 105, 5):
+		xtick_list.append(float(i / 100))
+		xticklabel_list.append(str(i))
+	#end_for
+	ax_list[0].set_xticks(xtick_list)
+	ax_list[1].set_xticks(xtick_list)
+	ax_list[3].set_xticks(xtick_list)
+	ax_list[4].set_xticks(xtick_list)
+
 	ax_list[0].set_xlim(0, .12)
 	ax_list[1].set_xlim(.82, 1.00)
 	ax_list[3].set_xlim(0, .12)
@@ -1840,13 +1862,10 @@ def plot_time_perspeed_fb():
 		ax_list[i].set_ylim(-62, 62)
 	#end_for
 
-	ax_list[0].tick_params(labelsize = 12)
-	ax_list[1].tick_params(labelsize = 12)
-	ax_list[3].tick_params(labelsize = 12)
-	ax_list[4].tick_params(labelsize = 12)
-
-	#ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
-	#ax_list[4].set_title("Big CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
+	ax_list[0].tick_params(labelsize = 16)
+	ax_list[1].tick_params(labelsize = 16)
+	ax_list[3].tick_params(labelsize = 16)
+	ax_list[4].tick_params(labelsize = 16)
 
 	fig.text(x = .31, y = .48, ha = "center", s = "Little CPUs (average)", fontweight = "bold", fontsize = 16)
 	fig.text(x = .78, y = .48, ha = "center", s = "Big CPUs (average)", fontweight = "bold", fontsize = 16)
