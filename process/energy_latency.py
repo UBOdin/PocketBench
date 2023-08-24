@@ -1966,67 +1966,7 @@ def plot_time_perspeed_yt():
 
 
 	fig = plt.figure()
-	fig.set_size_inches(12, 6)
-
-	gs1 = mpl.gridspec.GridSpec(2, 5, width_ratios = [10, 20, 1, 10, 20], height_ratios = [10, 22], top = 0.85, bottom = .65)
-	ax0_list = []
-	ax0_list.append(fig.add_subplot(gs1[0, 0:2]))
-	ax0_list.append(fig.add_subplot(gs1[1, 0:2]))
-	ax0_list.append(fig.add_subplot(gs1[0, 3:5]))
-	ax0_list.append(fig.add_subplot(gs1[1, 3:5]))
-
-	xprop = 100
-	yprop = 100
-	for i in range(4):
-		cluster = int(i / 2)
-		for fttc_list in fttc_list_list_list[cluster]:
-			speed = float(fttc_list[0] / maxspeed_dict[cluster]) * xprop
-			time = float(fttc_list[1]) * yprop
-			ax0_list[i].bar(speed, time, color = "blue", linewidth = 2)
-		#end_for
-		# Plot time that should have been spent at the ideal speed:
-		ideal = fttc_list_list_list[cluster][0][1] * yprop
-		ax0_list[i].plot([0, 0], [0, ideal], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)))
-		ax0_list[i].plot([70, 70], [0, 100 - ideal], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)))
-	#end_for
-
-	handle_list = []
-	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
-	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
-	ax0_list[1].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
-	ax0_list[3].legend(handles = handle_list, loc = (.20, .60), fontsize = 16)
-
-	ytick_list = []
-	yticklabel_list = []
-	for i in range(0, 100, 5):
-		ytick_list.append(i)
-		yticklabel_list.append(str(i))
-	#end_for
-
-	for i in range(4):
-		ax0_list[i].set_yticks(ytick_list)
-	#end_for
-
-	ax0_list[0].set_yticklabels(yticklabel_list)
-	ax0_list[1].set_yticklabels(yticklabel_list)
-	ax0_list[0].tick_params(labelsize = 12)
-	ax0_list[1].tick_params(labelsize = 12)
-	ax0_list[2].set_yticklabels([])
-	ax0_list[3].set_yticklabels([])
-
-	ax0_list[0].set_ylim(81, 91)
-	ax0_list[1].set_ylim(0, 22)
-	ax0_list[2].set_ylim(81, 91)
-	ax0_list[3].set_ylim(0, 22)
-
-	broken_axes_tb(ax0_list[0], ax0_list[1])
-	broken_axes_tb(ax0_list[2], ax0_list[3])
-
-	ax0_list[0].set_title("Little CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
-	ax0_list[1].set_ylabel("      Time spent\n      per speed (%)", fontsize = 16, fontweight = "bold")
-	ax0_list[2].set_title("Big CPUs (average)", pad = 10, fontsize = 16, fontweight = "bold")
-	fig.text(x = .5, y = .55, ha = "center", s = "CPU speed (% of maximum)", fontweight = "bold", fontsize = 16)
-
+	fig.set_size_inches(12.8, 3.2)
 
 	# Rework CDF relative to ideal frequency:
 	for cluster in range(2):
@@ -2044,7 +1984,7 @@ def plot_time_perspeed_yt():
 		fttc_list_list_list[cluster].sort(key = lambda fttc_list:fttc_list[0])
 	#end_for
 
-	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [15, 15, 1, 15, 15], top = 0.45, bottom = .10)
+	gs2 = mpl.gridspec.GridSpec(1, 5, width_ratios = [18, 12, 1, 18, 12], top = 0.88, bottom = .20, wspace = .20)
 
 	ax_list = []
 	for i in range(5):
@@ -2091,13 +2031,14 @@ def plot_time_perspeed_yt():
 	handle_list = []
 	handle_list.append(Line2D([], [], color = "#c20078", linewidth = 4, linestyle = (0, (1, 1)), label = "Ideal"))
 	handle_list.append(Line2D([], [], color = "blue", linewidth = 2, label = "Actual"))
-	ax_list[1].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
-	ax_list[4].legend(handles = handle_list, loc = (-.55, .60), fontsize = 16)
+	fig.legend(handles = handle_list, loc = (.25, .60), fontsize = 16)
+	fig.legend(handles = handle_list, loc = (.67, .60), fontsize = 16)
 
-	ax_list[0].set_xlim(0, .15)
-	ax_list[1].set_xlim(.85, 1.00)
-	ax_list[3].set_xlim(0, .15)
-	ax_list[4].set_xlim(.85, 1.00)
+
+	ax_list[0].set_xlim(0, .18)
+	ax_list[1].set_xlim(.88, 1.00)
+	ax_list[3].set_xlim(0, .18)
+	ax_list[4].set_xlim(.88, 1.00)
 	for i in range(5):
 		ax_list[i].set_ylim(-62, 62)
 	#end_for
@@ -2107,42 +2048,14 @@ def plot_time_perspeed_yt():
 	ax_list[3].tick_params(labelsize = 12)
 	ax_list[4].tick_params(labelsize = 12)
 
-	ax_list[1].set_title("Little CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
-	ax_list[4].set_title("Big CPUs (average)                ", pad = 10, fontsize = 16, fontweight = "bold")
+	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs (average)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .73, y = .93, ha = "center", s = "Big CPUs (average)", fontweight = "bold", fontsize = 16)
 
 	ax_list[0].set_ylabel("CPU speed (%\nof maximum),\nrelative to ideal", fontsize = 16, fontweight = "bold")
 	ax_list[3].set_yticklabels([])
 
 	broken_axes_lr(ax_list[0], ax_list[1])
 	broken_axes_lr(ax_list[3], ax_list[4])
-
-	adjx = 0
-	adjy = -70
-	p = mpatches.Polygon([[.96 + adjx, 71 + adjy], [.998 + adjx, 71 + adjy], [.998 + adjx, 99 + adjy], [.965 + adjx, 99 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[1].add_patch(p)
-	ax_list[1].annotate("", xy = (.98 + adjx, 84 + adjy), xytext = (.956, -25.2), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	ax_list[1].annotate("Overperformance", xy = (.895, -33.5), fontsize = 12)
-
-	adjx = -.876
-	adjy = -70
-	p = mpatches.Polygon([[.878 + adjx, 16.5 + adjy], [.878 + adjx, 69 + adjy], [.953 + adjx, 69 + adjy], [.95 + adjx, 62.5 + adjy], [.90 + adjx, 62.5 + adjy], [.888 + adjx, 16.5 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[0].add_patch(p)
-	ax_list[0].annotate("", xy = (.009, -20), xytext = (.92 + adjx, 29 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	fig.text(x = .18, y = .135,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
-
-	adjx = 0
-	adjy = -70
-	p = mpatches.Polygon([[.868 + adjx, 71 + adjy], [.998 + adjx, 71 + adjy], [.998 + adjx, 99 + adjy], [.902 + adjx, 99 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[4].add_patch(p)
-	ax_list[4].annotate("", xy = (.94 + adjx, 84 + adjy), xytext = (.94 + adjx, 58 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	ax_list[4].annotate("Overperformance", xy = (.895, -20), fontsize = 12)
-
-	adjx = -.801
-	adjy = -70
-	p = mpatches.Polygon([[.803 + adjx, 12.5 + adjy], [.803 + adjx, 69 + adjy], [.834 + adjx, 69 + adjy], [.83 + adjx, 47 + adjy], [.813 + adjx, 47 + adjy], [.805 + adjx, 12.5 + adjy]], facecolor = "grey", alpha = alpha)
-	ax_list[3].add_patch(p)
-	ax_list[3].annotate("", xy = (.015, -13.5), xytext = (.835 + adjx, 32.5 + adjy), arrowprops = dict(facecolor = "black", width = 2, headlength = 15, headwidth = 8))
-	fig.text(x = .585, y = .145,s = "Underperformance", fontsize = 12)  # Need to use fig.text as annotation goes outside subplot
 
 	fig.supxlabel("CDF of average time at or below a speed, relative to ideal", fontsize = 16, fontweight = "bold")
 	fig.subplots_adjust(top = .84, bottom = .10)
@@ -3315,7 +3228,7 @@ def quick():
 #quick()
 #plot_energy_runtime_micro()
 #plot_time_perspeed_fb()
-#plot_time_perspeed_yt()
+plot_time_perspeed_yt()
 #plot_freq_over_time_fb_one_cpu()
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
@@ -3328,6 +3241,6 @@ def quick():
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
 #plot_nonidletime_spot()
-plot_energy_jank_all()
+#plot_energy_jank_all()
 
 
