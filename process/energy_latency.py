@@ -2034,6 +2034,14 @@ def plot_time_perspeed_yt():
 	fig.legend(handles = handle_list, loc = (.24, .60), fontsize = 16)
 	fig.legend(handles = handle_list, loc = (.72, .60), fontsize = 16)
 
+	xtick_list = []
+	for i in range(0, 105, 5):
+		xtick_list.append(float(i / 100.0))
+	#end_for
+	ax_list[0].set_xticks(xtick_list)
+	ax_list[1].set_xticks(xtick_list)
+	ax_list[3].set_xticks(xtick_list)
+	ax_list[4].set_xticks(xtick_list)
 
 	ax_list[0].set_xlim(0, .18)
 	ax_list[1].set_xlim(.88, 1.00)
@@ -2043,10 +2051,10 @@ def plot_time_perspeed_yt():
 		ax_list[i].set_ylim(-62, 62)
 	#end_for
 
-	ax_list[0].tick_params(labelsize = 12)
-	ax_list[1].tick_params(labelsize = 12)
-	ax_list[3].tick_params(labelsize = 12)
-	ax_list[4].tick_params(labelsize = 12)
+	ax_list[0].tick_params(labelsize = 16)
+	ax_list[1].tick_params(labelsize = 16)
+	ax_list[3].tick_params(labelsize = 16)
+	ax_list[4].tick_params(labelsize = 16)
 
 	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs (average)", fontweight = "bold", fontsize = 16)
 	fig.text(x = .78, y = .93, ha = "center", s = "Big CPUs (average)", fontweight = "bold", fontsize = 16)
