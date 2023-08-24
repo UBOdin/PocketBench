@@ -326,14 +326,14 @@ def process_loglines(file_name):
 	eventtime_list.append(starttime)
 	eventtime_list.append(endtime)
 
-	'''
+	#'''
 	if (len(idledata_list) != 8 * 3 * 2):
 		print("Unexpected length")
 		sys.exit(1)
 	#end
-	'''
+	#'''
 
-	'''
+	#'''
 	idlefloat_list = []
 	for e in idledata_list:
 		idlefloat_list.append(float(e) / 1000000)
@@ -353,7 +353,7 @@ def process_loglines(file_name):
 	#print(idledata_list)
 	#print(idlefloat_list)
 	#print(runtime_list)
-	'''
+	#'''
 	#print("Early exit")
 	#sys.exit(0)
 	#'''
@@ -3017,6 +3017,133 @@ def plot_nonidletime_yt():
 #end_def
 
 
+# Plots runtime (nonidletime) per CPU policy
+# Tracefile:  .../20230820/spotify_runs/*
+def plot_nonidletime_spot():
+
+	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
+	label_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
+
+	benchtimeprefix = "/micro_normal_"
+
+	path = sys.argv[1]
+
+	# Android app traces use "SQL_*" markers (plot requires ftrace log):
+	global markerstart
+	markerstart = "SQL_START"
+	global markerend
+	markerend = "SQL_END"
+
+	readtraces = False
+	plotfilename = "graph_nonidletime_spot"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
+	#end_if
+
+	fig = plt.figure()
+	fig.set_size_inches(12.8, 4.0)
+
+	ax_list = []
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .35, top = .90)
+	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .35, top = .90)
+	ax_list.append(fig.add_subplot(gs_list[0, 0]))
+
+	offset_list = []
+	for i in range(0, 90, 10):
+		offset_list.append(str(i - 5))
+	#end_for
+
+	for governor, offset in zip(governor_list, offset_list):
+		if (readtraces == True):
+			proplittle_list =[]
+			propbig_list = []
+			for run in range(0, 10):
+				filename = path + benchtimeprefix + governor + "_" + str(run) + ".gz"
+				print(filename)
+				benchtime, runtime_list, _, _, _, _, _, _, _ = process_loglines(filename)
+				print(benchtime)
+				print(runtime_list)
+				totallittle = 0.0
+				totalbig = 0.0
+				for i in range(4):
+					totallittle += runtime_list[i]
+					totalbig += runtime_list[i + 4]
+				#end_for
+				print("%f  %f" % (totallittle, totalbig))
+				proplittle = totallittle * 100.0 / (benchtime * 4)
+				propbig = totalbig * 100.0 / (benchtime * 4)
+				print("%f  %f" % (proplittle, propbig))
+				proplittle_list.append(proplittle)
+				propbig_list.append(propbig)
+			#end_for
+			meanlittle, errlittle = mean_margin(proplittle_list)
+			meanbig, errbig = mean_margin(propbig_list)
+			outputline = str(meanlittle) + "," + str(errlittle) + "," + str(meanbig) + "," + str(errbig) + "\n"
+			plotdata_file.write(outputline)
+		else:
+			inputline = plotdata_file.readline()
+			inputline_list = inputline.split(",")
+			assert(len(inputline_list) == 4)
+			meanlittle = float(inputline_list[0])
+			errlittle = float(inputline_list[1])
+			meanbig = float(inputline_list[2])
+			errbig = float(inputline_list[3])
+		#end_if
+
+		print("%f  %f" % (meanlittle, meanbig))
+
+		if (governor == "schedutil_none"):
+			color = "red"
+		else:
+			color = "blue"
+		#end_if
+
+		ax_list[0].bar(offset, meanlittle, color = color)
+		ax_list[0].errorbar(offset, meanlittle, color = "black", yerr = errlittle, elinewidth = 2, capsize = 10, capthick = 2)
+		ax_list[1].bar(offset, meanbig, color = color)
+		ax_list[1].errorbar(offset, meanbig, color = "black", yerr = errbig, elinewidth = 2, capsize = 10, capthick = 2)
+
+	#end_for
+
+	ytick_list = []
+	yticklabel_list = []
+	for i in range(0, 100, 5):
+		ytick_list.append(i)
+		yticklabel_list.append(str(i))
+	#end_for
+	ax_list[0].set_yticks(ytick_list, labels = yticklabel_list)
+	ax_list[1].set_yticks(ytick_list, labels = [])
+
+	for i in range(2):
+		ax_list[i].tick_params(labelsize = 16)
+		ax_list[i].set_xticks(offset_list, labels = label_list)
+		ticklabel_list = ax_list[i].get_xticklabels()
+		for ticklabel in ticklabel_list:
+			ticklabel.set_rotation(45)
+			ticklabel.set_ha("right")
+		#end_for
+		ax_list[i].set_ylim(0, 27)
+	#end_for
+
+	fig.text(x = .01, y = .32, rotation = "vertical", s = "Per-CPU non-idle", fontsize = 16, fontweight = "bold")
+	fig.text(x = .03, y = .31, rotation = "vertical", s = "time (%), average", fontsize = 16, fontweight = "bold")
+
+	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .93, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .5, y = .05, ha = "center", s = "Governor policy", fontweight = "bold", fontsize = 16)
+
+	plt.show()
+	fig.savefig(graphpath + plotfilename + ".pdf")
+
+#end_def
+
+
 def plot_energy_jank_all():
 
 	benchtime = 0.0
@@ -3192,6 +3319,7 @@ def quick():
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
-plot_energy_jank_all()
+plot_nonidletime_spot()
+#plot_energy_jank_all()
 
 
