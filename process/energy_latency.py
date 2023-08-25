@@ -3282,12 +3282,10 @@ def plot_energy_jank_all():
 	energy_list = []
 	energy_mean = 0.0
 	energy_err = 0.0
-
 	apppath_list = ["facebook_runs/", "youtube_runs/", "spotify_runs/"]
-	governor_list = ["schedutil_def-def", "schedutil_70-def", "schedutil_75-def", "userspace_70-70", "ioblock_70-def", "ioblock_75-def", "ioblock_70-70", "performance_def-def"]
+	governor_list = ["schedutil_def-def", "schedutil_70-def", "userspace_70-70", "ioblock_70-def", "ioblock_70-70", "performance_def-def"]
 	#xticklabel_list = ["Default", "Schedutil [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
-	xticklabel_list = ["Default", "SU [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
-
+	xticklabel_list = ["Default", "schedutil [70,100]", "Fixed 70", "Kiss [70,100]", "Kiss 70", "Performance"]
 
 	path = sys.argv[1]
 
@@ -3362,27 +3360,21 @@ def plot_energy_jank_all():
 				outputline = str(jank_mean) + "," + str(jank_err) + "," + str(energy_mean) + "," + str(energy_err) + "\n"
 				plotdata_file.write(outputline)
 			else:
-				if (apppath == "spotify_runs/"):
-					jank_mean = 0
-					jank_err = 0
-					energy_mean = 0
-					energy_err = 0
-				else:
-					inputline = plotdata_file.readline()
-					inputline_list = inputline.split(",")
-					print(inputline_list)
-					assert(len(inputline_list) == 4)
-					jank_mean = float(inputline_list[0])
-					jank_err = float(inputline_list[1])
-					energy_mean = float(inputline_list[2])
-					energy_err = float(inputline_list[3])
-				#end_if
-
+				inputline = plotdata_file.readline()
+				inputline_list = inputline.split(",")
+				print(inputline_list)
+				assert(len(inputline_list) == 4)
+				jank_mean = float(inputline_list[0])
+				jank_err = float(inputline_list[1])
+				energy_mean = float(inputline_list[2])
+				energy_err = float(inputline_list[3])
 			#end_if
 
+			'''
 			if ((govoffset == 2.5) or (govoffset == 5.5)):
 				continue
 			#end_if
+			'''
 
 			offset = appoffset + govoffset
 			xtick_list.append(offset)
@@ -3403,7 +3395,7 @@ def plot_energy_jank_all():
 	#end_for
 
 	for i in range(2):
-		ax_list[i].tick_params(labelsize = 16)
+		ax_list[i].tick_params(labelsize = 12)
 		ax_list[i].set_xticks(xtick_list, labels = adj_list)
 		ticklabel_list = ax_list[i].get_xticklabels()
 		for ticklabel in ticklabel_list:
@@ -3449,7 +3441,7 @@ def quick():
 #main()
 #quick()
 #plot_energy_runtime_micro()
-plot_time_perspeed_fb()
+#plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
 #plot_time_perspeed_spot()
 #plot_freq_over_time_fb_one_cpu()
@@ -3464,6 +3456,6 @@ plot_time_perspeed_fb()
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
 #plot_nonidletime_spot()
-#plot_energy_jank_all()
+plot_energy_jank_all()
 
 
