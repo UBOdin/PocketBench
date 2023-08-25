@@ -3282,7 +3282,8 @@ def plot_energy_jank_all():
 	energy_list = []
 	energy_mean = 0.0
 	energy_err = 0.0
-	apppath_list = ["facebook_runs/", "youtube_runs/", "spotify_runs/"]
+	apppath_list = ["facebook_runs/", "youtube_runs/", "spotify_runs/", "combined_runs/"]
+
 	governor_list = ["schedutil_def-def", "schedutil_70-def", "userspace_70-70", "ioblock_70-def", "ioblock_70-70", "performance_def-def"]
 	#xticklabel_list = ["Default", "Schedutil [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
 	xticklabel_list = ["Default", "schedutil [70,100]", "Fixed 70", "Kiss [70,100]", "Kiss 70", "Performance"]
@@ -3320,17 +3321,17 @@ def plot_energy_jank_all():
 	ax_list = []
 	fig = plt.figure()
 	fig.set_size_inches(12.8, 4.0)
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .98, bottom = .40, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .98, bottom = .35, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
 	fig2 = plt.figure()
 	fig2.set_size_inches(12.8, 4.0)
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .98, bottom = .40, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .98, bottom = .35, top = .90)
 	ax_list.append(fig2.add_subplot(gs_list[0, 0]))
 	#'''
 
-	appoffset_list = [0, 10, 20]
+	appoffset_list = [0, 7, 14, 21]
 	govoffset_list = []
-	for i in range (8):
+	for i in range (len(governor_list)):
 		govoffset_list.append(float(i) + .5)
 	#end_for
 
@@ -3370,12 +3371,6 @@ def plot_energy_jank_all():
 				energy_err = float(inputline_list[3])
 			#end_if
 
-			'''
-			if ((govoffset == 2.5) or (govoffset == 5.5)):
-				continue
-			#end_if
-			'''
-
 			offset = appoffset + govoffset
 			xtick_list.append(offset)
 			adj_list.append(xticklabel)  # hack
@@ -3402,19 +3397,28 @@ def plot_energy_jank_all():
 			ticklabel.set_rotation(45)
 			ticklabel.set_ha("right")
 		#end_for
-		ax_list[i].set_xlabel("CPU policy", fontsize = 16, fontweight = "bold")
+		ax_list[i].set_xlim(-.5, (len(governor_list) + 1) * len(appoffset_list) - .5)
+		#ax_list[i].set_xlabel("CPU policy", fontsize = 16, fontweight = "bold")
+	#end_for
+
+	xoffset_list = [.20, .42, .64, .86]
+	for xoffset in xoffset_list:
+		fig.text(x = xoffset, y = .05, ha = "center", s = "CPU policy", fontweight = "bold", fontsize = 16)
+		fig2.text(x = xoffset, y = .05, ha = "center", s = "CPU policy", fontweight = "bold", fontsize = 16)
 	#end_for
 
 	ax_list[0].set_ylabel("Screendrops (%)", fontsize = 16, fontweight = "bold")
 	ax_list[1].set_ylabel("Energy ($\mu$Ah)", fontsize = 16, fontweight = "bold")
 
-	fig.text(x = .25, y = .92, ha = "center", s = "Facebook", fontsize = 16, fontweight = "bold")
-	fig.text(x = .50, y = .92, ha = "center", s = "Youtube", fontsize = 16, fontweight = "bold")
-	fig.text(x = .75, y = .92, ha = "center", s = "Spotify", fontsize = 16, fontweight = "bold")
+	fig.text(x = .21, y = .92, ha = "center", s = "Facebook", fontsize = 16, fontweight = "bold")
+	fig.text(x = .43, y = .92, ha = "center", s = "Youtube", fontsize = 16, fontweight = "bold")
+	fig.text(x = .65, y = .92, ha = "center", s = "Spotify", fontsize = 16, fontweight = "bold")
+	fig.text(x = .87, y = .92, ha = "center", s = "FB with Spotify", fontsize = 16, fontweight = "bold")
 
-	fig2.text(x = .25, y = .92, ha = "center", s = "Facebook", fontsize = 16, fontweight = "bold")
-	fig2.text(x = .50, y = .92, ha = "center", s = "Youtube", fontsize = 16, fontweight = "bold")
-	fig2.text(x = .75, y = .92, ha = "center", s = "Spotify", fontsize = 16, fontweight = "bold")
+	fig2.text(x = .21, y = .92, ha = "center", s = "Facebook", fontsize = 16, fontweight = "bold")
+	fig2.text(x = .42, y = .92, ha = "center", s = "Youtube", fontsize = 16, fontweight = "bold")
+	fig2.text(x = .65, y = .92, ha = "center", s = "Spotify", fontsize = 16, fontweight = "bold")
+	fig2.text(x = .87, y = .92, ha = "center", s = "FB with Spotify", fontsize = 16, fontweight = "bold")
 
 	plt.show()
 	fig.savefig(graphpath + "graph_jank_allapps.pdf")
