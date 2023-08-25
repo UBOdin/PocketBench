@@ -3320,11 +3320,11 @@ def plot_energy_jank_all():
 	ax_list = []
 	fig = plt.figure()
 	fig.set_size_inches(12.8, 4.0)
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .90, bottom = .40, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .98, bottom = .40, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
 	fig2 = plt.figure()
 	fig2.set_size_inches(12.8, 4.0)
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .90, bottom = .40, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .10, right = .98, bottom = .40, top = .90)
 	ax_list.append(fig2.add_subplot(gs_list[0, 0]))
 	#'''
 
