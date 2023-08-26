@@ -3288,7 +3288,7 @@ def plot_energy_jank_all():
 
 	governor_list = ["schedutil_def-def", "schedutil_70-def", "userspace_70-70", "ioblock_70-def", "ioblock_70-70", "performance_def-def"]
 	#xticklabel_list = ["Default", "Schedutil [70,100]", "foo", "Fixed 70", "Kiss [70,100]", "bar", "Kiss 70", "Performance"]
-	xticklabel_list = ["Default", "schedutil [70,100]", "Fixed 70", "Kiss [70,100]", "Kiss 70", "Performance"]
+	xticklabel_list = ["Default", "schedutil [70,100]", "Fixed 70", "Kiss [70,100]", "Kiss", "Performance"]
 
 	path = sys.argv[1]
 
@@ -3552,7 +3552,7 @@ def quick():
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
-plot_energy_hintperf_spot()
+#plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
 #plot_drops_perspeed_fb()
@@ -3560,6 +3560,6 @@ plot_energy_hintperf_spot()
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
 #plot_nonidletime_spot()
-#plot_energy_jank_all()
+plot_energy_jank_all()
 #plot_energy_perspeed_fb()
 
