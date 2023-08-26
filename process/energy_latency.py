@@ -3271,6 +3271,8 @@ def plot_nonidletime_spot():
 #end_def
 
 
+# Plots energy and framedrops per CPU policy for 4 apps (2 separate plots)
+# Tracefiles:  .../20230823/* {facebook_runs/ etc.}
 def plot_energy_jank_all():
 
 	benchtime = 0.0
@@ -3560,6 +3562,6 @@ def quick():
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
 #plot_nonidletime_spot()
-#plot_energy_jank_all()
-plot_energy_perspeed_fb()
+plot_energy_jank_all()
+#plot_energy_perspeed_fb()
 
