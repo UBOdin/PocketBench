@@ -3432,13 +3432,11 @@ def plot_energy_jank_all():
 
 
 # Plots energy per CPU policy (u-curve for fb)
-# Tracefile:  .../20220628/fb_batch/*
+# Tracefile:  .../20230825/fb_energy_per_speed/*
 def plot_energy_perspeed_fb():
 
-	governor_list = ["schedutil_none", "userspace_30", "userspace_40", "userspace_50", "userspace_60", "userspace_70", "userspace_80", "userspace_90", "performance_none"]
+	governor_list = ["schedutil_def-def", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_def-def"]
 	xticklabel_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
-
-	prefix = "micro_SQL_A_0ms_"
 
 	path = sys.argv[1]
 
@@ -3473,10 +3471,10 @@ def plot_energy_perspeed_fb():
 
 		if (readtraces == True):
 			energy_list = []
-			for run in range(7, 8):
-				filename = path + "micro_SQL_A_0ms_" + governor + "_1_" + str(run) + ".gz"
+			for run in range(0, 10):
+				filename = path + "micro_normal_" + governor + "_" + str(run) + ".gz"
 				benchtime, _, _, _, _, _, _, _, _ = process_loglines(filename)
-				energyfilename = path + "monsoon_SQL_A_0ms_" + governor + "_1_" + str(run) + ".csv"
+				energyfilename = path + "monsoon_normal_" + governor + "_" + str(run) + ".csv"
 				energy = get_energy(energyfilename, 5.0, 65.0) #benchtime + 15.0)
 				energy_list.append(energy)
 				print("%s  %f  %f" % (filename, benchtime, energy))
@@ -3493,7 +3491,7 @@ def plot_energy_perspeed_fb():
 			energy_err = float(inputline_list[1])
 		#end_if
 
-		if (governor == "schedutil_none"):
+		if (governor == "schedutil_def-def"):
 			color = "red"
 		else:
 			color = "blue"
@@ -3560,8 +3558,8 @@ def quick():
 #plot_drops_perspeed_fb()
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
-plot_nonidletime_yt()
+#plot_nonidletime_yt()
 #plot_nonidletime_spot()
 #plot_energy_jank_all()
-#plot_energy_perspeed_fb()
+plot_energy_perspeed_fb()
 
