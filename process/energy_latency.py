@@ -3046,12 +3046,12 @@ def plot_nonidletime_yt():
 	#end_if
 
 	fig = plt.figure()
-	fig.set_size_inches(12.8, 4.0)
+	fig.set_size_inches(12.8, 3.2)
 
 	ax_list = []
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .35, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .40, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .35, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .40, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
 
 	offset_list = []
@@ -3128,11 +3128,11 @@ def plot_nonidletime_yt():
 			ticklabel.set_rotation(45)
 			ticklabel.set_ha("right")
 		#end_for
-		ax_list[i].set_ylim(0, 27)
+		ax_list[i].set_ylim(0, 22)
 	#end_for
 
-	fig.text(x = .01, y = .32, rotation = "vertical", s = "Per-CPU non-idle", fontsize = 16, fontweight = "bold")
-	fig.text(x = .03, y = .31, rotation = "vertical", s = "time (%), average", fontsize = 16, fontweight = "bold")
+	fig.text(x = .01, y = .29, rotation = "vertical", s = "Per-CPU non-idle", fontsize = 16, fontweight = "bold")
+	fig.text(x = .03, y = .28, rotation = "vertical", s = "time (%), average", fontsize = 16, fontweight = "bold")
 
 	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
 	fig.text(x = .78, y = .93, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
@@ -3173,12 +3173,12 @@ def plot_nonidletime_spot():
 	#end_if
 
 	fig = plt.figure()
-	fig.set_size_inches(12.8, 4.0)
+	fig.set_size_inches(12.8, 3.2)
 
 	ax_list = []
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .35, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .09, right = .52, bottom = .40, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
-	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .35, top = .90)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .56, right = .99, bottom = .40, top = .90)
 	ax_list.append(fig.add_subplot(gs_list[0, 0]))
 
 	offset_list = []
@@ -3255,11 +3255,11 @@ def plot_nonidletime_spot():
 			ticklabel.set_rotation(45)
 			ticklabel.set_ha("right")
 		#end_for
-		ax_list[i].set_ylim(0, 27)
+		ax_list[i].set_ylim(0, 22)
 	#end_for
 
-	fig.text(x = .01, y = .32, rotation = "vertical", s = "Per-CPU non-idle", fontsize = 16, fontweight = "bold")
-	fig.text(x = .03, y = .31, rotation = "vertical", s = "time (%), average", fontsize = 16, fontweight = "bold")
+	fig.text(x = .01, y = .29, rotation = "vertical", s = "Per-CPU non-idle", fontsize = 16, fontweight = "bold")
+	fig.text(x = .03, y = .28, rotation = "vertical", s = "time (%), average", fontsize = 16, fontweight = "bold")
 
 	fig.text(x = .31, y = .93, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
 	fig.text(x = .78, y = .93, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
@@ -3560,8 +3560,8 @@ def quick():
 #plot_drops_perspeed_fb()
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
-#plot_nonidletime_yt()
+plot_nonidletime_yt()
 #plot_nonidletime_spot()
-plot_energy_jank_all()
+#plot_energy_jank_all()
 #plot_energy_perspeed_fb()
 
