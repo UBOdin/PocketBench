@@ -2536,9 +2536,9 @@ def plot_energy_hintperf_spot():
 	ax_list_list[1][0].tick_params(labelsize = 16)
 	ax_list_list[1][1].tick_params(labelsize = 16)
 
-	ax_list_list[0][0].set_xlabel("Time to initial display (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].set_xlabel("Time to initial display (TTID) (s)", fontsize = 16, fontweight = "bold")
 	ax_list_list[0][0].set_ylabel("Energy ($\mu$Ah)", fontsize = 16, fontweight = "bold")
-	ax_list_list[1][0].set_xlabel("Time to full drawn (s)", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_xlabel("Time to fullly drawn (TTFD) (s)", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][0].set_yticklabels([])
 
 
@@ -3552,7 +3552,7 @@ def quick():
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
-#plot_energy_hintperf_spot()
+plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
 #plot_drops_perspeed_fb()
@@ -3561,5 +3561,5 @@ def quick():
 #plot_nonidletime_yt()
 #plot_nonidletime_spot()
 #plot_energy_jank_all()
-plot_energy_perspeed_fb()
+#plot_energy_perspeed_fb()
 
