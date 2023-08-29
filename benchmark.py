@@ -3,6 +3,9 @@
 import subprocess
 import sys
 
+little_dict = {"0":"300000", "30":"595200", "40":"825600", "50":"960000", "60":"1171200", "70":"1401600", "80":"1555200", "90":"1747200", "100":"1900800"}
+big_dict = {"0":"300000", "30":"806400", "40":"1056000", "50":"1267200", "60":"1497600", "70":"1728000", "80":"2035200", "90":"2265600", "100":"2457600"}
+
 
 def help_message():
 	print '\nCommand List:\n'
@@ -25,8 +28,6 @@ def command(string_array):
 	speed = "" # Only valid if governor == "userspace"
 	delay = ""
 	runno = ""
-	littlespeed = 0
-	bigspeed = 0
 
 	result = 0
 
@@ -42,63 +43,48 @@ def command(string_array):
 	print("PARAMETERS:")
 	print(string_array)
 
-	if (governor == "schedutil"):
-		speed = "none:0-0-0-0" # Don't use slashes (messes with subdirectories) or parentheses (messes with scripting) or semicolons (ditto)
+	#speed = "none:0-0-0-0" # Don't use slashes (messes with subdirectories) or parentheses (messes with scripting) or semicolons (ditto)
+	# 1824000 little
+	# 2342400 big
+	# 1747200 1900800 little
+	# 2323200 2361600 big
+	if (speed == "oscillate"):
+		assert(governor == "userspace")
+		speed = "oscillate:1747200-2323200-1900800-2361600"
+	elif (speed == "mid"):
+		assert(governor == "userspace")
+		speed = "mid:1824000-2342400-1824000-2342400"
+	elif (speed == "low"):
+		assert(governor == "userspace")
+		speed = "low:1747200-2323200-1747200-2323000"
+	elif (speed == "high"):
+		assert(governor == "userspace")
+		speed = "high:1900800-2361600-1900800-2361600"
 	else:
-		'''
 		speed_list = speed.split("-")
+		assert(len(speed_list) == 2)
 		lospeed = speed_list[0]
 		hispeed = speed_list[1]
 		if (lospeed == "def"):
-			little_lospeed = 300000
-			big_lospeed = 300000
+			little_lospeed = little_dict["0"]
+			big_lospeed = big_dict["0"]
+		elif (lospeed == "75"):
+			little_lospeed = little_dict["70"]
+			big_lospeed = big_dict["50"]
 		else:
-			little_lospeed = int(lospeed) * 19008  # % of lomax (1900800)
-			big_lospeed = int(lospeed) * 24576  # % of himax (2457600)
+			little_lospeed = little_dict[lospeed]
+			big_lospeed = big_dict[lospeed]
 		#end_if
 		if (hispeed == "def"):
-			little_hispeed = 1900800
-			big_hispeed = 2457600
+			little_hispeed = little_dict["100"]
+			big_hispeed = big_dict["100"]
 		else:
-			little_hispeed = int(hispeed) * 19008  # % of lomax (1900800)
-			big_hispeed = int(hispeed) * 24576  # % of himax (2457600)
+			little_hispeed = little_dict[hispeed]
+			big_hispeed = big_dict[hispeed]
 		#end_if
 		speed = lospeed + "-" + hispeed + ":" + str(little_lospeed) + "-" + str(big_lospeed) + "-" + str(little_hispeed) + "-" + str(big_hispeed)
-		'''
-
-		#speed = "70-70:1401600-1728000-1401600-1728000"
-
-		#'''
-		# 1824000 little
-		# 2342400 big
-		# 1747200 1900800 little
-		# 2323200 2361600 big
-		if (speed == "oscillate"):
-			speed = "oscillate:1747200-2323200-1900800-2361600"
-		elif (speed == "mid"):
-			speed = "mid:1824000-2342400-1824000-2342400"
-		elif (speed == "low"):
-			speed = "low:1747200-2323200-1747200-2323000"
-		elif (speed == "high"):
-			speed = "high:1900800-2361600-1900800-2361600"
-		else:
-			print("bad governor")
-			#sys.exit(1)
-		#end_if
-		#'''
-		'''
-		#if ((delay == "2000-0-80-3") or (delay == "2000-0-08-3")):
-		if (speed == "23"):
-			#speed = "70:1324800-1728000-lh-bh"
-			speed = "23:441600-576000-lh-bh"
-		#end_if
-		#if ((delay == "2000-0-e0-3") or (delay == "2000-0-0e-3")):
-		if (speed == "70"):
-			#speed = "23:441600-576000-lh-bh"
-			speed = "70:1324800-1728000-lh-bh"
-		#end_if
-		'''
 	#end_if
+
 	print("Speed:  " + speed)
 
 	check = device_connected()
@@ -152,26 +138,24 @@ def main():
 
 			if (input[0].lower() == "what"):
 
-				#governor_list = ["schedutil x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
-				#governor_list = ["interactive x", "userspace 30", "userspace 40", "userspace 50", "userspace 60", "userspace 70", "userspace 80", "userspace 90", "performance x"]
-				#governor_list = ["schedutil x", "userspace oscillate", "userspace mid", "userspace low", "userspace high"]
-				#governor_list = ["schedutil x", "userspace 70-100", "userspace 70-70", "userspace 100-100", "performance x"]
 				#governor_list = ["userspace 23", "userspace 70"]
 				#governor_list = ["schedutil x", "userspace 70-70", "userspace 80-80", "ioblock def-def", "ioblock def-70", "ioblock def-80", "ioblock 40-def", "ioblock 40-80"]
-				#governor_list = ["schedutil x", "userspace 70-70"]
+				governor_list = ["schedutil def-def", "userspace 30-30", "userspace 40-40", "userspace 50-50", "userspace 60-60", "userspace 70-70", "userspace 80-80", "userspace 90-90", "performance def-def"]
 
-				governor_list = ["schedutil x", "userspace 70-70"] #, "userspace low", "userspace mid", "userspace high", "oscillate oscillate"]
+				#governor_list = ["schedutil x", "userspace low", "userspace mid", "userspace high", "oscillate oscillate"]
+
+				#governor_list = ["schedutil def-def", "schedutil 70-def", "schedutil 75-def", "userspace 70-70", "ioblock 70-def", "ioblock 75-def", "ioblock 70-70", "performance def-def"]
+				#governor_list = ["schedutil def-def"]
+
 
 				#delay_list = ["normal", "50", "20", "5", "2", "0"]
 				#delay_list = ["normal", "boost"]
 				#delay_list = ["2000-0-00-0", "2000-0-f0-1", "2000-0-f0-2", "2000-0-f0-3", "2000-0-f0-4", "2000-0-0f-1", "2000-0-0f-2", "2000-0-0f-3", "2000-0-0f-4"]
-				#delay_list = ["75-0-f0-1", "75-scale-f0-1"]
-				delay_list = ["5000-5-f0-1"] ##### 5 ###, "1000-0-0f-1"]
+				delay_list = ["normal"]
 
-				run_count = 5
+				run_count = 10
 
-				skip_count = 0
-
+				skip_count = 75
 				iteration = 0
 
 				for runno in range(run_count):
