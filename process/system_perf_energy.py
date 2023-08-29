@@ -641,8 +641,10 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 
 	delay_list = ["normal", "50", "20", "5", "2", "0"]
 
-	fix, ax = plt.subplots()
-
+	fig = plt.figure()
+	fig.set_size_inches(12.8, 4.8)
+	gs = mpl.gridspec.GridSpec(1, 1, top = 0.99, bottom = .12, left = .12, right = .98)
+	ax = fig.add_subplot(gs[0, 0])
 
 	size_list = [10, 40, 70, 100, 130]
 	size_list = []
@@ -677,7 +679,7 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 
 	#end_for
 
-	ax.plot([0, 100], [3.5, 3.5], color = "blue")
+	#ax.plot([0, 100], [3.5, 3.5], color = "blue")
 
 	handle_list = []
 	for color, governor in zip(color_list, label_list):
@@ -699,31 +701,16 @@ def scatterplot_idle_jank(timeprop_mean_list_list, timeprop_err_list_list, jank_
 		handle_list.append(Line2D([], [], marker = "o", markersize = labelsize, color = "black", label = bgload, linewidth = 0))
 	#end_for
 
-	'''
-		ax.scatter()
-
-		#ax.bar(offset, jank_mean, color = color)
-		#ax.errorbar(offset, jank_mean, color = "black", yerr = jank_err, elinewidth = 2, capsize = 10, capthick = 2)
-
-		pass
-
-	#end_for
-	'''
-
 	#'''
-	ax.axis([0, 100.0, 0, 30.0])
+	ax.axis([0, 102.0, 0, 26.0])
 	ax.tick_params(labelsize = 16)
-	#ax.set_xticks(offset_list)
-	#ax.set_xticklabels(ticklabel_list)
-	ax.set_title("Frame Jank - Runtime Relation,\nPer CPU Policy, run with different background loads, ~:24s FB Interaction (5 runs each)", fontsize = 16, fontweight = "bold")
-	ax.set_xlabel("CPU Busy %", fontsize = 16, fontweight = "bold")
-	ax.set_ylabel("Frame Jank %", fontsize = 16, fontweight = "bold")
+	ax.set_xlabel("CPU non-idle time (%)", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Frame drops (%)", fontsize = 16, fontweight = "bold")
 
-	#plt.legend()
-	ax.legend(handles = handle_list, loc = "upper left", fontsize = 16) #, ncol = 2)
-	#'''
+	fig.legend(handles = handle_list, loc = (.15, .40), fontsize = 16, ncol = 2)
 
 	plt.show()
+	fig.savefig("graphs_saved/graph_idlejank_heavyload.pdf")
 
 	return
 
