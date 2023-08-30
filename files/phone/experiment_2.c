@@ -17,17 +17,17 @@
 
 #define PRINTLOG(...) output_len = snprintf( output_buff, OUTPUT_SIZE, __VA_ARGS__ ); \
 	result = write(trace_fd, output_buff, output_len); \
-	if (result == -1) { \
-		errlog(); \
-		return 6; \
+	errtrap("write");
+
+
+#define errtrap(error) (__errtrap(result, error, __LINE__))
+void __errtrap(int result, const char* error, int line) {
+
+	if (result == -1) {
+		printf("Error in %s() on line %d:  %s\n", error, line, strerror(errno));
+		__android_log_print(ANDROID_LOG_VERBOSE, "Microbench", "Error in %s() on line %d:  %d %s\n", error, line, errno, strerror(errno));
+		_exit(errno);
 	}
-
-
-static void errlog() {
-
-	__android_log_print(ANDROID_LOG_VERBOSE, "PocketData", "Error:  %d %s\n", errno, strerror(errno));
-//printf("Error:  %d %s\n", errno, strerror(errno));
-
 	return;
 
 }
@@ -44,9 +44,19 @@ long gettime_us() {
 }
 
 
-long total_time(struct timeval start, struct timeval end) {
+static inline int sleepthread(long sleep_s, long sleep_ms) {
 
-	return (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_usec - start.tv_usec);
+	struct timespec interval;
+	int result;
+
+	interval.tv_sec = sleep_s;
+	interval.tv_nsec = sleep_ms * 1000 * 1000;
+	if ((sleep_s || sleep_ms) > 0) {
+		result = nanosleep(&interval, NULL);
+		errtrap("nanosleep");
+	}
+
+	return 0;
 
 }
 
@@ -71,10 +81,9 @@ int main(int argc, char** argv) {
 	long long sum;
 	long sleep_ms;
 
-	long timestart_us;
-	long timenow_us;
+//	struct timespec interval;
 
-	struct timespec interval;
+	memset(&output_buff, 0, sizeof(output_buff));
 
 	// Initialize HW performance monitoring structure:
 	memset(&pea_struct, 0, sizeof(pea_struct));
@@ -95,22 +104,13 @@ int main(int argc, char** argv) {
 
 	// Open perf fd:
 	result = syscall(__NR_perf_event_open, &pea_struct, 0, -1, -1, 0);
-	if (result == -1) {
-		errlog();
-		return -2;
-	}
+	errtrap("syscall");
 	perf_cycles_fd = result;
 
-//printf("Experiment 2\n");
 	// Open handle to ftrace to save output:
 	result = open(trace_filename, O_WRONLY);
-	if (result == -1) {
-		errlog();
-		return 4;
-	}
+	errtrap("open");
 	trace_fd = result;
-
-	memset(&output_buff, 0, sizeof(output_buff));
 
 	PRINTLOG("SQL_START");
 
@@ -125,7 +125,11 @@ int main(int argc, char** argv) {
 		_Exit(1);
 	}
 	batchcount = atoi(argv[2]);
-	sleep_ms = atoi(argv[3]);
+	if (*argv[3] == 's') {
+		sleep_ms = -1;
+	} else {
+		sleep_ms = atoi(argv[3]);
+	}
 
 	// Enable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_RESET, 0);
@@ -133,53 +137,53 @@ int main(int argc, char** argv) {
 
 	sum = 0;
 	innercount = 20;
-	timestart_us = gettime_us();
-//	for (long long i = 0; i < batchcount; i++) {
 	long long i = 0;
-	while (1) {
-		i++;
 
-		for (long long j = 0; j < loopcount / (batchcount * 2); j++) {
+	sleepthread(0, 200);
+	while (1) {
+
+		if (i >= batchcount) {
+			break;
+		}
+
+		for (long long j = 0; j < loopcount / batchcount; j++) {
 			for (long long k = 0; k < innercount; k++) {
 				sum = sum + i + j + k;
 			}
 		}
 
-		interval.tv_sec = 0;
-		interval.tv_nsec = sleep_ms * 1000 * 1000;
-
 		if (sleep_ms > 0) {
-			result = nanosleep(&interval, NULL);
-			if (result == -1) {
-				errlog();
-				return 7;
+			sleepthread(0, sleep_ms);
+		} else if (sleep_ms < 0) {
+			// For magic sleep_ms < 0, divide batches into 3 groups:  Scale down from 10...1 ms sleeps,
+			// then 10 zero-sleeps, then scale up from 1...10 ms.  Scales load up, plateaus, then down.
+			int j = i * 30 / batchcount;
+			int k;
+			if (j < 10) {
+				k = 10 - j;
+			} else if (j >= 20) {
+				k = j - 19;
+			} else {
+				k = 0;
 			}
+			sleepthread(0, k);
 		}
+		// skip sleep if sleep_ms == 0
 
-		timenow_us = gettime_us();
-		if (timenow_us - timestart_us > 50 * 1000 * 1000) {
-//printf("Broke on time.  Batchiter:  %lld\n", i);
-//goto breakpoint;
-			break;
-		}
-
+		i++;
 	}
-//printf("Looped out\n");
-//    breakpoint:
+	printf("Iter count:  %lld\n", i);
+	sleepthread(0, 200);
 
 	// Disable collection:
 	ioctl(perf_cycles_fd, PERF_EVENT_IOC_DISABLE, 0);
 
-//printf("Degrees:  %f\n", degree);
 	PRINTLOG("SQL_experiment_2:  loopcount:  %lld  batchcount:  %lld  sleep_ms:  %ld  sum:  %lld", loopcount, batchcount, sleep_ms, sum);
 	PRINTLOG("SQL_END");
 
 	// Collect results:
 	result = read(perf_cycles_fd, perf_buff, PERFBUFF_SIZE);
-	if (result == -1) {
-		errlog();
-		return -3;
-	}
+	errtrap("read");
 
 	// Sanity (should be collecting 1 item):
 	if (((unsigned long*)perf_buff)[0] != 1) {
