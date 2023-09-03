@@ -3525,8 +3525,105 @@ def plot_energy_perspeed_fb():
 
 	return
 
+#end_def
+
+
+# Plots energy per CPU policy (monotone curve)
+# Tracefile:  .../20230829/fixed_runtime_25s/*
+def plot_energy_monotone():
+
+	governor_list = ["schedutil_def-def", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_def-def"]
+	xticklabel_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
+
+	path = sys.argv[1]
+
+	# Android app traces use "SQL_*" markers (plot requires ftrace log):
+	global markerstart
+	markerstart = "SQL_START"
+	global markerend
+	markerend = "SQL_END"
+
+	readtraces = False
+	plotfilename = "graph_energy_monotone"
+	outputline = ""
+	inputline = ""
+	inputline_list = []
+	if (readtraces == True):
+		plotdata_file = open(datapath + plotfilename + ".txt", "w")
+	else:
+		plotdata_file = open(datapath + plotfilename + ".txt", "r")
+	#end_if
+
+	offset_list = []
+	for i in range (len(governor_list)):
+		offset_list.append(float(i) + .5)
+	#end_for
+
+	fig = plt.figure()
+	fig.set_size_inches(6.4, 3.2)
+	gs_list = mpl.gridspec.GridSpec(1, 1, left = .15, right = .98, bottom = .30, top = .98)
+	ax = fig.add_subplot(gs_list[0, 0])
+
+	for governor, offset, xticklabel in zip(governor_list, offset_list, xticklabel_list):
+
+		if (readtraces == True):
+			energy_list = []
+			for run in range(0, 10):
+				filename = path + "micro_2000-0-f0-1_" + governor + "_" + str(run) + ".gz"
+				benchtime, _, _, _, _, _, _, _, _ = process_loglines(filename)
+				energyfilename = path + "monsoon_2000-0-f0-1_" + governor + "_" + str(run) + ".csv"
+				energy = get_energy(energyfilename, 5.0, 40.0) #benchtime + 15.0)
+				energy_list.append(energy)
+				print("%s  %f  %f" % (filename, benchtime, energy))
+			#end_for
+			energy_mean, energy_err = mean_margin(energy_list)
+			outputline = str(energy_mean) + "," + str(energy_err) + "\n"
+			plotdata_file.write(outputline)
+		else:
+			inputline = plotdata_file.readline()
+			inputline_list = inputline.split(",")
+			print(inputline_list)
+			assert(len(inputline_list) == 2)
+			energy_mean = float(inputline_list[0])
+			energy_err = float(inputline_list[1])
+		#end_if
+
+		if (governor == "schedutil_def-def"):
+			color = "red"
+		else:
+			color = "blue"
+		#end_if
+
+		ax.bar(offset, energy_mean, color = color)
+		ax.errorbar(offset, energy_mean, yerr = energy_err, color = "black")
+
+	#end_for
+
+	ax.tick_params(labelsize = 12)
+	ax.set_xticks(offset_list, labels = xticklabel_list)
+	tick_list = ax.get_xticklabels()
+	for i in range(len(tick_list)):
+		tick_list[i].set_rotation(45)
+		tick_list[i].set_ha("right")
+	#end_for
+
+	ytick_list = []
+	for i in range(0, 3000, 1000):
+		ytick_list.append(i)
+	#end_for
+	ax.set_yticks(ytick_list)
+
+	fig.text(x = .55, y = .02, ha = "center", s = "CPU policy", fontsize = 16, fontweight = "bold")
+	ax.set_ylabel("Energy ($\mu$Ah)", fontsize = 16, fontweight = "bold")
+
+
+	plt.show()
+	fig.savefig(graphpath + plotfilename + ".pdf")
+
+	return
 
 #end_def
+
 
 
 def quick():
@@ -3559,7 +3656,8 @@ def quick():
 #plot_drops_perspeed_yt()
 #plot_nonidletime_fb()
 #plot_nonidletime_yt()
-plot_nonidletime_spot()
+#plot_nonidletime_spot()
 #plot_energy_jank_all()
 #plot_energy_perspeed_fb()
+plot_energy_monotone()
 
