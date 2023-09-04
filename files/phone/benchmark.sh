@@ -128,8 +128,8 @@ graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
 #device="nexus6"
 device="pixel2"
-#experiment="microbench"
-experiment="uiautomator"
+experiment="microbench"
+#experiment="uiautomator"
 #experiment="simpleapp"
 
 governor=$1
@@ -219,10 +219,14 @@ if [ "$experiment" = "microbench" ]; then
 	#loopcount="5000000"
 	#loopcount="30000000"
 
+	if [ "$proccount" != "0" ]; then
+		loopcount=$(( loopcount / proccount ))
+	fi
+
 	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
 
-	#waittime="70"
-	waittime="0"
+	waittime="70"
+	#waittime="0"
 	sleep $waittime &
 	waitpid="$!"
 
@@ -288,16 +292,16 @@ if [ "$experiment" = "uiautomator" ]; then
 		bgpid="$!"
 	fi
 
-	#pkgname="com.facebook.katana"
-	#pkgtest="com.example.test.MetaTest"
+	pkgname="com.facebook.katana"
+	pkgtest="com.example.test.MetaTest"
 
 	#pkgname= TDB
 	#pkgtest="com.example.test.TempleTest"
 	#pkgname="com.google.android.calculator"
 	#pkgtest="com.example.test.CalcTest"
 
-	pkgname="com.google.android.youtube"
-	pkgtest="com.example.test.YoutubeTest"
+	#pkgname="com.google.android.youtube"
+	#pkgtest="com.example.test.YoutubeTest"
 
 	#pkgname="com.spotify.music"
 	#pkgtest="com.example.test.SpotifyTest"
