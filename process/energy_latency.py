@@ -1134,7 +1134,7 @@ def plot_energy_runtime_fixedload_percpu_micro():
 #end_def
 
 
-# Plots energy and runtime per policy for microbenchmark
+# Plots energy and runtime per policy for microbenchmark (fixed load spread over 1-4 CPUs)
 # Tracefile:  .../20230831/micro_u_fixedlen_fixedload_varycpu/*
 # Summary post-processed data file:
 def plot_energy_runtime_fixedload_varycpu_micro():
@@ -1168,14 +1168,12 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 	fig = plt.figure()
 	fig.set_size_inches(12.8, 4.8)
 
-	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.80, bottom = .05, left = .05, right = .40)
+	gs0 = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .05, left = .05, right = .40)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs0[0]))
-	ax0_list.append(fig.add_subplot(gs0[1]))
-	gs1 = mpl.gridspec.GridSpec(1, 2, width_ratios = [5, 50], top = 0.80, bottom = .05, left = .50, right = .85)
+	gs1 = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .05, left = .50, right = .85)
 	ax1_list = []
 	ax1_list.append(fig.add_subplot(gs1[0]))
-	ax1_list.append(fig.add_subplot(gs1[1]))
 
 	ax_list_list = [ax1_list, ax0_list]
 
@@ -1184,7 +1182,8 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 	annotate_list = ["", "30", "40", "", "60", "", "80", "", "100"]
 	handle_list = []
 
-	readtraces = True
+	readtraces = False
+	#plotfilename = "graph_u_varylen_varycpu"
 	plotfilename = "graph_u_fixedlen_varycpu"
 	outputline = ""
 	inputline = ""
@@ -1208,14 +1207,18 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 					benchtime_list = []
 					cycles_list = []
 					energy_list = []
-					for run in range(1, 2):
+					for run in range(0, 5):
 						filename = path + benchtimeprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_" + str(run) + ".gz"
 						print(filename)
 						benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
 						benchtime_list.append(benchtime)
 						cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
 						filename = path + energyprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_" + str(run) + ".csv"
-						energy = get_energy(filename, 5.0, benchtime + 10.0)
+						if (plotfilename == "graph_u_varylen_varycpu"):
+							energy = get_energy(filename, 5.0, benchtime + 10.0)
+						else:
+							energy = get_energy(filename, 5.0, 75.0)
+						#end_if
 						energy_list.append(energy)
 						print("%f  %f" % (benchtime, energy))
 					#end_for
@@ -1234,7 +1237,7 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 					energy_err = float(inputline_list[3])
 				#end_if
 
-				for x in range(2):
+				for x in range(1):
 					if (i == 0):
 						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 70, color = color, marker = "s")
 					else:
@@ -1260,6 +1263,7 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 
 	plotdata_file.close()
 
+	'''
 	handle_list.append(Line2D([], [], marker = "s", markersize = 7, color = "0.0", linewidth = 0, label = "Default"))
 	handle_list.append(Line2D([], [], marker = "o", markersize = 5, color = "0.0", linewidth = 0, label = "Fixed Speed"))
 
@@ -1287,8 +1291,8 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 
 	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][1].tick_params(labelsize = 16)
-
-	fig.legend(handles = handle_list, loc = (.11, .18), fontsize = 16, ncol = 2)
+	'''
+	fig.legend(handles = handle_list, loc = (.55, .60), fontsize = 16, ncol = 2)
 
 	plt.show()
 	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
@@ -3809,8 +3813,8 @@ def quick():
 
 #main()
 #quick()
-plot_energy_runtime_fixedload_percpu_micro()
-#plot_energy_runtime_fixedload_varycpu_micro()
+#plot_energy_runtime_fixedload_percpu_micro()
+plot_energy_runtime_fixedload_varycpu_micro()
 #plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
 #plot_time_perspeed_spot()
