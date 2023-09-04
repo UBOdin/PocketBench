@@ -1047,7 +1047,11 @@ def plot_energy_runtime_fixedload_percpu_micro():
 						benchtime_list.append(benchtime)
 						cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
 						filename = path + energyprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
-						energy = get_energy(filename, 5.0, benchtime + 10.0)
+						if (plotfilename == "graph_u_varylen_multicore"):
+							energy = get_energy(filename, 5.0, benchtime + 10.0)
+						else:
+							energy = get_energy(filename, 5.0, 75.0)
+						#end_if
 						energy_list.append(energy)
 						print("%f  %f" % (benchtime, energy))
 					#end_for
