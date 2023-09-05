@@ -1159,7 +1159,12 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 
 	cputype_list = ["f0", "0f"]
 	governor_list = ["schedutil_def-def", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_def-def"]
+	xticklabel_list = ["Default", "Fixed 30", "Fixed 40", "Fixed 50", "Fixed 60", "Fixed 70", "Fixed 80", "Fixed 90", "Fixed 100"]
 
+	offset_list = []
+	for i in range (len(governor_list)):
+		offset_list.append(float(i) + .5)
+	#end_for
 
 	path = sys.argv[1]
 
@@ -1168,10 +1173,10 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 	fig = plt.figure()
 	fig.set_size_inches(12.8, 4.8)
 
-	gs0 = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .05, left = .05, right = .40)
+	gs0 = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .05, left = .05, right = .48)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs0[0]))
-	gs1 = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .05, left = .50, right = .85)
+	gs1 = mpl.gridspec.GridSpec(1, 1, top = 0.80, bottom = .05, left = .55, right = .98)
 	ax1_list = []
 	ax1_list.append(fig.add_subplot(gs1[0]))
 
@@ -1202,7 +1207,7 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 			else:
 				cputype_adj = cputype
 			#end_if
-			for governor, annotate, i in zip(governor_list, annotate_list, range(0, 9)):
+			for governor, annotate, offset in zip(governor_list, annotate_list, offset_list):
 				if (readtraces == True):
 					benchtime_list = []
 					cycles_list = []
@@ -1238,18 +1243,17 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 				#end_if
 
 				for x in range(1):
-					if (i == 0):
-						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 70, color = color, marker = "s")
+					if (offset == offset_list[0]):
+						ax_list_list[y][x].scatter(offset, energy_mean, s = 70, color = color, marker = "s")
 					else:
-						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 30, color = color)
+						ax_list_list[y][x].scatter(offset, energy_mean, s = 30, color = color)
 					#end_if
-					if (i >= 2):
-						ax_list_list[y][x].plot([benchtime_prev, benchtime_mean], [energy_prev, energy_mean], color = color, linestyle = linestyle)
+					if (offset >= offset_list[2]):
+						ax_list_list[y][x].plot([offset_prev, offset], [energy_prev, energy_mean], color = color, linestyle = linestyle)
 					#end_if
-					ax_list_list[y][x].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, yerr = energy_err, color = color)
-					ax_list_list[y][x].annotate(annotate, xy = (benchtime_mean + .015, energy_mean + 10), fontsize = 12)
+					ax_list_list[y][x].errorbar(offset, energy_mean, yerr = energy_err, color = color)
 				#end_for
-				benchtime_prev = benchtime_mean
+				offset_prev = offset
 				energy_prev = energy_mean
 
 			#end_for
@@ -1292,7 +1296,24 @@ def plot_energy_runtime_fixedload_varycpu_micro():
 	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][1].tick_params(labelsize = 16)
 	'''
-	fig.legend(handles = handle_list, loc = (.55, .60), fontsize = 16, ncol = 2)
+
+	ax_list_list[0][0].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
+	ax_list_list[0][0].set_xlabel("CPU policy", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_xlabel("CPU policy", fontsize = 16, fontweight = "bold")
+	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	
+	for x in range(2):
+		ax_list_list[x][0].tick_params(labelsize = 12)
+		ax_list_list[x][0].set_xticks(offset_list, labels = xticklabel_list)
+		tick_list = ax_list_list[x][0].get_xticklabels()
+		for i in range(len(tick_list)):
+			tick_list[i].set_rotation(45)
+			tick_list[i].set_ha("right")
+		#end_for
+	#end_for
+
+	fig.legend(handles = handle_list, loc = (.65, .75), fontsize = 16, ncol = 2)
 
 	plt.show()
 	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
