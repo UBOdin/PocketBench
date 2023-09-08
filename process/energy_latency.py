@@ -999,11 +999,11 @@ def plot_energy_runtime_fixedload_percpu_micro():
 	fig = plt.figure()
 	fig.set_size_inches(12.8, 4.8)
 
-	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.80, bottom = .05, left = .05, right = .40)
+	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.93, bottom = .13, left = .08, right = .49)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs0[0]))
 	ax0_list.append(fig.add_subplot(gs0[1]))
-	gs1 = mpl.gridspec.GridSpec(1, 2, width_ratios = [5, 50], top = 0.80, bottom = .05, left = .50, right = .85)
+	gs1 = mpl.gridspec.GridSpec(1, 2, width_ratios = [5, 50], top = 0.93, bottom = .13, left = .58, right = .99)
 	ax1_list = []
 	ax1_list.append(fig.add_subplot(gs1[0]))
 	ax1_list.append(fig.add_subplot(gs1[1]))
@@ -1112,22 +1112,27 @@ def plot_energy_runtime_fixedload_percpu_micro():
 	broken_axes_lr(ax_list_list[1][0], ax_list_list[1][1])
 
 	ax_list_list[0][0].tick_params(labelsize = 16)
-	ax_list_list[0][1].set_title("Big CPUs", fontsize = 16, fontweight = "bold")
-	ax_list_list[0][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	fig.text(x = .78, y = .95, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .78, y = .02, ha = "center", s = "Runtime (s)", fontweight = "bold", fontsize = 16)
+
 	ax_list_list[0][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 	ax_list_list[0][1].tick_params(labelsize = 16)
 
 	ax_list_list[1][0].tick_params(labelsize = 16)
-	ax_list_list[1][1].set_title("Little CPUs", fontsize = 16, fontweight = "bold")
-	ax_list_list[1][1].set_xlabel("Runtime (s)", fontsize = 16, fontweight = "bold")
+	fig.text(x = .28, y = .95, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
+	fig.text(x = .28, y = .02, ha = "center", s = "Runtime (s)", fontweight = "bold", fontsize = 16)
 
 	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
 	ax_list_list[1][1].tick_params(labelsize = 16)
 
-	fig.legend(handles = handle_list, loc = (.11, .18), fontsize = 16, ncol = 2)
+	if (plotfilename == "graph_u_varylen_multicore"):
+		fig.legend(handles = handle_list, loc = (.67, .69), fontsize = 16, ncol = 2)
+	else:
+		fig.legend(handles = handle_list, loc = (.11, .18), fontsize = 16, ncol = 2)
+	#end_if
 
 	plt.show()
-	fig.savefig(graphpath + plotfilename + ".pdf", bbox_inches = "tight")
+	fig.savefig(graphpath + plotfilename + ".pdf")
 
 	return
 
@@ -3834,7 +3839,7 @@ def quick():
 
 #main()
 #quick()
-#plot_energy_runtime_fixedload_percpu_micro()
+plot_energy_runtime_fixedload_percpu_micro()
 #plot_energy_runtime_fixedload_varycpu_micro()
 #plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
@@ -3843,7 +3848,7 @@ def quick():
 #plot_freq_over_time_micro_1()
 #plot_freq_over_time_micro_2()
 #plot_energy_drops_perpol_fb()
-plot_energy_hintperf_spot()
+#plot_energy_hintperf_spot()
 #plot_energy_varying_sleep_micro()
 #plot_benchtime_cycles()
 #plot_drops_perspeed_fb()
