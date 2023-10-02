@@ -3735,13 +3735,7 @@ def plot_energy_monotone():
 
 	path = sys.argv[1]
 
-	# Android app traces use "SQL_*" markers (plot requires ftrace log):
-	global markerstart
-	markerstart = "SQL_START"
-	global markerend
-	markerend = "SQL_END"
-
-	readtraces = False
+	readtraces = True
 	plotfilename = "graph_energy_monotone"
 	outputline = ""
 	inputline = ""
@@ -3770,7 +3764,8 @@ def plot_energy_monotone():
 				filename = path + "micro_2000-0-f0-1_" + governor + "_" + str(run) + ".gz"
 				benchtime, _, _, _, _, _, _, _, _ = process_loglines(filename)
 				energyfilename = path + "monsoon_2000-0-f0-1_" + governor + "_" + str(run) + ".csv"
-				energy = get_energy(energyfilename, 5.0, 40.0) #benchtime + 15.0)
+				#energy = get_energy(energyfilename, 5.0, 40.0)
+				energy = get_energy(energyfilename, 15.0, 30.0)
 				energy_list.append(energy)
 				print("%s  %f  %f" % (filename, benchtime, energy))
 			#end_for
@@ -3839,7 +3834,7 @@ def quick():
 
 #main()
 #quick()
-plot_energy_runtime_fixedload_percpu_micro()
+#plot_energy_runtime_fixedload_percpu_micro()
 #plot_energy_runtime_fixedload_varycpu_micro()
 #plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
@@ -3858,5 +3853,5 @@ plot_energy_runtime_fixedload_percpu_micro()
 #plot_nonidletime_spot()
 #plot_energy_jank_all()
 #plot_energy_perspeed_fb()
-#plot_energy_monotone()
+plot_energy_monotone()
 
