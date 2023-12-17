@@ -219,9 +219,9 @@ if [ "$experiment" = "microbench" ]; then
 	#loopcount="5000000"
 	#loopcount="30000000"
 
-	if [ "$proccount" != "0" ]; then
-		loopcount=$(( loopcount / proccount ))
-	fi
+	#if [ "$proccount" != "0" ]; then
+	#	loopcount=$(( loopcount / proccount ))
+	#fi
 
 	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
 
