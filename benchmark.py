@@ -68,9 +68,6 @@ def command(string_array):
 		if (lospeed == "def"):
 			little_lospeed = little_dict["0"]
 			big_lospeed = big_dict["0"]
-		elif (lospeed == "75"):
-			little_lospeed = little_dict["70"]
-			big_lospeed = big_dict["50"]
 		else:
 			little_lospeed = little_dict[lospeed]
 			big_lospeed = big_dict[lospeed]
@@ -151,11 +148,14 @@ def main():
 				#delay_list = ["normal", "50", "20", "5", "2", "0"]
 				#delay_list = ["normal", "boost"]
 				#delay_list = ["2000-0-00-0", "2000-0-f0-1", "2000-0-f0-2", "2000-0-f0-3", "2000-0-f0-4", "2000-0-0f-1", "2000-0-0f-2", "2000-0-0f-3", "2000-0-0f-4"]
-				delay_list = ["normal"]
+				#delay_list = ["2000-0-f0-1", "2000-0-f0-2", "2000-0-f0-3", "2000-0-f0-4", "2000-0-0f-1", "2000-0-0f-2", "2000-0-0f-3", "2000-0-0f-4"]
+				delay_list = ["2000-5-f0-1", "2000-5-f0-2", "2000-5-f0-3", "2000-5-f0-4", "2000-5-0f-1", "2000-5-0f-2", "2000-5-0f-3", "2000-5-0f-4"]
 
-				run_count = 10
 
-				skip_count = 75
+				#delay_list = ["normal"]
+				#delay_list = ["2000-0-f0-1"]
+
+				run_count = 5
 				iteration = 0
 
 				for runno in range(run_count):
