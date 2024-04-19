@@ -24,10 +24,7 @@ set_governor() {
 				echo "$frequency" > $cpu_dir/cpu$i/cpufreq/scaling_setspeed
 			fi
 		done
-	else
-		#for i in $cpu; do
-		#	echo "1" > $cpu_dir/cpu$i/online
-		#done
+	elif [ "$device" = "pixel2" ]; then
 		cluster_list="0 4"
 		for cluster in $cluster_list; do
 			echo "$governor" > $cpu_dir/cpufreq/policy${cluster}/scaling_governor
@@ -57,6 +54,47 @@ set_governor() {
 			/data/setdef.exe $freq_space
 			errtrap $? "ERR ioblock setdef"
 		fi
+	elif [ "$device" = "pixel7" ]; then
+		cluster_list="0 4 6"
+		for cluster in $cluster_list; do
+			echo "$governor" > $cpu_dir/cpufreq/policy${cluster}/scaling_governor
+			errtrap $? "ERR Invalid governor"
+		done
+		if [ "$governor" = "sched_pixel" ]; then
+			# Extract the big-little min-max speeds from the uber-parameter:
+			freq_lmin="$(echo $frequency | cut -d "-" -f1)"
+			freq_mmin="$(echo $frequency | cut -d "-" -f2)"
+			freq_bmin="$(echo $frequency | cut -d "-" -f3)"
+			freq_lmax="$(echo $frequency | cut -d "-" -f4)"
+			freq_mmax="$(echo $frequency | cut -d "-" -f5)"
+			freq_bmax="$(echo $frequency | cut -d "-" -f6)"
+			echo "$freq_lmin" > $cpu_dir/cpufreq/policy0/scaling_min_freq
+			echo "$freq_mmin" > $cpu_dir/cpufreq/policy4/scaling_min_freq
+			echo "$freq_bmin" > $cpu_dir/cpufreq/policy6/scaling_min_freq
+			echo "$freq_lmax" > $cpu_dir/cpufreq/policy0/scaling_max_freq
+			echo "$freq_mmax" > $cpu_dir/cpufreq/policy4/scaling_max_freq
+			echo "$freq_bmax" > $cpu_dir/cpufreq/policy6/scaling_max_freq
+		fi
+		if [ "$governor" = "userspace" ]; then
+			# Extract the specific big-little speeds from the uber-parameter:
+			freq_little="$(echo $frequency | cut -d "-" -f1)"
+			freq_mid="$(echo $frequency | cut -d "-" -f2)"
+			freq_big="$(echo $frequency | cut -d "-" -f3)"
+			echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
+			echo "$freq_mid" > $cpu_dir/cpufreq/policy4/scaling_setspeed
+			echo "$freq_big" > $cpu_dir/cpufreq/policy6/scaling_setspeed
+		fi
+		if [ "$governor" = "ioblock" ]; then
+
+			error_exit "ERR add support"
+
+			# TODO:  Sort out freq parameter order issue with syscall
+			freq_space="$(echo $frequency | tr - " ")"
+			/data/setdef.exe $freq_space
+			errtrap $? "ERR ioblock setdef"
+		fi
+	else
+		error_exit "ERR invalid device"
 	fi
 
 }
@@ -118,16 +156,14 @@ get_cpufreq() {
 
 
 echo foo > /sys/power/wake_lock
-
 cpu_dir=/sys/devices/system/cpu
-trace_dir=/sys/kernel/debug/tracing
-trace_log=/sys/kernel/debug/tracing/trace_marker
 errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
 graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
 #device="nexus6"
-device="pixel2"
+#device="pixel2"
+device="pixel7"
 experiment="microbench"
 #experiment="uiautomator"
 #experiment="simpleapp"
@@ -162,13 +198,23 @@ echo 3 > /proc/sys/vm/drop_caches
 if [ "$device" = "nexus6" ]; then
 	default="interactive"
 	cpus="0 1 2 3"
-else
+	trace_dir=/sys/kernel/debug/tracing
+elif [ "$device" = "pixel2" ]; then
 	default="schedutil"
 	deffreq="300000-300000-1900800-2457600"
 	cpus="0 1 2 3 4 5 6 7"
+	trace_dir=/sys/kernel/debug/tracing
+elif [ "$device" = "pixel7" ]; then
+	default="sched_pixel"
+	deffreq="300000-400000-500000-1803000-2348000-2850000"
+	cpus="0 1 2 3 4 5 6 7"
+	trace_dir=/sys/kernel/tracing
+else
+	error_exit "ERR invalid device"
 fi
+trace_log=$trace_dir/trace_marker
 
-# Sanity check that all CPUs are on (at least for Nexus 6, they should be -- not necessarily for Nexus 5):
+# Sanity check that all CPUs are on:
 for i in $cpus; do
 	result="$(cat $cpu_dir/cpu$i/online)"
 	if [ "$result" != "1" ]; then
