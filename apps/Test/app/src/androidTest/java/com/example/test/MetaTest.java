@@ -103,10 +103,10 @@ public class MetaTest {
         try {
             // Navigate to friends list:
             Thread.sleep(1000);
-            device.click(270, 280);
+            device.click(450, 237);
             Thread.sleep(1000);
-            device.click(490, 370);
-            Thread.sleep(1000);
+//            device.click(490, 370);
+//            Thread.sleep(1000);
             device.swipe(500, 1200, 500, 800, 10);
             // Scroll through friends list:
             Thread.sleep(500);
@@ -117,8 +117,8 @@ public class MetaTest {
             // Go back to app home:
             Thread.sleep(500);
             device.pressBack();
-            Thread.sleep(500);
-            device.pressBack();
+//            Thread.sleep(500);
+//            device.pressBack();
             Thread.sleep(500);
             // Scroll through feed:
             for (int i = 0; i < 20; i++) {
