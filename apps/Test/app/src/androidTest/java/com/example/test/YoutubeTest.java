@@ -114,7 +114,8 @@ public class YoutubeTest {
             //device.pressKeyCode(KeyEvent.KEYCODE_C);
             type_keys("we so lit");
 
-            Thread.sleep(20 * 1000);
+            // Let video (or ad...) play for :30:
+            Thread.sleep(30 * 1000);
 
         } catch (Exception e) {
             Log.d(logflag, "Exception Catch:  " + e.toString());

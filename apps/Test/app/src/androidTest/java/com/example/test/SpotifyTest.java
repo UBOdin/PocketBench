@@ -102,6 +102,9 @@ public class SpotifyTest {
         trace_marker("FLAG123 Start App Script test");
         trace_marker("FLAG123 Start Spotify");
         try {
+            // Click minimize screen button:
+            Thread.sleep(1000);
+            device.click(84, 136);
             // Click search button:
             Thread.sleep(1000);
             device.click(404, 1704);
@@ -116,7 +119,7 @@ public class SpotifyTest {
             Thread.sleep(1000);
             device.click(985,1557);
             // Let it play:
-            Thread.sleep(20 * 1000);
+            Thread.sleep(30 * 1000);
             device.click(985, 1557);
 
         } catch (Exception e) {
