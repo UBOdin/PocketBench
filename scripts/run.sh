@@ -7,7 +7,7 @@ filespeed="$(echo $2 | cut -d ":" -f1)"
 background="$3"
 runcount="$4"
 wakeport="2017"  # Phone-client wifi wakeup port
-meter="0"  # boolean -- whether using Monsoon meter
+meter="1"  # boolean -- whether using Monsoon meter
 
 filesuffix="${background}_${governor}_${filespeed}_${runcount}"
 filename="micro_${filesuffix}"

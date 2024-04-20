@@ -53,7 +53,9 @@ int main(int argc, char** argv) {
 	int sock_listen;
 	int port_listen;
 	long optval;
-	char server_ip_address[] = "128.205.39.155";
+//	char server_ip_address[] = "128.205.39.155";
+	char server_ip_address[] = "192.168.1.199";
+
 
 	char logfile[] = "wifi_server_log.txt";
 

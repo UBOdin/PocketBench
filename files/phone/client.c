@@ -47,12 +47,13 @@ void __writelog(char* string, int line) {
 
 
 int main(int argc, char** argv) {
-	
+
 	int result;					// Generic return code holder
 	struct sockaddr_in ssin;
 	int sock;
 	int port;
-	char server_ip_address[] = "128.205.39.155";
+//	char server_ip_address[] = "128.205.39.155";
+	char server_ip_address[] = "192.168.1.199";
 	socklen_t addrlen;
 
 	char logfile[] = "/data/wifi_client_log.txt";
