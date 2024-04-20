@@ -55,8 +55,7 @@ int main(int argc, char** argv) {
 	int listen_inet;
 	int listen_unix;
 	int port_listen;
-//	char server_ip_address[] = "128.205.39.155";
-	char server_ip_address[] = "192.168.1.199";
+	char server_ip_address[] = "128.205.39.155";
 	char logfile[] = "wifi_server_log.txt";
 	socklen_t addrlen;
 	struct sockaddr_in ssin;
