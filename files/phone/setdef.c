@@ -9,38 +9,36 @@
 int main(int argc, char** argv) {
 
 	int result;
-
-//	char strout[] = "This is a test.\n";
-
-//	printf("Hello World\n");
-
-//	printf("Testval:  %d\n", __NR_wait4);
-
-//	result = syscall(285, 89);
-//	result = syscall(285, 41, 43, 47, 53, 59);
-//	result = syscall(243, 73, 7, 7, 7, 7, 7, 7, 7);
-//	result = syscall(__NR_write, 1, strout, sizeof(strout));
-//	result = write(1, strout, sizeof(strout));
-
+	int call;
 	int lmin;
-	int lmax;
+	int mmin;
 	int bmin;
+	int lmax;
+	int mmax;
 	int bmax;
 
-	// TODO:  Resolve ordering issue
-	lmin = atoi(argv[1]);
-	lmax = atoi(argv[3]);
-	bmin = atoi(argv[2]);
-	bmax = atoi(argv[4]);
+	call = atoi(argv[1]);
+	lmin = atoi(argv[2]);
+	mmin = atoi(argv[3]);
+	bmin = atoi(argv[4]);
+	lmax = atoi(argv[5]);
+	mmax = atoi(argv[6]);
+	bmax = atoi(argv[7]);
 
-	result = syscall(286, lmin, lmax, bmin, bmax);
+	if ((call != 286) || (call != 450)) {
+		return -2;
+	}
+
+	// TODO:  Resolve ordering issue
+//	result = syscall(286, lmin, lmax, bmin, bmax);
+	result = syscall(call, lmin, lmax, mmin, mmax, bmin, bmax);
+
+	printf("Return value:  %d\n", result);
 
 	if (result == -1) {
 //		printf("Error:  %d %s\n", errno, strerror(errno));
 		return -1;
 	}
-
-//	printf("Return value:  %d\n", result);
 
 	return 0;
 
