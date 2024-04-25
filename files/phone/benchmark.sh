@@ -3,10 +3,10 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
-	echo $1 > $trace_dir/events/power/cpu_idle/enable
+	#echo $1 > $trace_dir/events/power/cpu_idle/enable
 
 }
 
@@ -25,7 +25,6 @@ set_governor() {
 			fi
 		done
 	elif [ "$device" = "pixel2" ]; then
-		cluster_list="0 4"
 		for cluster in $cluster_list; do
 			echo "$governor" > $cpu_dir/cpufreq/policy${cluster}/scaling_governor
 			errtrap $? "ERR Invalid governor"
@@ -33,9 +32,9 @@ set_governor() {
 		if [ "$governor" = "schedutil" ]; then
 			# Extract the big-little min-max speeds from the uber-parameter:
 			freq_lmin="$(echo $frequency | cut -d "-" -f1)"
-			freq_bmin="$(echo $frequency | cut -d "-" -f2)"
-			freq_lmax="$(echo $frequency | cut -d "-" -f3)"
-			freq_bmax="$(echo $frequency | cut -d "-" -f4)"
+			freq_bmin="$(echo $frequency | cut -d "-" -f3)"
+			freq_lmax="$(echo $frequency | cut -d "-" -f4)"
+			freq_bmax="$(echo $frequency | cut -d "-" -f6)"
 			echo "$freq_lmin" > $cpu_dir/cpufreq/policy0/scaling_min_freq
 			echo "$freq_bmin" > $cpu_dir/cpufreq/policy4/scaling_min_freq
 			echo "$freq_lmax" > $cpu_dir/cpufreq/policy0/scaling_max_freq
@@ -44,23 +43,22 @@ set_governor() {
 		if [ "$governor" = "userspace" ]; then
 			# Extract the specific big-little speeds from the uber-parameter:
 			freq_little="$(echo $frequency | cut -d "-" -f1)"
-			freq_big="$(echo $frequency | cut -d "-" -f2)"
+			freq_big="$(echo $frequency | cut -d "-" -f3)"
 			echo "$freq_little" > $cpu_dir/cpufreq/policy0/scaling_setspeed
 			echo "$freq_big" > $cpu_dir/cpufreq/policy4/scaling_setspeed
 		fi
 		if [ "$governor" = "ioblock" ]; then
 			# TODO:  Sort out freq parameter order issue with syscall
 			freq_space="$(echo $frequency | tr - " ")"
-			/data/setdef.exe $freq_space
+			/data/setdef.exe 286 $freq_space
 			errtrap $? "ERR ioblock setdef"
 		fi
 	elif [ "$device" = "pixel7" ]; then
-		cluster_list="0 4 6"
 		for cluster in $cluster_list; do
 			echo "$governor" > $cpu_dir/cpufreq/policy${cluster}/scaling_governor
 			errtrap $? "ERR Invalid governor"
 		done
-		if [ "$governor" = "sched_pixel" ]; then
+		if [ "$governor" = "schedutil" ] || [ "$governor" = "sched_pixel" ]; then
 			# Extract the big-little min-max speeds from the uber-parameter:
 			freq_lmin="$(echo $frequency | cut -d "-" -f1)"
 			freq_mmin="$(echo $frequency | cut -d "-" -f2)"
@@ -84,13 +82,13 @@ set_governor() {
 			echo "$freq_mid" > $cpu_dir/cpufreq/policy4/scaling_setspeed
 			echo "$freq_big" > $cpu_dir/cpufreq/policy6/scaling_setspeed
 		fi
-		if [ "$governor" = "ioblock" ]; then
+		if [ "$governor" = "sched_simple" ]; then
 
 			error_exit "ERR add support"
 
 			# TODO:  Sort out freq parameter order issue with syscall
 			freq_space="$(echo $frequency | tr - " ")"
-			/data/setdef.exe $freq_space
+			/data/setdef.exe 450 $freq_space
 			errtrap $? "ERR ioblock setdef"
 		fi
 	else
@@ -146,7 +144,6 @@ get_idledata() {
 get_cpufreq() {
 
 	cpufreqconcat=""
-	cluster_list="0 4"
 	for cluster in $cluster_list; do
 		result=$(cat /sys/devices/system/cpu/cpufreq/policy${cluster}/scaling_cur_freq)
 		cpufreqconcat="$cpufreqconcat $result"
@@ -161,22 +158,20 @@ errfile="/data/results.txt"
 logfile="/data/phonelog.txt"
 graphfile="/data/graphlog.txt"
 idlefile="/data/idledata.txt"
-#device="nexus6"
-#device="pixel2"
-device="pixel7"
 experiment="microbench"
 #experiment="uiautomator"
 #experiment="simpleapp"
 
-governor=$1
+device=$1
+governor=$2
 frequency=$2
-bgdelay=$3
-wakeport=$4
+bgdelay=$4
+wakeport=$5
 
 rm $errfile
 rm $logfile
 
-echo "Starting phone script with parameters:  governor $governor, frequency $frequency, bgdelay $bgdelay, wakeport $wakeport" > $logfile
+echo "Starting phone script with parameters:  device $device, governor $governor, frequency $frequency, bgdelay $bgdelay, wakeport $wakeport" > $logfile
 
 # SELinux is a pain:
 setenforce 0
@@ -201,13 +196,15 @@ if [ "$device" = "nexus6" ]; then
 	trace_dir=/sys/kernel/debug/tracing
 elif [ "$device" = "pixel2" ]; then
 	default="schedutil"
-	deffreq="300000-300000-1900800-2457600"
+	deffreq="300000-x-300000-1900800-x-2457600"
 	cpus="0 1 2 3 4 5 6 7"
+	cluster_list="0 4"
 	trace_dir=/sys/kernel/debug/tracing
 elif [ "$device" = "pixel7" ]; then
 	default="sched_pixel"
 	deffreq="300000-400000-500000-1803000-2348000-2850000"
 	cpus="0 1 2 3 4 5 6 7"
+	cluster_list="0 4 6"
 	trace_dir=/sys/kernel/tracing
 else
 	error_exit "ERR invalid device"
@@ -421,10 +418,12 @@ fi
 echo "Received benchmark app finished signal" >> $logfile
 echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 printf "Governor used:  %s\n" "$governor" >> $trace_log
-cat $cpu_dir/cpufreq/policy0/scaling_min_freq >> $trace_log
-cat $cpu_dir/cpufreq/policy4/scaling_min_freq >> $trace_log
-cat $cpu_dir/cpufreq/policy0/scaling_max_freq >> $trace_log
-cat $cpu_dir/cpufreq/policy4/scaling_max_freq >> $trace_log
+for cluster in $cluster_list; do
+	cat $cpu_dir/cpufreq/policy${cluster}/scaling_min_freq >> $trace_log
+done
+for cluster in $cluster_list; do
+	cat $cpu_dir/cpufreq/policy${cluster}/scaling_max_freq >> $trace_log
+done
 
 toggle_events 0
 set_governor "$default" "$deffreq"

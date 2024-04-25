@@ -1,5 +1,10 @@
 
-trace_dir=/sys/kernel/debug/tracing
+device=$1
+if [ "$device" = "pixel2" ]; then
+	trace_dir=/sys/kernel/debug/tracing
+elif [ "$device" = "pixel7" ]; then
+	trace_dir=/sys/kernel/tracing
+fi
 echo > $trace_dir/trace
 echo 1 > $trace_dir/tracing_on
 echo "START FOREGROUND SCRIPT" >> $trace_dir/trace_marker
@@ -16,7 +21,7 @@ rm /data/finish.pipe
 mknod /data/finish.pipe p
 
 # Launch main benchmark script in the background:
-nohup sh /data/benchmark.sh $1 $2 $3 $4 > /data/output.out &
+nohup sh /data/benchmark.sh $1 $2 $3 $4 $5 > /data/output.out &
 
 # Save main script pid for later sanity check:
 printf "Returned pid:\n$!\n" > /data/start.txt
