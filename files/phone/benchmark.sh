@@ -3,7 +3,7 @@ toggle_events() {
 
 	#echo $1 > $trace_dir/events/sched/sched_switch/enable
 	#echo $1 > $trace_dir/events/sched/sched_migrate_task/enable
-	#echo $1 > $trace_dir/events/power/cpu_frequency/enable
+	echo $1 > $trace_dir/events/power/cpu_frequency/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_start/enable
 	#echo $1 > $trace_dir/events/power/cpu_frequency_switch_end/enable
 	#echo $1 > $trace_dir/events/power/cpu_idle/enable
@@ -14,6 +14,7 @@ set_governor() {
 
 	local governor="$1"
 	local frequency="$2"
+
 	if [ "$device" = "nexus6" ]; then
 		# Turn on all CPUs and set governor as selected:
 		for i in $cpus; do
@@ -152,6 +153,17 @@ get_cpufreq() {
 }
 
 
+log_cpufreq() {
+
+	local logfreq="$1"  # min, max or cur
+
+	for cluster in $cluster_list; do
+		cat $cpu_dir/cpufreq/policy${cluster}/${logfreq} >> $trace_log
+	done
+
+}
+
+
 echo foo > /sys/power/wake_lock
 cpu_dir=/sys/devices/system/cpu
 errfile="/data/results.txt"
@@ -164,7 +176,7 @@ experiment="microbench"
 
 device=$1
 governor=$2
-frequency=$2
+frequency=$3
 bgdelay=$4
 wakeport=$5
 
@@ -235,8 +247,8 @@ toggle_events 1
 # Turn on tracing:
 echo 150000 > $trace_dir/buffer_size_kb
 echo 1 > $trace_dir/tracing_on
-echo $(date +"Phone time 1:  %H:%M:%S.%N") >> $trace_log
-echo "Microbenchmark params:  governor:  ${1} ${2}" >> $trace_log
+echo "Benchmark parameters:  device $device governor $governor frequency $frequency bgdelay $bgdelay" > $trace_log
+
 
 if [ "$experiment" = "microbench" ]; then
 
@@ -256,7 +268,7 @@ if [ "$experiment" = "microbench" ]; then
 	batchcount="$(echo $bgdelay | cut -d "-" -f1)"
 	sleepinter="$(echo $bgdelay | cut -d "-" -f2)"
 	cpumask="$(echo $bgdelay | cut -d "-" -f3)"
-	proccount="$(echo $bgdelay | cut -d "-" -f4)"
+	#proccount="$(echo $bgdelay | cut -d "-" -f4)"
 	#loopcount="4000000"
 	loopcount="100000000"
 	#loopcount="5000000"
@@ -266,10 +278,10 @@ if [ "$experiment" = "microbench" ]; then
 	#	loopcount=$(( loopcount / proccount ))
 	#fi
 
-	echo "loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask  proccount:  $proccount" >> $trace_log
+	echo "device:  $device  loopcount:  $loopcount  batchcount:  $batchcount  sleepinter:  $sleepinter  cpumask:  $cpumask" >> $trace_log
 
-	waittime="70"
-	#waittime="0"
+	#waittime="70"
+	waittime="0"
 	sleep $waittime &
 	waitpid="$!"
 
@@ -277,8 +289,8 @@ if [ "$experiment" = "microbench" ]; then
 	echo "CPU FREQ $cpufreqconcat" >> $trace_log
 
 	get_idledata
-	if [ "$proccount" != "0" ]; then
-		/data/forker.exe $proccount /system/bin/taskset $cpumask /data/compute.exe $loopcount $batchcount $sleepinter
+	if [ "$cpumask" != "00" ]; then
+		/data/forker.exe $device /system/bin/taskset $cpumask /data/compute.exe $loopcount $batchcount $sleepinter
 		result="$?"
 	else
 		result="0"
@@ -416,14 +428,12 @@ if [ "$experiment" = "uiautomator" ]; then
 fi
 
 echo "Received benchmark app finished signal" >> $logfile
-echo $(date +"Phone time 2:  %H:%M:%S.%N") >> $trace_log
 printf "Governor used:  %s\n" "$governor" >> $trace_log
-for cluster in $cluster_list; do
-	cat $cpu_dir/cpufreq/policy${cluster}/scaling_min_freq >> $trace_log
-done
-for cluster in $cluster_list; do
-	cat $cpu_dir/cpufreq/policy${cluster}/scaling_max_freq >> $trace_log
-done
+log_cpufreq "scaling_min_freq"
+log_cpufreq "scaling_max_freq"
+if [ "$governor" = "userspace" ]; then
+	log_cpufreq "scaling_cur_freq"
+fi
 
 toggle_events 0
 set_governor "$default" "$deffreq"
@@ -439,9 +449,6 @@ echo "Clean Exit" >> $logfile
 # Block until we receive cleanup ping from foreground script:
 result="$(cat /data/finish.pipe)"
 echo $result >> $trace_log  # Save timesync (received as wakeup ping)
-echo $(date +"Phone time 3:  %H:%M:%S.%N") >> $trace_log
-echo "Received wakeup ping from main script" >> $logfile
-#echo foo > /sys/power/wake_unlock
 
 # Pull results:
 cat $trace_dir/trace > /data/trace.log
