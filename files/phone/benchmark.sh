@@ -219,7 +219,11 @@ elif [ "$device" = "pixel7" ]; then
 	cluster_list="0 4 6"
 	trace_dir=/sys/kernel/tracing
 else
-	error_exit "ERR invalid device"
+	echo "ERR Invalid device" >> $logfile
+	echo "ERR" > $errfile
+	send_wakeup
+	echo foo > /sys/power/wake_unlock
+	exit 1
 fi
 trace_log=$trace_dir/trace_marker
 
