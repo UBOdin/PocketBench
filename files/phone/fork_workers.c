@@ -36,15 +36,28 @@ int main(int argc, char** argv) {
 	int pidpool[THREADMAX];
 	int wstatus;
 	int trace_fd;
-//	char trace_filename[] = "/sys/kernel/debug/tracing/trace_marker";
-	char trace_filename[] = "/sys/kernel/tracing/trace_marker";
+	char* trace_filename;
 	char output_buff[OUTPUT_SIZE];
 	int output_len;
 	int bit;
 	int bitmask;
 
+	// arg[1] -- device name
+	// arg[2] -- command (taskset binary)
+	// arg[3] -- cpumask
+
 	memset(&output_buff, 0, sizeof(output_buff));
 	memset(&pidpool, 0, sizeof(pidpool));
+
+	// ftrace path is device dependent:
+	if (strcmp(argv[1], "pixel2") == 0) {
+		trace_filename = "/sys/kernel/debug/tracing/trace_marker";
+	} else if (strcmp(argv[1], "pixel7") == 0) {
+		trace_filename = "/sys/kernel/tracing/trace_marker";
+	} else {
+		__android_log_print(ANDROID_LOG_VERBOSE, "FORK_WORKERS", "Error:  unspported device\n");
+		_exit(133);
+	}
 
 	// Open handle to ftrace to save output:
 	result = open(trace_filename, O_WRONLY);
@@ -56,7 +69,9 @@ int main(int argc, char** argv) {
 	bit = 1;
 	bitmask = strtoul(argv[3], NULL, 16);
 
+	// Run 1 (full fixed load) worker on each cpu in cpumask:
 	for (int i = 0; i < threadcount; i++) {
+		// Adjust cpumask for this worker to 1 unique cpu:
 		snprintf(argv[3], 3, "%02x", bit);
 		if ((bitmask & bit) != 0) {
 			result = fork();
