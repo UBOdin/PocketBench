@@ -300,7 +300,7 @@ if [ "$experiment" = "microbench" ]; then
 		result="0"
 	fi
 	get_idledata
-	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
+	echo "IDLE DATA ${idleconcat}" >> $trace_log
 
 	if [ "$governor" = "oscillate" ]; then
 		kill -9 $bgpid
@@ -377,7 +377,7 @@ if [ "$experiment" = "uiautomator" ]; then
 	echo "SQL_END" >> $trace_log
 
 	get_idledata
-	printf "IDLE DATA %s" "$idleconcat" >> $trace_log
+	echo "IDLE DATA ${idleconcat}" >> $trace_log
 
 	dumpsys gfxinfo $pkgname > $graphfile
 
@@ -428,11 +428,11 @@ if [ "$experiment" = "uiautomator" ]; then
 	if [ "${#output_arr[*]}" != "8" ]; then
 		error_exit "ERR on frame data 2"
 	fi
-	printf "GFX DATA:  %s" "$output" >> $trace_log
+	echo "GFX DATA:  ${output}" >> $trace_log
 fi
 
 echo "Received benchmark app finished signal" >> $logfile
-printf "Governor used:  %s\n" "$governor" >> $trace_log
+echo "Governor used:  ${governor}" >> $trace_log
 log_cpufreq "scaling_min_freq"
 log_cpufreq "scaling_max_freq"
 if [ "$governor" = "userspace" ]; then
