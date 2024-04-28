@@ -7,14 +7,15 @@ filespeed="$(echo $2 | cut -d ":" -f1)"
 background="$3"
 runcount="$4"
 wakeport="2017"  # Phone-client wifi wakeup port
-meter="1"  # boolean -- whether using Monsoon meter
+meter="0"  # boolean -- whether using Monsoon meter
+device="pixel7"
 
 filesuffix="${background}_${governor}_${filespeed}_${runcount}"
 filename="micro_${filesuffix}"
 
 
 echo "Starting phone script"
-adb shell sh /data/start_benchmark.sh $governor $cpuspeed $background $wakeport &
+adb shell sh /data/start_benchmark.sh $device $governor $cpuspeed $background $wakeport &
 
 if [ "$meter" = "1" ]; then
 	sleep 10 # Give phone script a chance to get running before starting Monsoon meter and cutting phone power:
