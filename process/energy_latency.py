@@ -3735,7 +3735,7 @@ def plot_energy_monotone():
 
 	path = sys.argv[1]
 
-	readtraces = True
+	readtraces = False
 	plotfilename = "graph_energy_monotone"
 	outputline = ""
 	inputline = ""
@@ -3765,7 +3765,7 @@ def plot_energy_monotone():
 				benchtime, _, _, _, _, _, _, _, _ = process_loglines(filename)
 				energyfilename = path + "monsoon_2000-0-f0-1_" + governor + "_" + str(run) + ".csv"
 				#energy = get_energy(energyfilename, 5.0, 40.0)
-				energy = get_energy(energyfilename, 15.0, 30.0)
+				energy = get_energy(energyfilename, 20.0, 30.0)
 				energy_list.append(energy)
 				print("%s  %f  %f" % (filename, benchtime, energy))
 			#end_for
