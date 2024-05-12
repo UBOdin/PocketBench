@@ -7,7 +7,7 @@ filespeed="$(echo $2 | cut -d ":" -f1)"
 background="$3"
 runcount="$4"
 wakeport="2017"  # Phone-client wifi wakeup port
-meter="0"  # boolean -- whether using Monsoon meter
+meter="1"  # boolean -- whether using Monsoon meter
 device="pixel7"
 
 filesuffix="${background}_${governor}_${filespeed}_${runcount}"
@@ -118,7 +118,25 @@ adb pull /data/phonelog.txt
 cat phonelog.txt
 adb pull /data/trace.log
 mv trace.log logs/$filename
-gzip logs/$filename
+gzip logs/$filename -f
+if [ "$meter" = "1" ]; then
+	sudo mv /home/carlnues/win_mount/monsoon_${filesuffix}.* logs/
+	result=$?
+	if [ "$result" != "0" ]; then
+		echo "Error on transfering energyfile"
+		exit 1
+	fi
+	sudo chown 1000:1000 logs/monsoon_${filesuffix}.*
+	chmod 644 logs/monsoon_${filesuffix}.*
+	python3.7 scripts/sanity_monsoon.py logs/monsoon_${filesuffix}.csv
+	result=$?
+	if [ "$result" != "0" ]; then
+		echo "Error on energyfile sanitycheck"
+		sanitytime=$(date)
+		echo "Flunked energy sanitycheck on monsoon_${filesuffix}.csv on ${sanitytime}" >> energysanity.txt
+		exit 199  # Special retval => rerun test
+	fi
+fi
 
 printf "FILENAME:  %s\n" "$filename"
 printf "Completed benchmark\n"
