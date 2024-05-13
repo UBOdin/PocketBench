@@ -165,36 +165,38 @@ def process_loglines(file_name):
 			continue
 		#end_if
 
-		# Calculate length of timefield (n.b. can vary):
-		index = logline.find(":", 34)
-		if (index == -1):
-			print("Missing timeend")
-			print(iteration)
-			print(logline)
-			sys.exit(1)
-		#end_if
-		timeend = index
-
+		# Assume characters 0-15 are the comm field (task name):
+		assert(logline[16] == "-")
 		pid = int(logline[17:23])
-		cpu = int(logline[24:27])
-		time = float(logline[34:timeend])
+
+		# Find cpu field (location in logline can vary):
+		index = logline.find("[", 23)
+		if (index == -1):
+			print("Missing cpu field")
+			exit(1)
+		#end_if
+		cpustartindex = index
+		cpu = int(logline[cpustartindex + 1:cpustartindex + 4])
+		assert(logline[cpustartindex + 4] == "]")
+
+		# Find time field (location in logline can vary):
+		index = logline.find(":", cpustartindex + 11)
+		if (index == -1):
+			print("Missing time field")
+			exit(1)
+		#end_if
+		timeendindex = index
+		time = float(logline[cpustartindex + 11:timeendindex])
 
 		# Find end of ftrace event type:
-		index = logline.find(":", timeend + 2)
+		index = logline.find(":", timeendindex + 2)
 		if (index == -1):
 			print("Invalid ftrace event")
-			sys.exit(1)
+			exit(1)
 		#end_if
-		eventend = index
-		eventtype = logline[timeend + 2:eventend]
-		datastart = eventend + 2
-
-		'''
-		print("Time end:  " + str(timeend))
-		print(eventtype)
-		print("Func end:  " + str(eventend))
-		print(datastart)
-		'''
+		eventendindex = index
+		eventtype = logline[timeendindex + 2:eventendindex]
+		datastart = eventendindex + 2
 
 		if (eventtype == "tracing_mark_write"):
 
@@ -988,17 +990,20 @@ def plot_energy_runtime_fixedload_percpu_micro():
 	benchtimeprefix = "/micro_2000-0-"
 	energyprefix = "/monsoon_2000-0-"
 
-	cputype_list = ["f0", "0f"]
-	governor_list = ["schedutil_none", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_none"]
-
+	#cputype_list = ["80", "20", "08"]
+	cputype_list = ["80", "c0", "20", "30", "08", "0c", "0e", "0f"]
+	cpucount_list = [1, 2, 1, 2, 1, 2, 3, 4]
+	governor_list = ["schedutil_def-def", "sched_pixel_def-def", "userspace_20-20", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_def-def"]
+	runlength = 75.0
 
 	path = sys.argv[1]
 
 	x_subplots = 2
 	y_subplots = 2
 	fig = plt.figure()
-	fig.set_size_inches(12.8, 4.8)
+	fig.set_size_inches(12.8, 6.4)
 
+	'''
 	gs0 = mpl.gridspec.GridSpec(1, 2, width_ratios = [1, 16], top = 0.93, bottom = .13, left = .08, right = .49)
 	ax0_list = []
 	ax0_list.append(fig.add_subplot(gs0[0]))
@@ -1007,12 +1012,26 @@ def plot_energy_runtime_fixedload_percpu_micro():
 	ax1_list = []
 	ax1_list.append(fig.add_subplot(gs1[0]))
 	ax1_list.append(fig.add_subplot(gs1[1]))
+	'''
+	gs0 = mpl.gridspec.GridSpec(1, 1, top = 0.70, bottom = .10, left = .10, right = .35)
+	ax0_list = []
+	ax0_list.append(fig.add_subplot(gs0[0]))
+	gs1 = mpl.gridspec.GridSpec(1, 1, top = 0.70, bottom = .10, left = .42, right = .67)
+	ax1_list = []
+	ax1_list.append(fig.add_subplot(gs1[0]))
+	gs2 = mpl.gridspec.GridSpec(1, 1, top = 0.70, bottom = .10, left = .74, right = .99)
+	ax2_list = []
+	ax2_list.append(fig.add_subplot(gs2[0]))
 
-	ax_list_list = [ax1_list, ax0_list]
+	ax_list_list = [ax2_list, ax1_list, ax0_list]
 
-	color_list = ["red", "blue", "green", "orange", "brown"]
-	linestyle_list = ["solid", "dotted", "dashed", "dashdot"]
-	annotate_list = ["", "30", "40", "", "60", "", "80", "", "100"]
+	#color_list = ["red", "blue", "green", "orange", "brown"]
+	color_list = ["red", "blue", "red", "blue", "red", "blue", "green", "orange"]
+	#linestyle_list = ["solid", "dotted", "dashed", "dashdot"]
+	linestyle_list = ["solid", "dotted", "solid", "dotted", "solid", "dotted", "dashed", "dashdot"]
+	y_list = [2, 2, 1, 1, 0, 0, 0, 0]
+
+	annotate_list = ["", "", "20", "30", "40", "", "60", "", "80", "", "100"]
 	handle_list = []
 
 	readtraces = False
@@ -1027,39 +1046,49 @@ def plot_energy_runtime_fixedload_percpu_micro():
 		plotdata_file = open(datapath + plotfilename + ".txt", "r")
 	#end_if
 
-	for y, cputype in zip(range(2), cputype_list):
-		for cpucount, color, linestyle in zip(range(1, 5), color_list, linestyle_list):
-			# For baseline workload (0 CPUs), set cputype = 0
-			if (cpucount == 0):
-				cputype_adj = "00"
-			else:
-				cputype_adj = cputype
-			#end_if
-			for governor, annotate, i in zip(governor_list, annotate_list, range(0, 9)):
+	#for y, cputype in zip(y_list, cputype_list):
+	for y, cputype, cpucount, color, linestyle in zip(y_list, cputype_list, cpucount_list, color_list, linestyle_list):
+			###for cpucount, color, linestyle in zip(range(1, 5), color_list, linestyle_list):
+			for governor, annotate, i in zip(governor_list, annotate_list, range(0, 11)):
 				if (readtraces == True):
 					benchtime_list = []
 					cycles_list = []
 					energy_list = []
-					for run in range(0, 5):
-						filename = path + benchtimeprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".gz"
-						print(filename)
-						benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
-						benchtime_list.append(benchtime)
-						cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
-						filename = path + energyprefix + cputype_adj + "-" + str(cpucount) + "_" + governor + "_1_" + str(run) + ".csv"
-						if (plotfilename == "graph_u_varylen_multicore"):
-							energy = get_energy(filename, 5.0, benchtime + 10.0)
-						else:
-							energy = get_energy(filename, 5.0, 75.0)
-						#end_if
-						energy_list.append(energy)
-						print("%f  %f" % (benchtime, energy))
-					#end_for
-					benchtime_mean, benchtime_err = mean_margin(benchtime_list)
-					energy_mean, energy_err = mean_margin(energy_list)
-
+					# Skip runs for mid and big CPU clusters for CPU counts > 2 (only 2 exist for mid/big):
+					if ((cpucount > 2) and (cputype[0] != "0")):
+							benchtime_mean = -2
+							benchtime_err = -2
+							energy_mean = -2
+							energy_err = -2
+					# Skip 20% workloads for little CPU cluster:
+					elif ((governor == "userspace_20-20") and (cputype[0] == "0")):
+							benchtime_mean = -1
+							benchtime_err = -1
+							energy_mean = -1
+							energy_err = -1
+					else:
+						for run in range(1, 2):
+							filename = path + benchtimeprefix + cputype + "_" + governor + "_" + str(run) + ".gz"
+							print(filename)
+							benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
+							benchtime_list.append(benchtime)
+							cycles_list.append(float(cycles) / (1000 * 1000 * 1000))
+							filename = path + energyprefix + cputype + "_" + governor + "_" + str(run) + ".csv"
+							if (plotfilename == "graph_u_varylen_multicore"):
+								energy = get_energy(filename, 5.0, benchtime + 10.0)
+							else:
+								energy = get_energy(filename, 5.0, runlength)
+							#end_if
+							energy_list.append(energy)
+							print("%f  %f" % (benchtime, energy))
+						#end_for
+						benchtime_mean, benchtime_err = mean_margin(benchtime_list)
+						energy_mean, energy_err = mean_margin(energy_list)
+					#end_if
 					outputline = str(benchtime_mean) + "," + str(benchtime_err) + "," + str(energy_mean) + "," + str(energy_err) + "\n"
 					plotdata_file.write(outputline)
+					print("cputype %s cpucount %d governor %s" % (cputype, cpucount, governor))
+					print(outputline)
 				else:
 					inputline = plotdata_file.readline()
 					inputline_list = inputline.split(",")
@@ -1068,15 +1097,26 @@ def plot_energy_runtime_fixedload_percpu_micro():
 					benchtime_err = float(inputline_list[1])
 					energy_mean = float(inputline_list[2])
 					energy_err = float(inputline_list[3])
+					print("cputype %s cpucount %d governor %s" % (cputype, cpucount, governor))
+					print(inputline)
 				#end_if
 
-				for x in range(2):
-					if (i == 0):
+				# Skip plots for 3 and 4 CPU runs for mid/big clusters (don't exist):
+				if (benchtime_mean == -2):
+					continue
+				#end_if
+				for x in range(1):
+					# Skip 20% plot for little core cpus:
+					if (benchtime_mean == -1):
+						break
+					elif (i == 0):
 						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 70, color = color, marker = "s")
+					elif (i == 1):
+						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 70, color = color, marker = "D")
 					else:
 						ax_list_list[y][x].scatter(benchtime_mean, energy_mean, s = 30, color = color)
 					#end_if
-					if (i >= 2):
+					if ((i >= 3) and (benchtime_prev != -1)):
 						ax_list_list[y][x].plot([benchtime_prev, benchtime_mean], [energy_prev, energy_mean], color = color, linestyle = linestyle)
 					#end_if
 					ax_list_list[y][x].errorbar(benchtime_mean, energy_mean, xerr = benchtime_err, yerr = energy_err, color = color)
@@ -1091,14 +1131,15 @@ def plot_energy_runtime_fixedload_percpu_micro():
 				handle_list.append(Line2D([], [], marker = "s", color = color, linestyle = linestyle, label = str(cpucount) + " CPUs"))
 			#end_if
 
-		#end_for
+			#####end_for
 	#end_for
 
 	plotdata_file.close()
-
-	handle_list.append(Line2D([], [], marker = "s", markersize = 7, color = "0.0", linewidth = 0, label = "Default"))
+	#'''
+	handle_list.append(Line2D([], [], marker = "s", markersize = 7, color = "0.0", linewidth = 0, label = "Old Default"))
+	handle_list.append(Line2D([], [], marker = "D", markersize = 7, color = "0.0", linewidth = 0, label = "New Default"))
 	handle_list.append(Line2D([], [], marker = "o", markersize = 5, color = "0.0", linewidth = 0, label = "Fixed Speed"))
-
+	'''
 	ax_list_list[0][0].set_xlim(0, 1)
 	ax_list_list[0][1].set_xlim(7, 23)
 	ax_list_list[1][0].set_xlim(0, 5)
@@ -1110,27 +1151,29 @@ def plot_energy_runtime_fixedload_percpu_micro():
 
 	broken_axes_lr(ax_list_list[0][0], ax_list_list[0][1])
 	broken_axes_lr(ax_list_list[1][0], ax_list_list[1][1])
+	'''
 
+	fig.text(x = .87, y = .72, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
 	ax_list_list[0][0].tick_params(labelsize = 16)
-	fig.text(x = .78, y = .95, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
-	fig.text(x = .78, y = .02, ha = "center", s = "Runtime (s)", fontweight = "bold", fontsize = 16)
+	#ax_list_list[0][0].set_yticklabels([])
 
-	ax_list_list[0][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
-	ax_list_list[0][1].tick_params(labelsize = 16)
-
+	fig.text(x = .55, y = .72, ha = "center", s = "Mid CPUs", fontweight = "bold", fontsize = 16)
 	ax_list_list[1][0].tick_params(labelsize = 16)
-	fig.text(x = .28, y = .95, ha = "center", s = "Little CPUs", fontweight = "bold", fontsize = 16)
-	fig.text(x = .28, y = .02, ha = "center", s = "Runtime (s)", fontweight = "bold", fontsize = 16)
+	#ax_list_list[1][0].set_yticklabels([])
 
-	ax_list_list[1][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
-	ax_list_list[1][1].tick_params(labelsize = 16)
+	fig.text(x = .23, y = .72, ha = "center", s = "Big CPUs", fontweight = "bold", fontsize = 16)
+	ax_list_list[2][0].set_ylabel("Energy ($uAh$)", fontsize = 16, fontweight = "bold")
+	ax_list_list[2][0].tick_params(labelsize = 16)
+
+	fig.text(x = .48, y = .90, ha = "center", s = "Runtime and Energy for Different Policies (saturated runs, no delay)", fontweight = "bold", fontsize = 16)
+	fig.text(x = .50, y = .02, ha = "center", s = "Runtime (s)", fontweight = "bold", fontsize = 16)
 
 	if (plotfilename == "graph_u_varylen_multicore"):
-		fig.legend(handles = handle_list, loc = (.67, .69), fontsize = 16, ncol = 2)
+		fig.legend(handles = handle_list, loc = (.67, .69), fontsize = 16, ncol = 4)
 	else:
-		fig.legend(handles = handle_list, loc = (.11, .18), fontsize = 16, ncol = 2)
+		fig.legend(handles = handle_list, loc = (.15, .77), fontsize = 16, ncol = 4)
 	#end_if
-
+	#'''
 	plt.show()
 	fig.savefig(graphpath + plotfilename + ".pdf")
 
@@ -3834,7 +3877,7 @@ def quick():
 
 #main()
 #quick()
-#plot_energy_runtime_fixedload_percpu_micro()
+plot_energy_runtime_fixedload_percpu_micro()
 #plot_energy_runtime_fixedload_varycpu_micro()
 #plot_time_perspeed_fb()
 #plot_time_perspeed_yt()
@@ -3853,5 +3896,5 @@ def quick():
 #plot_nonidletime_spot()
 #plot_energy_jank_all()
 #plot_energy_perspeed_fb()
-plot_energy_monotone()
+#plot_energy_monotone()
 
