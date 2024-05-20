@@ -76,79 +76,19 @@ def get_energy(file_name):
 		# Sanity
 		if ((volts < 3.9) or (volts > 4.1)):
 			print("Error:  Unexpected voltage")
-
 			print(file_name)
 			print(iteration)
-
-			sys.exit(1)
+			sys.exit(2)
 		#end_if
-
-		'''
-		amps_total += amps
-
-		bucketitercount += 1
-		bucketamps += amps
-		if (bucketitercount == bucketitertotal):
-			if (bucketamps > bucketmax):
-				bucketmax = bucketamps
-			#end_if
-			bucketamps_list.append(bucketamps)
-			bucketitercount = 0
-			bucketamps = 0
-		#end_if
-		'''
 
 	#end_while
 
 	input_file.close()
 
-	'''
-	secondspertick = 10
-	bucketcount = len(bucketamps_list)
-	seconds = int(bucketcount / (5000.0 / bucketitertotal))
-	xtick_list = np.arange(0, bucketcount, (5000.0 * secondspertick) / bucketitertotal)
-	xlabel_list = []
-	for e in range(len(xtick_list)):
-		xlabel_list.append(str(int(e * secondspertick)))
-	#end_for
-
-	print(xlabel_list)
-	print(len(xtick_list))
-	print(seconds)
-	print(bucketcount)
-	print(bucketitercount)
-	print(bucketmax)
-
-	mampspertick = 100
-	ytick_list = np.arange(0, bucketmax * 1.1, (bucketitertotal * mampspertick))
-	ylabel_list = []
-	for e in range(len(ytick_list)):
-		ylabel_list.append(str(int(e * mampspertick)))
-	#end_for
-
-	#return amps_total / (3600.0 * 5.0)
-	#return bucketamps_list
-
-	fig, ax = plt.subplots()
-
-	#ax.axis([0, bucketcount, 0, bucketmax * 1.1])
-	ax.set_xticks(xtick_list)
-	ax.set_xticklabels(xlabel_list)
-	ax.set_xlabel("Time, seconds", fontsize = 12, fontweight = "bold")
-	ax.set_yticks(ytick_list)
-	ax.set_yticklabels(ylabel_list)
-	ax.set_ylabel("Current, mA", fontsize = 12, fontweight = "bold")
-
-	# N.b. this is mA, NOT uA or mAh or uAh -- this is current, not power
-
-	print(bucketcount)
-	print(bucketmax)
-	#ax.axis([0, 700, 0, 350000])
-
-	ax.plot(bucketamps_list)
-
-	plt.show()
-	'''
+	if (iteration < 100000):
+		print("Error:  Unexpected linecount")
+		sys.exit(3)
+	#end_if
 
 	return
 
