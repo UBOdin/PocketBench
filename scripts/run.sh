@@ -120,20 +120,18 @@ adb pull /data/trace.log
 mv trace.log logs/$filename
 gzip logs/$filename -f
 if [ "$meter" = "1" ]; then
-	sudo mv /home/carlnues/win_mount/monsoon_${filesuffix}.* logs/
+	scripts/mvfile.exe ${filesuffix}  # suid binary -- need root to move / chown files
 	result=$?
 	if [ "$result" != "0" ]; then
-		echo "Error on transfering energyfile"
+		echo "Error on transfering energyfile:  ${result}"
 		exit 1
 	fi
-	sudo chown 1000:1000 logs/monsoon_${filesuffix}.*
-	chmod 644 logs/monsoon_${filesuffix}.*
 	python3.7 scripts/sanity_monsoon.py logs/monsoon_${filesuffix}.csv
 	result=$?
 	if [ "$result" != "0" ]; then
 		echo "Error on energyfile sanitycheck"
 		sanitytime=$(date)
-		echo "Flunked energy sanitycheck on monsoon_${filesuffix}.csv on ${sanitytime}" >> energysanity.txt
+		echo "Flunked energy sanitycheck ${result} on monsoon_${filesuffix}.csv on ${sanitytime}" >> energysanity.txt
 		exit 199  # Special retval => rerun test
 	fi
 fi
