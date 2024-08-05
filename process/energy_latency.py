@@ -968,8 +968,10 @@ def main():
 
 
 # Plots energy and runtime per policy for microbenchmark
-# Tracefiles:  .../20221216/u_curve_vary_time and .../20230102/u_curve_fixed_time
-# Summary post-processed data file(s):  graph_u_varylen_multicore.txt and graph_u_fixedlen_multicore.txt
+# Pixel 2 Tracefiles:  .../20221216/u_curve_vary_time and .../20230102/u_curve_fixed_time
+# Pixel 7 Tracefiles:  .../20240520/micro_u_fixedload_fixedcpu_0ms_p7/ and .../20240529/micro_u_fixedload_fixedcpu_5ms_p7/
+# Summary post-processed Pixel 2 data files:  graph_u_varylen_multicore.txt and graph_u_fixedlen_multicore_p2_0ms.txt
+# Summary post-processed Pixel 7 data files:  graph_u_fixedlen_multicore_p7_0ms.txt and graph_u_fixedlen_multicore_p7_5ms.txt
 def plot_energy_runtime_fixedload_percpu_micro():
 
 	benchtime = 0
@@ -987,8 +989,10 @@ def plot_energy_runtime_fixedload_percpu_micro():
 	energy_mean = 0
 	energy_err = 0
 
-	benchtimeprefix = "/micro_2000-0-"
-	energyprefix = "/monsoon_2000-0-"
+	delay = "0"  # or "5"...
+
+	benchtimeprefix = "/micro_2000-" + delay + "-"
+	energyprefix = "/monsoon_2000-" + delay + "-"
 
 	#cputype_list = ["80", "20", "08"]
 	cputype_list = ["80", "c0", "20", "30", "08", "0c", "0e", "0f"]
@@ -1036,7 +1040,7 @@ def plot_energy_runtime_fixedload_percpu_micro():
 
 	readtraces = False
 	#plotfilename = "graph_u_varylen_multicore"
-	plotfilename = "graph_u_fixedlen_multicore"
+	plotfilename = "graph_u_fixedlen_multicore_p7_" + delay + "ms"
 	outputline = ""
 	inputline = ""
 	inputline_list = []
