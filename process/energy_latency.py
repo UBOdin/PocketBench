@@ -994,7 +994,7 @@ def plot_energy_runtime_fixedload_percpu_micro():
 	cputype_list = ["80", "c0", "20", "30", "08", "0c", "0e", "0f"]
 	cpucount_list = [1, 2, 1, 2, 1, 2, 3, 4]
 	governor_list = ["schedutil_def-def", "sched_pixel_def-def", "userspace_20-20", "userspace_30-30", "userspace_40-40", "userspace_50-50", "userspace_60-60", "userspace_70-70", "userspace_80-80", "userspace_90-90", "performance_def-def"]
-	runlength = 75.0
+	runlength = 85.0
 
 	path = sys.argv[1]
 
@@ -1067,7 +1067,7 @@ def plot_energy_runtime_fixedload_percpu_micro():
 							energy_mean = -1
 							energy_err = -1
 					else:
-						for run in range(1, 2):
+						for run in range(0, 5):
 							filename = path + benchtimeprefix + cputype + "_" + governor + "_" + str(run) + ".gz"
 							print(filename)
 							benchtime, _, _, cycles, _, _, _, _, _ = process_loglines(filename)
@@ -1166,6 +1166,7 @@ def plot_energy_runtime_fixedload_percpu_micro():
 	ax_list_list[2][0].tick_params(labelsize = 16)
 
 	fig.text(x = .48, y = .90, ha = "center", s = "Runtime and Energy for Different Policies (saturated runs, no delay)", fontweight = "bold", fontsize = 16)
+	#fig.text(x = .48, y = .90, ha = "center", s = "Runtime and Energy for Different Policies (intermittent runs, 5ms delay)", fontweight = "bold", fontsize = 16)
 	fig.text(x = .50, y = .02, ha = "center", s = "Runtime (s)", fontweight = "bold", fontsize = 16)
 
 	if (plotfilename == "graph_u_varylen_multicore"):
